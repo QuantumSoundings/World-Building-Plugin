@@ -23,6 +23,7 @@
 	},
 	"dependencies": {
 		"csv-parse": "^5.5.3",
-		"obsidian-dataview": "^0.5.64"
+		"obsidian-dataview": "^0.5.64",
+		"yaml": "^2.3.4"
 	}
 }
