@@ -4,6 +4,7 @@ import { SettlementAPI } from './api/settlementApi';
 import { PopulationAPI } from './api/popluationApi';
 import { UnitConversionAPI } from './api/unitConversionApi';
 import { YAMLManager } from './dataManagers/yamlManager';
+import { PSDManager } from './dataManagers/psdManager';
 
 // Remember to rename these classes and interfaces!
 
@@ -27,6 +28,7 @@ export default class WorldBuildingPlugin extends Plugin {
 	// Data Managers
 	csvManager: CSVManager;
 	yamlManager: YAMLManager;
+	psdManager: PSDManager;
 	// APIs provided to other plugins
 	private settlementAPI: SettlementAPI;
 	private populationAPI: PopulationAPI;
@@ -37,6 +39,7 @@ export default class WorldBuildingPlugin extends Plugin {
 		this.adapter = this.app.vault.adapter as FileSystemAdapter;
 		this.csvManager = new CSVManager(this);
 		this.yamlManager = new YAMLManager(this);
+		this.psdManager = new PSDManager(this);
 		this.settlementAPI = new SettlementAPI(this);
 		this.populationAPI = new PopulationAPI(this);
 		this.unitConversionAPI = new UnitConversionAPI(this);
@@ -45,6 +48,7 @@ export default class WorldBuildingPlugin extends Plugin {
 		await this.loadSettings();
 		await this.csvManager.load();
 		await this.yamlManager.load();
+		await this.psdManager.load();
 
 		this.refreshAPIs();
 
