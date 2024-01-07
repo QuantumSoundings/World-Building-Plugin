@@ -1,7 +1,7 @@
 import { App, FileSystemAdapter, Modal, Plugin, PluginSettingTab, Setting} from 'obsidian';
 import { CSVManager } from './dataManagers/csvManager';
 import { SettlementAPI } from './api/settlementApi';
-import { PopulationAPI } from './api/popluationApi';
+import { PopulationAPI } from './api/populationApi';
 import { UnitConversionAPI } from './api/unitConversionApi';
 import { YAMLManager } from './dataManagers/yamlManager';
 import { PSDManager } from './dataManagers/psdManager';

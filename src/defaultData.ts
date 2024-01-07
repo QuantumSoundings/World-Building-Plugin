@@ -1,4 +1,4 @@
-import { PopulationDensity } from "./api/popluationApi";
+import { PopulationDensity } from "./api/populationApi";
 import { SettlementType } from "./api/settlementApi";
 import { Unit } from "./api/unitConversionApi";
 
@@ -24,20 +24,20 @@ export const defaultSettlementData: SettlementType[] = [
 
 export const defaultUnitConversionData: Unit[] = [
   {
-    "name": "feet",
-    "symbol": "ft",
-    "conversionFactors": [
+    name: "feet",
+    symbol: "ft",
+    conversionFactors: [
       {
-        "toUnit": "mile",
-        "factor": 0.00018939393939394
+        toUnit: "mile",
+        factor: 0.00018939393939394
       },
       {
-        "toUnit": "meter",
-        "factor": 0.3048
+        toUnit: "meter",
+        factor: 0.3048
       },
       {
-        "toUnit": "kilometer",
-        "factor": 0.0003048
+        toUnit: "kilometer",
+        factor: 0.0003048
       }
     ]
   },
