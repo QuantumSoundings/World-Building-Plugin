@@ -1,12 +1,13 @@
+import { defaultSettlementData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
 import { generateGaussianValue } from "src/util";
 
-class SettlementData{
+export class SettlementType{
     type: string;
     description: string;
-    distribution_type: string;
-    min_population: number;
-    max_population: number;
+    distributionType: string;
+    minPopulation: number;
+    maxPopulation: number;
 }
 
 export class Settlement {
@@ -18,32 +19,47 @@ export class Settlement {
 
 export class SettlementAPI {
     plugin: WorldBuildingPlugin;
-    data: SettlementData[];
+    data: SettlementType[];
 
     constructor(plugin: WorldBuildingPlugin) {
         this.plugin = plugin;
+        this.data = [];
+    }
+
+    private loadDefaultData() {
+        this.data = JSON.parse(JSON.stringify(defaultSettlementData));
     }
 
     reloadData() {
-        this.data = [];
-        const csvData = this.plugin.csvManager.getCSVData(this.plugin.settings.settlementData);
-        console.log(csvData);
-        for (let i = 1; i < csvData.length; i++) {
-            const settlement = new SettlementData();
-            settlement.type = csvData[i][0];
-            settlement.description = csvData[i][1];
-            settlement.distribution_type = csvData[i][2];
-            settlement.min_population = Number(csvData[i][3]);
-            settlement.max_population = Number(csvData[i][4]);
-            this.data.push(settlement);
+        if (this.plugin.settings.settlementData !== '') {
+            this.data = [];
+            const data = this.plugin.csvManager.getCSVData(this.plugin.settings.settlementData);
+            if (data === undefined) {
+                console.error("Could not load settlement data.");
+                this.loadDefaultData();
+                return;
+            }
+            console.log("Loading settlement data from " + this.plugin.settings.settlementData + ".");
+            for (let i = 1; i < data.length; i++) {
+                const settlement = new SettlementType();
+                settlement.type = data[i][0];
+                settlement.description = data[i][1];
+                settlement.distributionType = data[i][2];
+                settlement.minPopulation = Number(data[i][3]);
+                settlement.maxPopulation = Number(data[i][4]);
+                this.data.push(settlement);
+            }
+        }
+        else {
+            this.loadDefaultData();
         }
     }
 
-    getRawData(): SettlementData[] {
+    getRawData(): SettlementType[] {
         return this.data;
     }
-    
-    findSettlementDataByType(type: string): SettlementData | undefined {
+
+    findSettlementDataByType(type: string): SettlementType | undefined {
         return this.data.find(settlement => settlement.type === type);
     }
 
@@ -60,9 +76,9 @@ export class SettlementAPI {
         return settlement;
     }
 
-    private generatePopulation(settlementData: SettlementData): number {
-        switch (settlementData.distribution_type) {
-            case 'gaussian': return generateGaussianValue(settlementData.min_population, settlementData.max_population, 1.0)
+    private generatePopulation(settlementData: SettlementType): number {
+        switch (settlementData.distributionType) {
+            case 'gaussian': return generateGaussianValue(settlementData.minPopulation, settlementData.maxPopulation, 1.0)
             default:
                 return NaN;
         }

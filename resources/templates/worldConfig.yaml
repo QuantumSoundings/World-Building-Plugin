@@ -1,0 +1,15 @@
+# The geometry of the world, sphere for planets, cylinder for artificial habitats.
+# Important for map projects.
+geometry: sphere
+# Defines the unit for calculations
+unit: mile
+# Radius of the world, Earth = 3958.1 mi
+radius: 3958.1
+
+# Time
+# In the format HH-MM-SS
+day_length: 24-00-00
+# In the format DDDD-HH-MM-SS
+year_length: 0365-00-00-00
+# In the format YYYYY-DDDD
+current_time: 4000-0001

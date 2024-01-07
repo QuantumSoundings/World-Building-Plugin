@@ -1,57 +1,84 @@
+import { defaultUnitConversionData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
 
-class ConversionFactorData {
+export class ConversionFactor {
     toUnit: string;
     factor: number;
 }
 
-class UnitData {
+export class Unit {
     name: string;
     symbol: string;
-    conversionFactors: Map<string, ConversionFactorData>;
+    conversionFactors: ConversionFactor[];
 }
 
 export class UnitConversionAPI {
     plugin: WorldBuildingPlugin;
-    // Map of unit name to unit data
-    unitMap: Map<string, UnitData>;
+    data: Unit[];
 
     constructor(plugin: WorldBuildingPlugin) {
         this.plugin = plugin;
-        this.unitMap = new Map<string, UnitData>();
+        this.data = [];
+    }
+
+    private loadDefaultData() {
+        this.data = JSON.parse(JSON.stringify(defaultUnitConversionData));
     }
 
     reloadData() {
-        this.unitMap.clear();
-        const yamlData = this.plugin.yamlManager.getYAMLData(this.plugin.settings.unitConversionData);
-        console.log(yamlData);
-        for (const unit of yamlData) {
-            const unitData = new UnitData();
-            unitData.name = unit.name;
-            unitData.symbol = unit.symbol;
-            unitData.conversionFactors = new Map<string, ConversionFactorData>();
-            for (const conversion of unit.conversion_factors) {
-                const conversionData = new ConversionFactorData();
-                conversionData.toUnit = conversion.toUnit;
-                conversionData.factor = conversion.factor;
-                unitData.conversionFactors.set(conversion.toUnit, conversionData);
+        if (this.plugin.settings.unitConversionData !== '') {
+            this.data = [];
+            console.log("Loading unit conversion data from " + this.plugin.settings.unitConversionData + ".");
+            const unitConversionData = this.plugin.yamlManager.getYAMLData(this.plugin.settings.unitConversionData);
+            if (unitConversionData === undefined) {
+                console.error("Could not load unit conversion data.");
+                this.loadDefaultData();
+                return;
             }
-            this.unitMap.set(unit.name, unitData);
-        }   
+            for (const unitData of unitConversionData) {
+                const unit = new Unit();
+                unit.name = unitData.name;
+                unit.symbol = unitData.symbol;
+                unit.conversionFactors = [];
+                for (const conversionFactorData of unitData.conversionFactors) {
+                    const conversionFactor = new ConversionFactor();
+                    conversionFactor.toUnit = conversionFactorData.toUnit;
+                    conversionFactor.factor = conversionFactorData.factor;
+                    unit.conversionFactors.push(conversionFactor);
+                }
+                this.data.push(unitData);
+            }
+        }
+        else {
+            this.loadDefaultData();
+        }
+    }
+
+    getRawData(): Unit[] {
+        return this.data;
     }
 
     convertUnit(value: number, fromUnit: string, toUnit: string): number | undefined{
-        const fromUnitData = this.unitMap.get(fromUnit);
+        const fromUnitData = this.data.find(unit => unit.name === fromUnit);
         if (fromUnitData === undefined) {
             console.error('Could not find unit data for unit: ' + fromUnit);
             return undefined;
         }
-        const conversionFactor = fromUnitData.conversionFactors.get(toUnit);
+        const conversionFactor = fromUnitData.conversionFactors.find(factor => factor.toUnit === toUnit);
         if (conversionFactor === undefined) {
             console.error('Could not find conversion unit: ' + toUnit);
             return undefined;
         }
         return value * conversionFactor.factor;
+    }
+
+    getSymbolForUnit(unitName: string): string | undefined {
+        const unitData = this.data.find(unit => unit.name === unitName);
+        if (unitData === undefined) {
+            console.error('Could not find unit data for unit: ' + unitName);
+            return undefined;
+        }
+        return unitData.symbol;
     }
 
 }

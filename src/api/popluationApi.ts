@@ -1,43 +1,63 @@
+import { defaultPopulationDensityData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
 
-class PopulationDensityData {
+export class PopulationDensity {
     descriptor: string;
-    min_population: number;
-    max_population: number;
+    minPopulation: number;
+    maxPopulation: number;
     areaUnit: string;
 }
 
 export class PopulationAPI {
     plugin: WorldBuildingPlugin;
-    populationDensityData: PopulationDensityData[];
+    data: PopulationDensity[];
 
     constructor(plugin: WorldBuildingPlugin) {
         this.plugin = plugin;
+        this.data = [];
+    }
+
+    private loadDefaultData() {
+        this.data = JSON.parse(JSON.stringify(defaultPopulationDensityData));
     }
 
     reloadData() {
-        this.populationDensityData = [];
-        const csvData = this.plugin.csvManager.getCSVData(this.plugin.settings.populationDensityData);
-        console.log(csvData);
-        for (let i = 1; i < csvData.length; i++) {
-            const populationDensity = new PopulationDensityData();
-            populationDensity.descriptor = csvData[i][0];
-            populationDensity.min_population = Number(csvData[i][1]);
-            populationDensity.max_population = Number(csvData[i][2]);
-            populationDensity.areaUnit = csvData[i][3];
-            this.populationDensityData.push(populationDensity);
+        if (this.plugin.settings.populationDensityData !== '') {
+            this.data = [];
+            const populationDensityData = this.plugin.csvManager.getCSVData(this.plugin.settings.populationDensityData);
+            if (populationDensityData === undefined) {
+                console.error("Could not load population data.");
+                this.loadDefaultData();
+                return;
+            }
+            console.log("Loading population data from " + this.plugin.settings.populationDensityData + ".");
+            for (let i = 1; i < populationDensityData.length; i++) {
+                const populationDensity = new PopulationDensity();
+                populationDensity.descriptor = populationDensityData[i][0];
+                populationDensity.minPopulation = Number(populationDensityData[i][1]);
+                populationDensity.maxPopulation = Number(populationDensityData[i][2]);
+                populationDensity.areaUnit = populationDensityData[i][3];
+                this.data.push(populationDensity);
+            }
         }
+        else {
+            this.loadDefaultData();
+        }
+    }
+
+    getRawData(): PopulationDensity[] {
+        return this.data;
     }
 
     getDescriptorForPopulation(populationDensity: number, areaUnit: string) {
         const unitConversionAPI = this.plugin.getUnitConversionAPI();
-        for (const density of this.populationDensityData)
+        for (const density of this.data)
         {
-            let min = density.min_population;
-            let max = density.max_population;
+            let min = density.minPopulation;
+            let max = density.maxPopulation;
             if (density.areaUnit !== areaUnit) {
-                const convertedMin = unitConversionAPI.convertUnit(density.min_population, density.areaUnit, areaUnit);
-                const convertedMax = unitConversionAPI.convertUnit(density.max_population, density.areaUnit, areaUnit);
+                const convertedMin = unitConversionAPI.convertUnit(density.minPopulation, density.areaUnit, areaUnit);
+                const convertedMax = unitConversionAPI.convertUnit(density.maxPopulation, density.areaUnit, areaUnit);
                 if (min === undefined) {
                     console.error('Could not convert population density from ' + density.areaUnit + ' to ' + areaUnit);
                     continue;
@@ -55,8 +75,6 @@ export class PopulationAPI {
             if (populationDensity >= min && populationDensity < max) {
                 return density.descriptor;
             }
-
         }
     }
-
 }

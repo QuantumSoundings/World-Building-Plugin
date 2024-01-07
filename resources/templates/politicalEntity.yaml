@@ -1,0 +1,48 @@
+# Represents an independent political entity, a sovereign state, nation, group, etc.
+name: EntityName
+
+geography:
+  size: 0
+  units: mile^2
+  # Average land fertility. How many people can be supported per square unit of land.
+  # Affected by technology, climate, and other factors.
+  # 180 is a good starting value, but can range from 20 to 400+.
+  land_fertility: 180.0
+  # How the territory is organized. List of territory types.
+  organization:
+    # If the territory organization is hierarchical or flat.
+    type: Hierarchical
+    territories:
+      - type: Province
+        average_size: 13000
+        average_population:
+        # Size or population can be used to approximate the number of territories.
+        generation_method: Size
+        parent: None
+
+
+  # How the settlements are distributed. List of settlement types and their portion of the population.
+  # Settlement types are defined in the settlement_types.csv dataset.
+  settlements:
+    - SettlementType: Type
+      population_percentage: 0.0
+
+# The population demographics of the entity.
+demographics:
+  # Average age of death. US average is 78.6 years.
+  life_expectancy: 55
+  # Percentage increase per year. [0, 100]
+  population_growth_rate: 1.1
+
+# Cultural Origin of the entity. Used to generate names.
+cultural_origin: English
+
+species:
+  - name:
+    population_percentage: 0.0
+
+languages:
+  - name:
+    population_percentage: 0.0
+
+version: 0.0.1

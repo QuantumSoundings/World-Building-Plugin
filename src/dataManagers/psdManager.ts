@@ -29,7 +29,6 @@ export class PSDManager {
     }
 
     public async load() {
-        console.log('Loading PSD Manager');
         await this.reloadAndCachePSDFiles();
         this.configureReloadEvents();
         await this.gatherAndWriteStatistics();
@@ -42,6 +41,40 @@ export class PSDManager {
     public async unload() {
         this.invalidateCache();
     }
+
+    private invalidateCache() {
+        this.psdFileCache.clear();
+        this.mapDataCache.clear();
+    }
+
+    public getPSDData(fileName: string): Psd | undefined {
+        const data = this.psdFileCache.get(fileName);
+        if (data === undefined) {
+            console.error("Cache did not contain this file.");
+            return undefined;
+        }
+        return data;
+    }
+
+    private async reloadAndCachePSDFiles() {
+        this.invalidateCache();
+        console.log("Loading all PSD files in vault.");
+        const allFiles = this.plugin.app.vault.getAllLoadedFiles();
+        let loadedFiles = 0;
+        for (const file of allFiles) {
+            if (file.name.endsWith('.psd')) {
+                const binaryFile = await this.plugin.adapter.readBinary(file.path);
+                const psdFile: Psd = Psd.parse(binaryFile);
+                this.psdFileCache.set(file.name, psdFile);
+                loadedFiles = loadedFiles + 1;
+            }
+            else {
+                continue;
+            }
+        }
+
+        console.info('Found and cached ' + loadedFiles + ' PSD files.');
+	}
 
     public async gatherAndWriteStatistics() {
         for (const [fileName, psdFile] of this.psdFileCache) {
@@ -66,9 +99,8 @@ export class PSDManager {
                 }
             }
         }
-        console.log(this.mapDataCache);
+        console.log('Found and cached ' + this.mapDataCache.size + ' maps with political data.');
     }
-
 
     private countPixels(pixels: Uint8ClampedArray): number {
         let count = 0;
@@ -80,46 +112,11 @@ export class PSDManager {
         return count;
     }
 
-    private invalidateCache() {
-        this.psdFileCache.clear();
-    }
-
-    //public getPSDData(fileName: string): Psd {
-    //    const data = this.psdFileCache.get(fileName);
-    //    if (data === undefined) {
-    //        console.log("Cache did not contain this file.");
-    //        return ;
-    //    }
-    //    return data;
-    //}
-
-    private async reloadAndCachePSDFiles() {
-        this.invalidateCache();
-        const allFiles = this.plugin.app.vault.getAllLoadedFiles();
-        let loadedFiles = 0;
-        for (const file of allFiles) {
-            if (file.name.endsWith('.psd')) {
-                const binaryFile = await this.plugin.adapter.readBinary(file.path);
-                const psdFile: Psd = Psd.parse(binaryFile);
-                console.log('Found PSD file: ' + file.name);
-                console.log(psdFile);
-                this.psdFileCache.set(file.name, psdFile);
-                loadedFiles = loadedFiles + 1;
-            } 
-            else {
-                continue; 
-            }
-        }
-
-        console.info('Found and cached ' + loadedFiles + ' PSD files.');
-	}
-
     private configureReloadEvents() {
         const reloadFunction = async (file: TAbstractFile) => {
 			if (file.path.endsWith('.psd')) {
 				await this.reloadAndCachePSDFiles();
                 this.plugin.refreshAPIs();
-				console.log('PSD Files reloaded.');
 			}
 		}
 		this.plugin.registerEvent(this.plugin.app.vault.on('create', reloadFunction));

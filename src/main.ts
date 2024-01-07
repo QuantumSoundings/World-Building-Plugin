@@ -17,9 +17,9 @@ interface WorldBuildingPluginSettings {
 
 const DEFAULT_SETTINGS: WorldBuildingPluginSettings = {
 	dataDirectory: '',
-	settlementData: 'settlement_types.csv',
-	populationDensityData: 'population_density.csv',
-	unitConversionData: 'unit_conversion_data.md'
+	settlementData: '',
+	populationDensityData: '',
+	unitConversionData: ''
 }
 
 export default class WorldBuildingPlugin extends Plugin {
@@ -34,7 +34,7 @@ export default class WorldBuildingPlugin extends Plugin {
 	private populationAPI: PopulationAPI;
 	private unitConversionAPI: UnitConversionAPI;
 
-	async onload() { 
+	async onload() {
 		// Initialize all the members of the plugin
 		this.adapter = this.app.vault.adapter as FileSystemAdapter;
 		this.csvManager = new CSVManager(this);
@@ -114,8 +114,6 @@ class WorldBuildingSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	
-
 	display(): void {
 		const {containerEl} = this;
 
@@ -134,10 +132,10 @@ class WorldBuildingSettingTab extends PluginSettingTab {
 					await this.plugin.csvManager.reload();
 				})
 			);
-		
+
 		new Setting(containerEl)
 			.setName('Settlement Data File')
-			.setDesc('The settlement data file for use with the settlement API.')
+			.setDesc('This file overrides the internal settlement data.')
 			.addText(text => text
 				.setPlaceholder('Enter the file name')
 				.setValue(this.plugin.settings.settlementData)
@@ -150,7 +148,7 @@ class WorldBuildingSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Population Density Data File')
-			.setDesc('The population density data file for use with the population API.')
+			.setDesc('This file overrides the internal population density data.')
 			.addText(text => text
 				.setPlaceholder('Enter the file name')
 				.setValue(this.plugin.settings.populationDensityData)
@@ -163,7 +161,7 @@ class WorldBuildingSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Unit Conversion Data File')
-			.setDesc('The unit conversion data file for use with the unit conversion API.')
+			.setDesc('This file overrides the internal unit conversion data.')
 			.addText(text => text
 				.setPlaceholder('Enter the file name')
 				.setValue(this.plugin.settings.unitConversionData)
