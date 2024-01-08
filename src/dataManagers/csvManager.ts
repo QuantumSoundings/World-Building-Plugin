@@ -13,12 +13,12 @@ export class CSVManager {
 
     public async load() {
         await this.reloadAndCacheCSVFiles();
-        this.configureReloadEvents();
         this.configureCodeBlockProcessor();
+        this.configureReloadEvents();
     }
 
     public async reload() {
-        this.reloadAndCacheCSVFiles();
+        await this.reloadAndCacheCSVFiles();
     }
 
     public async unload() {
@@ -60,7 +60,7 @@ export class CSVManager {
     private configureReloadEvents() {
         const reloadFunction = async (file: TAbstractFile) => {
 			if (file.path.endsWith('.csv')) {
-				await this.reloadAndCacheCSVFiles();
+				await this.reload();
                 this.plugin.refreshAPIs();
 			}
 		}

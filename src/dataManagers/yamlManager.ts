@@ -17,7 +17,7 @@ export class YAMLManager {
     }
 
     public async reload() {
-        this.reloadAndCacheYAMLFiles();
+        await this.reloadAndCacheYAMLFiles();
     }
 
     public async unload() {
@@ -77,7 +77,7 @@ export class YAMLManager {
     private configureReloadEvents() {
         const reloadFunction = async (file: TAbstractFile) => {
 			if (file.path.includes(this.plugin.settings.dataDirectory)) {
-				await this.reloadAndCacheYAMLFiles();
+				await this.reload();
                 this.plugin.refreshAPIs();
 			}
 		}

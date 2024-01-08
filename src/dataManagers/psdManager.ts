@@ -1,6 +1,7 @@
 import { TAbstractFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import Psd, { Layer } from "@webtoon/psd";
+import { stringify } from "yaml";
 
 class CountryData {
     name: string;
@@ -18,11 +19,13 @@ class MapData {
 }
 
 export class PSDManager {
+    fileCache: Map<string, TAbstractFile>;
     psdFileCache: Map<string, Psd>;
     mapDataCache: Map<string, MapData>;
     plugin: WorldBuildingPlugin;
 
     constructor(plugin: WorldBuildingPlugin) {
+        this.fileCache = new Map<string, TAbstractFile>();
         this.psdFileCache = new Map<string, Psd>();
         this.mapDataCache = new Map<string, MapData>();
         this.plugin = plugin;
@@ -30,12 +33,13 @@ export class PSDManager {
 
     public async load() {
         await this.reloadAndCachePSDFiles();
-        this.configureReloadEvents();
         await this.gatherAndWriteStatistics();
+        this.configureReloadEvents();
     }
 
     public async reload() {
-        this.reloadAndCachePSDFiles();
+        await this.reloadAndCachePSDFiles();
+        await this.gatherAndWriteStatistics();
     }
 
     public async unload() {
@@ -45,6 +49,7 @@ export class PSDManager {
     private invalidateCache() {
         this.psdFileCache.clear();
         this.mapDataCache.clear();
+        this.fileCache.clear();
     }
 
     public getPSDData(fileName: string): Psd | undefined {
@@ -66,6 +71,7 @@ export class PSDManager {
                 const binaryFile = await this.plugin.adapter.readBinary(file.path);
                 const psdFile: Psd = Psd.parse(binaryFile);
                 this.psdFileCache.set(file.name, psdFile);
+                this.fileCache.set(file.name, file);
                 loadedFiles = loadedFiles + 1;
             }
             else {
@@ -100,6 +106,13 @@ export class PSDManager {
             }
         }
         console.log('Found and cached ' + this.mapDataCache.size + ' maps with political data.');
+
+        for (const [fileName, mapData] of this.mapDataCache) {
+            const content = "---\n" + stringify(mapData) + "---\n";
+            const path = this.fileCache.get(fileName)?.path.split('/').slice(0, -1).join('/');
+            const cleanName = fileName.split('.').slice(0, -1).join('.');
+            await this.plugin.adapter.write(path + '/' + cleanName + '.md', content);
+        }
     }
 
     private countPixels(pixels: Uint8ClampedArray): number {
@@ -115,7 +128,7 @@ export class PSDManager {
     private configureReloadEvents() {
         const reloadFunction = async (file: TAbstractFile) => {
 			if (file.path.endsWith('.psd')) {
-				await this.reloadAndCachePSDFiles();
+				await this.reload();
                 this.plugin.refreshAPIs();
 			}
 		}
