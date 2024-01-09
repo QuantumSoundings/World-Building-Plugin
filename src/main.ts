@@ -54,6 +54,26 @@ export default class WorldBuildingPlugin extends Plugin {
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new WorldBuildingSettingTab(this.app, this));
+
+		this.addCommand({
+			id: 'save-default-data-to-data-directory',
+			name: 'Save Default Data to Data Directory',
+			checkCallback: (checking: boolean) => {
+				// COnly show this command if the data directory is set.
+				if (this.settings.dataDirectory !== '') {
+					// Checking is true when the command is being registered, and false when it is being called.
+					if (!checking) {
+						this.writeDefaultDataToDataDirectory();
+					}
+
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		});
+
 		console.log('Loaded plugin: WorldBuilding');
 	}
 
@@ -86,6 +106,12 @@ export default class WorldBuildingPlugin extends Plugin {
 
 	getUnitConversionAPI(): UnitConversionAPI {
 		return this.unitConversionAPI;
+	}
+
+	writeDefaultDataToDataDirectory() {
+		this.csvManager.writeFile(this.settings.dataDirectory, 'default_settlement_types', 'csv', this.settlementAPI.data);
+		this.csvManager.writeFile(this.settings.dataDirectory, 'default_population_density', 'csv', this.populationAPI.data);
+		this.yamlManager.writeFile(this.settings.dataDirectory, 'default_unit_conversion', 'md', this.unitConversionAPI.data);
 	}
 }
 

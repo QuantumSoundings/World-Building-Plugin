@@ -1,6 +1,6 @@
 import { TAbstractFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
-import { parse } from "yaml";
+import { parse, stringify } from "yaml";
 
 export class YAMLManager {
     yamlFileCache: Map<string, unknown[]>;
@@ -26,6 +26,19 @@ export class YAMLManager {
 
     private invalidateCache() {
         this.yamlFileCache.clear();
+    }
+
+    public writeFile<Content>(path: string, fileName:string, extension: string, content: Content) {
+        if (extension === 'yaml' || extension === 'yml') {
+            this.plugin.adapter.write(path + '/' + fileName + '.' + extension, stringify(content));
+        }
+        else if (extension === 'md') {
+            const stringified =  "---\n" + stringify(content) + "\n---\n";
+            this.plugin.adapter.write(path + '/' + fileName + '.' + extension, stringified);
+        }
+        else {
+            console.error("Invalid file extension.");
+        }
     }
 
     public getYAMLData(fileName: string): any | undefined{

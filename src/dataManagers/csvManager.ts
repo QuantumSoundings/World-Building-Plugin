@@ -1,6 +1,7 @@
 import { TAbstractFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import { parse } from "csv-parse/sync";
+import { stringify } from "csv-stringify/sync";
 
 export class CSVManager {
     csvFileCache: Map<string, unknown[]>;
@@ -27,6 +28,21 @@ export class CSVManager {
 
     private invalidateCache() {
         this.csvFileCache.clear();
+    }
+
+    public writeFile<Content>(path: string, fileName:string, extension: string, content: Content) {
+        if (extension === 'csv') {
+            if (content instanceof Array) {
+                const stringified = stringify(content, {header: true});
+                this.plugin.adapter.write(path + '/' + fileName + '.' + extension, stringified);
+            }
+            else {
+                console.error("Invalid content type.");
+            }
+        }
+        else {
+            console.error("Invalid file extension.");
+        }
     }
 
     public getCSVData(fileName: string): any[] | undefined {
