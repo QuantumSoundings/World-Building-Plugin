@@ -4,11 +4,11 @@ import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 
 export class CSVManager {
-    csvFileCache: Map<string, unknown[]>;
+    csvFileCache: Map<string, string[][]>;
     plugin: WorldBuildingPlugin;
 
     constructor(plugin: WorldBuildingPlugin) {
-        this.csvFileCache = new Map<string, unknown[]>();
+        this.csvFileCache = new Map<string, string[][]>();
         this.plugin = plugin;
     }
 
@@ -30,11 +30,35 @@ export class CSVManager {
         this.csvFileCache.clear();
     }
 
-    public writeFile<Content>(path: string, fileName:string, extension: string, content: Content) {
+    public parseCSVString(content: string): string[][] {
+        const parsed = parse(content);
+        const converted = this.parseTo2DStringArray(parsed);
+        return converted;
+    }
+
+    public stringifyCSVArray(content: string[][]): string {
+        const stringified = stringify(content);
+        return stringified;
+    }
+
+    public async readFile(path: string, fileName: string, extension: string): Promise<string[][] | undefined> {
+        if (extension === 'csv') {
+            const content = await this.plugin.adapter.read(path + '/' + fileName + '.' + extension);
+            const parsed = parse(content);
+            const converted = this.parseTo2DStringArray(parsed);
+            return converted;
+        }
+        else {
+            console.error("Invalid file extension.");
+            return undefined;
+        }
+    }
+
+    public async writeFile<Content>(path: string, fileName:string, extension: string, content: Content) {
         if (extension === 'csv') {
             if (content instanceof Array) {
                 const stringified = stringify(content, {header: true});
-                this.plugin.adapter.write(path + '/' + fileName + '.' + extension, stringified);
+                await this.plugin.adapter.write(path + '/' + fileName + '.' + extension, stringified);
             }
             else {
                 console.error("Invalid content type.");
@@ -45,13 +69,13 @@ export class CSVManager {
         }
     }
 
-    public getCSVData(fileName: string): any[] | undefined {
+    public getCSVData(fileName: string): string[][] | undefined {
         const data = this.csvFileCache.get(fileName);
         if (data === undefined) {
             console.error("Cache did not contain this file.");
             return undefined;
         }
-        return data as any[];
+        return data;
     }
 
     private async reloadAndCacheCSVFiles() {
@@ -66,12 +90,26 @@ export class CSVManager {
             const file_name = file.split('/').slice(-1)[0];
             const content = await this.plugin.adapter.read(file);
             const parsed = parse(content);
-            this.csvFileCache.set(file_name, parsed);
+            const converted = this.parseTo2DStringArray(parsed);
+            this.csvFileCache.set(file_name, converted);
             loadedFiles = loadedFiles + 1;
         }
 
         console.info('Found and cached ' + loadedFiles + ' CSV files.');
 	}
+
+    private parseTo2DStringArray(parseResult: unknown[][]) {
+        const result: string[][] = [];
+        for (let i = 0; i < parseResult.length; i++) {
+            const row = parseResult[i];
+            const rowArray: string[] = [];
+            for (let j = 0; j < row.length; j++) {
+                rowArray.push(row[j] as string);
+            }
+            result.push(rowArray);
+        }
+        return result;
+    }
 
     private configureReloadEvents() {
         const reloadFunction = async (file: TAbstractFile) => {
@@ -101,7 +139,7 @@ export class CSVManager {
             const table = el.createEl("table");
             const header = table.createEl("thead");
             const headerRow = header.createEl("tr");
-            const headerCSVRow = csvRows[0] as any;
+            const headerCSVRow = csvRows[0];
             for (let j = 0; j < headerCSVRow.length; j++) {
                 headerRow.createEl("th", { text: headerCSVRow[j] });
             }
@@ -109,7 +147,7 @@ export class CSVManager {
 
             const body = table.createEl("tbody");
             for (let i = 1; i < csvRows.length; i++) {
-                const cols = csvRows[i] as any;
+                const cols = csvRows[i];
                 const row = body.createEl("tr");
 
                 for (let j = 0; j < cols.length; j++) {

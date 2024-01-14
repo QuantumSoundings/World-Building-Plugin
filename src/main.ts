@@ -5,8 +5,7 @@ import { PopulationAPI } from './api/populationApi';
 import { UnitConversionAPI } from './api/unitConversionApi';
 import { YAMLManager } from './dataManagers/yamlManager';
 import { PSDManager } from './dataManagers/psdManager';
-
-// Remember to rename these classes and interfaces!
+import { CSVView } from './csv-obsidian/csvView';
 
 interface WorldBuildingPluginSettings {
 	dataDirectory: string;
@@ -65,7 +64,6 @@ export default class WorldBuildingPlugin extends Plugin {
 					if (!checking) {
 						this.writeDefaultDataToDataDirectory();
 					}
-
 					return true;
 				}
 				else {
@@ -74,12 +72,21 @@ export default class WorldBuildingPlugin extends Plugin {
 			}
 		});
 
+		// Setup the csv viewer
+		this.registerView('csv', (leaf) => {
+			return new CSVView(leaf, this);
+		});
+		this.registerExtensions(["csv"], "csv");
+
+		// Finished!
 		console.log('Loaded plugin: WorldBuilding');
 	}
 
 	onunload() {
 		console.log('Unloading plugin: WorldBuilding');
 		this.csvManager.unload();
+		this.yamlManager.unload();
+		this.psdManager.unload();
 	}
 
 	async loadSettings() {
