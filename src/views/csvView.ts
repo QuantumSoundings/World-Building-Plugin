@@ -29,7 +29,9 @@ export class CSVView extends TextFileView {
 	handsonTableBaseSettings: Handsontable.GridSettings;
 	handsonTableExport: Handsontable.plugins.ExportFile;
 	handsonTableFilters: Handsontable.plugins.Filters;
-	headerData: string[] | false;
+	// Setting to string array for files with headers
+	// Setting to true for files without headers, enables filtering
+	headerData: string[] | true;
 	rowData: string[][];
 	viewState: CSVViewState;
 
@@ -122,7 +124,7 @@ export class CSVView extends TextFileView {
 					if (toggleState) {
 						// Headers are currently disabled,
 						// and we need to enable them
-						if (this.headerData === false) {
+						if (this.headerData === true) {
 							const shiftedData = this.rowData.shift();
 							if (shiftedData !== undefined) {
 								this.headerData = shiftedData;
@@ -140,9 +142,9 @@ export class CSVView extends TextFileView {
 						// and we need to disable them
 						if (this.headerData instanceof Array) {
 							this.rowData.unshift(this.headerData);
-							this.headerData = false;
+							this.headerData = true;
 						}
-						else if (this.headerData === false) {
+						else if (this.headerData === true) {
 							console.warn("Headers already disabled.");
 						}
 					}
@@ -244,11 +246,11 @@ export class CSVView extends TextFileView {
 			}
 			else {
 				console.warn("File had no rows.");
-				this.headerData = false;
+				this.headerData = true;
 			}
 		}
 		else {
-			this.headerData = false;
+			this.headerData = true;
 		}
 		this.rowData = parsedData;
 	}
