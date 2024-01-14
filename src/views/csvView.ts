@@ -1,5 +1,6 @@
 /* eslint-disable no-debugger */
 import Handsontable from "handsontable";
+import { HyperFormula } from "hyperformula";
 import { ButtonComponent, Notice, Setting, TextFileView, ToggleComponent, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 
@@ -24,6 +25,7 @@ export class CSVView extends TextFileView {
 
   // Members
 	handsonTable: Handsontable;
+	handsonTableHyperFormula: HyperFormula;
 	handsonTableBaseSettings: Handsontable.GridSettings;
 	handsonTableExport: Handsontable.plugins.ExportFile;
 	handsonTableFilters: Handsontable.plugins.Filters;
@@ -75,6 +77,10 @@ export class CSVView extends TextFileView {
 		tableContainer.appendChild(handsonTableContainer);
 
 		// Create and configure the table
+		this.handsonTableHyperFormula = HyperFormula.buildEmpty({
+			licenseKey: "internal-use-in-handsontable",
+		});
+
 		this.handsonTableBaseSettings = {
 			// Data is bound using these two properties.
 			data: this.rowData,
@@ -99,6 +105,9 @@ export class CSVView extends TextFileView {
 			manualColumnMove: true,
 			autoWrapCol: true,
 			columnSorting: true,
+			formulas: {
+				engine: this.handsonTableHyperFormula
+			},
 			licenseKey: "non-commercial-and-evaluation",
 		};
 		this.handsonTable = new Handsontable(handsonTableContainer, this.handsonTableBaseSettings);
@@ -166,7 +175,6 @@ export class CSVView extends TextFileView {
 
 	// Overrides on the class tree
 	override clear(): void {
-		//throw new Error("Method not implemented.");
 	}
 
 	override getViewData(): string {

@@ -26,6 +26,7 @@
 		"csv-parse": "^5.5.3",
 		"csv-stringify": "^6.4.5",
 		"handsontable": "^14.0.0",
+		"hyperformula": "^2.6.1",
 		"obsidian-dataview": "^0.5.64",
 		"yaml": "^2.3.4"
 	}
