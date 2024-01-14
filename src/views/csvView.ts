@@ -3,15 +3,6 @@ import Handsontable from "handsontable";
 import { ButtonComponent, Notice, Setting, TextFileView, ToggleComponent, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 
-//class ExtHandsontable extends Handsontable {
-//	extContext: any;
-//
-//	constructor(element: Element, options: Handsontable.GridSettings, context:any) {
-//		super(element, options);
-//		this.extContext = context;
-//	}
-//}
-
 class CSVViewState {
 	// Settings
 	headersActive: boolean;

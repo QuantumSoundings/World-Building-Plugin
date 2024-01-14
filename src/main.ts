@@ -5,7 +5,7 @@ import { PopulationAPI } from './api/populationApi';
 import { UnitConversionAPI } from './api/unitConversionApi';
 import { YAMLManager } from './dataManagers/yamlManager';
 import { PSDManager } from './dataManagers/psdManager';
-import { CSVView } from './csv-obsidian/csvView';
+import { CSVView } from './views/csvView';
 
 interface WorldBuildingPluginSettings {
 	dataDirectory: string;

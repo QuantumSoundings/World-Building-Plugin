@@ -1,5 +1,5 @@
 # World Building Plugin
-A plugin I developed to assist with various aspects of my world building.
+A plugin I developed to assist with various aspects of my world building. Includes a well maintained csv viewer/editor.
 
 ## How to use
 
