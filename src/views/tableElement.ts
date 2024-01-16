@@ -1,11 +1,10 @@
 /* eslint-disable no-debugger */
 import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
-import { ButtonComponent, Notice, Setting, TextFileView, ToggleComponent, WorkspaceLeaf } from "obsidian";
-import { CSVManager } from "src/dataManagers/csvManager";
+import { ButtonComponent, Notice, Setting, ToggleComponent } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 
-class CSVViewState {
+class TableState {
   // Settings
   headersActive: boolean;
   autoSave: boolean;
@@ -13,9 +12,10 @@ class CSVViewState {
   currentlyLoading: boolean;
 }
 
-export class CSVView extends TextFileView {
+export class TableElement extends HTMLElement {
   plugin: WorldBuildingPlugin;
-  // File Settings Objects
+
+  // Table Settings Objects
   autoSaveToggle: ToggleComponent;
   headerToggle: ToggleComponent;
   saveButton: ButtonComponent;
@@ -26,7 +26,6 @@ export class CSVView extends TextFileView {
 
   // Members
   handsonTable: Handsontable;
-  handsonTableHyperFormula: HyperFormula;
   handsonTableBaseSettings: Handsontable.GridSettings;
   handsonTableExport: Handsontable.plugins.ExportFile;
   handsonTableFilters: Handsontable.plugins.Filters;
@@ -34,56 +33,52 @@ export class CSVView extends TextFileView {
   // Setting to true for files without headers, enables filtering
   headerData: string[] | true;
   rowData: string[][];
-  viewState: CSVViewState;
+  tableState: TableState;
 
   // Callback functions to fix 'this' weirdness
   onHandsonTableChange = (changes: Handsontable.CellChange[], source: Handsontable.ChangeSource): void => {
-    if (source === "loadData" || this.viewState.currentlyLoading) {
+    if (source === "loadData" || this.tableState.currentlyLoading) {
       return; //don't save this change
     }
-    if (this.viewState.autoSave) {
+    if (this.tableState.autoSave) {
       this.requestAutoSave();
     }
   };
   requestAutoSave = (): void => {
-    if (this.viewState.autoSave) {
+    if (this.tableState.autoSave) {
       this.requestSave();
     }
   };
 
   // constructor
-  constructor(leaf: WorkspaceLeaf, plugin: WorldBuildingPlugin) {
+  constructor(parentElement: HTMLElement, fileSource: string, plugin: WorldBuildingPlugin) {
     //Calling the parent constructor
-    super(leaf);
+    super();
     this.plugin = plugin;
-    this.viewState = new CSVViewState();
-    this.viewState.headersActive = true;
-    this.viewState.autoSave = false;
-    this.viewState.currentlyLoading = false;
+    this.tableState = new TableState();
+    this.tableState.headersActive = true;
+    this.tableState.autoSave = false;
+    this.tableState.currentlyLoading = false;
 
     // Setup html elements
-    this.loadingBarElement = document.createElement("div");
+    this.loadingBarElement = parentElement.createDiv();
     this.loadingBarElement.addClass("progress-bar");
     this.loadingBarElement.innerHTML =
       '<div class="progress-bar-message u-center-text">Loading CSV...</div><div class="progress-bar-indicator"><div class="progress-bar-line"></div><div class="progress-bar-subline" style="display: none;"></div><div class="progress-bar-subline mod-increase"></div><div class="progress-bar-subline mod-decrease"></div></div>';
-    this.contentEl.appendChild(this.loadingBarElement);
 
-    this.fileOptionsElement = document.createElement("div");
+    this.fileOptionsElement = parentElement.createDiv();
     this.fileOptionsElement.classList.add("csv-controls");
-    this.contentEl.appendChild(this.fileOptionsElement);
 
-    const tableContainer = document.createElement("div");
+    const tableContainer = parentElement.createDiv();
     tableContainer.classList.add("csv-table-wrapper");
-    this.contentEl.appendChild(tableContainer);
+    const handsonTableContainer = tableContainer.createDiv();
 
-    const handsonTableContainer = document.createElement("div");
-    tableContainer.appendChild(handsonTableContainer);
+    this.configureHandsonTable(handsonTableContainer);
+    this.configureSettingComponents();
+  }
 
+  private configureHandsonTable(parentElement: HTMLElement) {
     // Create and configure the table
-    this.handsonTableHyperFormula = HyperFormula.buildEmpty({
-      licenseKey: "internal-use-in-handsontable",
-    });
-
     this.handsonTableBaseSettings = {
       // Data is bound using these two properties.
       data: this.rowData,
@@ -109,12 +104,14 @@ export class CSVView extends TextFileView {
       autoWrapCol: true,
       columnSorting: true,
       formulas: {
-        engine: this.handsonTableHyperFormula,
+        engine: HyperFormula,
       },
       licenseKey: "non-commercial-and-evaluation",
     };
-    this.handsonTable = new Handsontable(handsonTableContainer, this.handsonTableBaseSettings);
+    this.handsonTable = new Handsontable(parentElement, this.handsonTableBaseSettings);
+  }
 
+  private configureSettingComponents() {
     //Creating a toggle to set the header
     new Setting(this.fileOptionsElement).setName("File Includes Headers").addToggle((toggle) => {
       this.headerToggle = toggle;
@@ -144,16 +141,16 @@ export class CSVView extends TextFileView {
           }
         }
         this.rebindDataToTable();
-        this.viewState.headersActive = toggleState;
+        this.tableState.headersActive = toggleState;
       });
     });
 
     //Creating a toggle to allow the toggle of the auto Save
     new Setting(this.fileOptionsElement).setName("Auto Save").addToggle((toggle: ToggleComponent) => {
       this.autoSaveToggle = toggle;
-      this.autoSaveToggle.setValue(this.viewState.autoSave);
+      this.autoSaveToggle.setValue(this.tableState.autoSave);
       this.autoSaveToggle.onChange((value) => {
-        this.viewState.autoSave = value;
+        this.tableState.autoSave = value;
       });
     });
 
@@ -166,55 +163,32 @@ export class CSVView extends TextFileView {
     });
   }
 
-  // Overrides on the class tree
-  override clear(): void {}
-
-  override getViewData(): string {
-    if (this.handsonTable && !this.handsonTable.isDestroyed) {
-      // Make a copy of the row data
-      const viewData = JSON.parse(JSON.stringify(this.rowData));
-      // Headers are defined
-      if (this.headerData instanceof Array) {
-        viewData.unshift(this.headerData);
-      }
-
-      return CSVManager.stringifyStringArray(viewData);
-    } else {
-      return this.data;
-    }
-  }
-  override setViewData(data: string, clear: boolean): void {
-    if (clear) {
-      // We are loading data, stop the table from updating
-      this.viewState.currentlyLoading = true;
-    }
-    this.data = data;
-    this.loadingBarElement.show();
-    this.loadViewData(data);
-    this.rebindDataToTable();
-    this.loadingBarElement.hide();
-    this.viewState.currentlyLoading = false;
-  }
-
-  override async save(clear?: boolean): Promise<void> {
-    const SaveNoticeTimeout = 1000;
-    const activeFile = this.plugin.app.workspace.getActiveFile();
-    if (activeFile === null) {
-      console.error("No active file.");
+  private loadDataFromSource(fileSource: string) {
+    const fileData = this.plugin.csvManager.getCSVData(fileSource);
+    if (fileData === undefined) {
+      console.error("File data was undefined.");
       return;
     }
-    const activeFileName = activeFile.name;
-    try {
-      await super.save(clear);
-      new Notice(`"${activeFileName}" was saved.`, SaveNoticeTimeout);
-    } catch (e) {
-      new Notice(`"${activeFileName}" couldn't be saved.`, SaveNoticeTimeout);
-      throw e;
+
+    // Toggle says we have headers, split them out from the row data.
+    if (this.headerToggle.getValue()) {
+      const parsedHeader = fileData.shift();
+      if (parsedHeader !== undefined) {
+        this.headerData = parsedHeader;
+      } else {
+        console.warn("File had no rows.");
+        this.headerData = true;
+      }
+    } else {
+      this.headerData = true;
     }
+    this.rowData = parsedData;
   }
 
+  // Overrides on the class tree
+
   // Member Functions
-  public loadViewData(data: string) {
+  public setTableData(data: string | string[][]) {
     const activeFile = this.plugin.app.workspace.getActiveFile();
     if (activeFile === null) {
       console.error("No active file.");
@@ -227,7 +201,7 @@ export class CSVView extends TextFileView {
     // strip Byte Order Mark if necessary (damn you, Excel)
     if (data.charCodeAt(0) === 0xfeff) data = data.slice(1);
 
-    const parsedData = CSVManager.parseCSVString(data);
+    const parsedData = this.plugin.csvManager.parseCSVString(data);
     // Toggle says we have headers, split them out from the row data.
     if (this.headerToggle.getValue()) {
       const parsedHeader = parsedData.shift();
@@ -247,24 +221,5 @@ export class CSVView extends TextFileView {
     this.handsonTableBaseSettings.data = this.rowData;
     this.handsonTableBaseSettings.colHeaders = this.headerData;
     this.handsonTable.updateSettings(this.handsonTableBaseSettings);
-  }
-
-  // Some random get methods
-  public getDisplayText() {
-    const activeFile = this.app.workspace.getActiveFile();
-    if (activeFile) {
-      return activeFile.basename;
-    } else {
-      return "csv (no file)";
-    }
-  }
-  public canAcceptExtension(extension: string) {
-    return extension == "csv";
-  }
-  public getViewType() {
-    return "csv";
-  }
-  public getIcon() {
-    return "document-csv";
   }
 }

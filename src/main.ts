@@ -1,208 +1,270 @@
-import { App, FileSystemAdapter, Modal, Plugin, PluginSettingTab, Setting} from 'obsidian';
-import { CSVManager } from './dataManagers/csvManager';
-import { SettlementAPI } from './api/settlementApi';
-import { PopulationAPI } from './api/populationApi';
-import { UnitConversionAPI } from './api/unitConversionApi';
-import { YAMLManager } from './dataManagers/yamlManager';
-import { PSDManager } from './dataManagers/psdManager';
-import { CSVView } from './views/csvView';
+import { App, FileSystemAdapter, Plugin, PluginSettingTab, Setting, TAbstractFile } from "obsidian";
+import { CSVManager } from "./dataManagers/csvManager";
+import { SettlementAPI } from "./api/settlementApi";
+import { PopulationAPI } from "./api/populationApi";
+import { UnitConversionAPI } from "./api/unitConversionApi";
+import { YAMLManager } from "./dataManagers/yamlManager";
+import { PSDManager } from "./dataManagers/psdManager";
+import { CSVView } from "./views/csvView";
 
-interface WorldBuildingPluginSettings {
-	dataDirectory: string;
-	settlementData: string;
-	populationDensityData: string;
-	unitConversionData: string;
+class WorldBuildingPluginSettings {
+  dataDirectory: string;
+  settlementData: string;
+  populationDensityData: string;
+  unitConversionData: string;
+  cacheFilesOnLoad: boolean;
 }
 
 const DEFAULT_SETTINGS: WorldBuildingPluginSettings = {
-	dataDirectory: '',
-	settlementData: '',
-	populationDensityData: '',
-	unitConversionData: ''
-}
+  dataDirectory: "",
+  settlementData: "",
+  populationDensityData: "",
+  unitConversionData: "",
+  cacheFilesOnLoad: true,
+};
 
 export default class WorldBuildingPlugin extends Plugin {
-	settings: WorldBuildingPluginSettings;
-	adapter: FileSystemAdapter;
-	// Data Managers
-	csvManager: CSVManager;
-	yamlManager: YAMLManager;
-	psdManager: PSDManager;
-	// APIs provided to other plugins
-	private settlementAPI: SettlementAPI;
-	private populationAPI: PopulationAPI;
-	private unitConversionAPI: UnitConversionAPI;
+  settings: WorldBuildingPluginSettings;
+  adapter: FileSystemAdapter;
+  // Data Managers
+  csvManager: CSVManager;
+  yamlManager: YAMLManager;
+  psdManager: PSDManager;
+  // APIs provided to other plugins
+  private settlementAPI: SettlementAPI;
+  private populationAPI: PopulationAPI;
+  private unitConversionAPI: UnitConversionAPI;
 
-	async onload() {
-		// Initialize all the members of the plugin
-		this.adapter = this.app.vault.adapter as FileSystemAdapter;
-		this.csvManager = new CSVManager(this);
-		this.yamlManager = new YAMLManager(this);
-		this.psdManager = new PSDManager(this);
-		this.settlementAPI = new SettlementAPI(this);
-		this.populationAPI = new PopulationAPI(this);
-		this.unitConversionAPI = new UnitConversionAPI(this);
+  async onload() {
+    super.onload();
+    // Initialize all the members of the plugin
+    this.adapter = this.app.vault.adapter as FileSystemAdapter;
+    this.csvManager = new CSVManager(this);
+    this.yamlManager = new YAMLManager(this);
+    this.psdManager = new PSDManager(this);
 
-		// Do any loading operations that need awaits.
-		await this.loadSettings();
-		await this.csvManager.load();
-		await this.yamlManager.load();
-		await this.psdManager.load();
+    this.settlementAPI = new SettlementAPI(this);
+    this.populationAPI = new PopulationAPI(this);
+    this.unitConversionAPI = new UnitConversionAPI(this);
 
-		this.refreshAPIs();
+    // Do any loading operations that need awaits.
+    await this.loadSettings();
+    await this.csvManager.load();
+    await this.yamlManager.load();
+    await this.psdManager.load();
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new WorldBuildingSettingTab(this.app, this));
+    this.refreshAPIs();
 
-		this.addCommand({
-			id: 'save-default-data-to-data-directory',
-			name: 'Save Default Data to Data Directory',
-			checkCallback: (checking: boolean) => {
-				// COnly show this command if the data directory is set.
-				if (this.settings.dataDirectory !== '') {
-					// Checking is true when the command is being registered, and false when it is being called.
-					if (!checking) {
-						this.writeDefaultDataToDataDirectory();
-					}
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
-		});
+    // This adds a settings tab so the user can configure various aspects of the plugin
+    this.addSettingTab(new WorldBuildingSettingTab(this.app, this));
 
-		// Setup the csv viewer
-		this.registerView('csv', (leaf) => {
-			return new CSVView(leaf, this);
-		});
-		this.registerExtensions(["csv"], "csv");
+    this.addCommand({
+      id: "save-default-data-to-data-directory",
+      name: "Save Default Data to Data Directory",
+      checkCallback: (checking: boolean) => {
+        // COnly show this command if the data directory is set.
+        if (this.settings.dataDirectory !== "") {
+          // Checking is true when the command is being registered, and false when it is being called.
+          if (!checking) {
+            this.writeDefaultDataToDataDirectory();
+          }
+          return true;
+        } else {
+          return false;
+        }
+      },
+    });
 
-		// Finished!
-		console.log('Loaded plugin: WorldBuilding');
-	}
+    // Setup the csv viewer
+    this.registerView("csv", (leaf) => {
+      return new CSVView(leaf, this);
+    });
+    this.registerExtensions(["csv"], "csv");
 
-	onunload() {
-		console.log('Unloading plugin: WorldBuilding');
-		this.csvManager.unload();
-		this.yamlManager.unload();
-		this.psdManager.unload();
-	}
+    this.registerEventHandlers();
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
+    // Finished!
+    console.log("Loaded plugin: WorldBuilding");
+    // Debug, dump the state of the plugin to the console.
+    console.log(this);
+  }
 
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
+  onunload() {
+    console.log("Unloading plugin: WorldBuilding");
+    super.unload();
+  }
 
-	refreshAPIs() {
-		this.settlementAPI.reloadData();
-		this.populationAPI.reloadData();
-		this.unitConversionAPI.reloadData();
-	}
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
 
-	getSettlementAPI(): SettlementAPI {
-		return this.settlementAPI;
-	}
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
 
-	getPopulationAPI(): PopulationAPI {
-		return this.populationAPI;
-	}
+  refreshAPIs() {
+    this.settlementAPI.reloadData();
+    this.populationAPI.reloadData();
+    this.unitConversionAPI.reloadData();
+  }
 
-	getUnitConversionAPI(): UnitConversionAPI {
-		return this.unitConversionAPI;
-	}
+  getSettlementAPI(): SettlementAPI {
+    return this.settlementAPI;
+  }
 
-	writeDefaultDataToDataDirectory() {
-		this.csvManager.writeFile(this.settings.dataDirectory, 'default_settlement_types', 'csv', this.settlementAPI.data);
-		this.csvManager.writeFile(this.settings.dataDirectory, 'default_population_density', 'csv', this.populationAPI.data);
-		this.yamlManager.writeFile(this.settings.dataDirectory, 'default_unit_conversion', 'md', this.unitConversionAPI.data);
-	}
-}
+  getPopulationAPI(): PopulationAPI {
+    return this.populationAPI;
+  }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-class WorldBuildingModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+  getUnitConversionAPI(): UnitConversionAPI {
+    return this.unitConversionAPI;
+  }
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
+  writeDefaultDataToDataDirectory() {
+    this.settlementAPI.saveDefaultData();
+    this.populationAPI.saveDefaultData();
+    this.unitConversionAPI.saveDefaultData();
+  }
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
+  private registerEventHandlers() {
+    const creationEvent = (file: TAbstractFile) => {
+      if (this.csvManager.isFileManageable(file)) {
+        this.csvManager.onFileCreation(file);
+      } else if (this.yamlManager.isFileManageable(file)) {
+        this.yamlManager.onFileCreation(file);
+      } else if (this.psdManager.isFileManageable(file)) {
+        this.psdManager.onFileCreation(file);
+      }
+    };
+    const deletionEvent = (file: TAbstractFile) => {
+      if (this.csvManager.isFileManageable(file)) {
+        this.csvManager.onFileDeletion(file);
+      } else if (this.yamlManager.isFileManageable(file)) {
+        this.yamlManager.onFileDeletion(file);
+      } else if (this.psdManager.isFileManageable(file)) {
+        this.psdManager.onFileDeletion(file);
+      }
+    };
+    const renameEvent = (file: TAbstractFile, oldPath: string) => {
+      if (this.csvManager.isFileManageable(file)) {
+        this.csvManager.onFileRename(file, oldPath);
+      } else if (this.yamlManager.isFileManageable(file)) {
+        this.yamlManager.onFileRename(file, oldPath);
+      } else if (this.psdManager.isFileManageable(file)) {
+        this.psdManager.onFileRename(file, oldPath);
+      }
+    };
+    this.registerEvent(this.app.vault.on("create", creationEvent));
+    this.registerEvent(this.app.vault.on("delete", deletionEvent));
+    this.registerEvent(this.app.vault.on("rename", renameEvent));
+  }
+
+  private registerCodeBlockProcessor() {
+    this.registerMarkdownCodeBlockProcessor("wb-csv", (source, el, _) => {
+      // Source should be the full path + file name + extension.
+      source = source.trim();
+      console.log("Generating CSV table for " + source + ".");
+      const csvRows = this.csvManager.getDataByFile(source);
+      if (csvRows === undefined) {
+        console.error("Cache did not contain this source.");
+        console.error("CSV table not rendered");
+        return;
+      }
+
+      const table = el.createEl("table");
+      const header = table.createEl("thead");
+      const headerRow = header.createEl("tr");
+      const headerCSVRow = csvRows[0];
+      for (let j = 0; j < headerCSVRow.length; j++) {
+        headerRow.createEl("th", { text: headerCSVRow[j] });
+      }
+
+      const body = table.createEl("tbody");
+      for (let i = 1; i < csvRows.length; i++) {
+        const cols = csvRows[i];
+        const row = body.createEl("tr");
+
+        for (let j = 0; j < cols.length; j++) {
+          row.createEl("td", { text: cols[j] });
+        }
+      }
+    });
+  }
 }
 
 class WorldBuildingSettingTab extends PluginSettingTab {
-	plugin: WorldBuildingPlugin;
+  plugin: WorldBuildingPlugin;
 
-	constructor(app: App, plugin: WorldBuildingPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
+  constructor(app: App, plugin: WorldBuildingPlugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
 
-	display(): void {
-		const {containerEl} = this;
+  display(): void {
+    const { containerEl } = this;
 
-		containerEl.empty();
+    containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('Data Directory')
-			.setDesc('The directory where CSV/YAML/MD(with frontmatter) data is stored.\n These files are loaded and cached on start.')
-			.addText(text => text
-				.setPlaceholder('Enter the directory')
-				.setValue(this.plugin.settings.dataDirectory)
-				.onChange(async (value) => {
-					this.plugin.settings.dataDirectory = value;
-					console.log('In the onChange for our settings function');
-					await this.plugin.saveSettings();
-					await this.plugin.csvManager.reload();
-				})
-			);
+    new Setting(containerEl)
+      .setName("Data Directory")
+      .setDesc(
+        "The directory where CSV/YAML/MD(with frontmatter) data is stored.\n These files are loaded and cached on start."
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter the directory")
+          .setValue(this.plugin.settings.dataDirectory)
+          .onChange(async (value) => {
+            this.plugin.settings.dataDirectory = value;
+            console.log("In the onChange for our settings function");
+            await this.plugin.saveSettings();
+            //await this.plugin.csvManager.reload();
+          })
+      );
 
-		new Setting(containerEl)
-			.setName('Settlement Data File')
-			.setDesc('This file overrides the internal settlement data.')
-			.addText(text => text
-				.setPlaceholder('Enter the file name')
-				.setValue(this.plugin.settings.settlementData)
-				.onChange(async (value) => {
-					this.plugin.settings.settlementData = value;
-					console.log('In the onChange for our settings function');
-					await this.plugin.saveSettings();
-					this.plugin.refreshAPIs();
-				}));
+    new Setting(containerEl)
+      .setName("Settlement Data File")
+      .setDesc("This file overrides the internal settlement data.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter the file name")
+          .setValue(this.plugin.settings.settlementData)
+          .onChange(async (value) => {
+            this.plugin.settings.settlementData = value;
+            console.log("In the onChange for our settings function");
+            await this.plugin.saveSettings();
+            this.plugin.refreshAPIs();
+          })
+      );
 
-		new Setting(containerEl)
-			.setName('Population Density Data File')
-			.setDesc('This file overrides the internal population density data.')
-			.addText(text => text
-				.setPlaceholder('Enter the file name')
-				.setValue(this.plugin.settings.populationDensityData)
-				.onChange(async (value) => {
-					this.plugin.settings.populationDensityData = value;
-					console.log('In the onChange for our settings function');
-					await this.plugin.saveSettings();
-					this.plugin.refreshAPIs();
-				}));
+    new Setting(containerEl)
+      .setName("Population Density Data File")
+      .setDesc("This file overrides the internal population density data.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter the file name")
+          .setValue(this.plugin.settings.populationDensityData)
+          .onChange(async (value) => {
+            this.plugin.settings.populationDensityData = value;
+            console.log("In the onChange for our settings function");
+            await this.plugin.saveSettings();
+            this.plugin.refreshAPIs();
+          })
+      );
 
-		new Setting(containerEl)
-			.setName('Unit Conversion Data File')
-			.setDesc('This file overrides the internal unit conversion data.')
-			.addText(text => text
-				.setPlaceholder('Enter the file name')
-				.setValue(this.plugin.settings.unitConversionData)
-				.onChange(async (value) => {
-					this.plugin.settings.unitConversionData = value;
-					console.log('In the onChange for our settings function');
-					await this.plugin.saveSettings();
-					this.plugin.refreshAPIs();
-				}));
-	}
+    new Setting(containerEl)
+      .setName("Unit Conversion Data File")
+      .setDesc("This file overrides the internal unit conversion data.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter the file name")
+          .setValue(this.plugin.settings.unitConversionData)
+          .onChange(async (value) => {
+            this.plugin.settings.unitConversionData = value;
+            console.log("In the onChange for our settings function");
+            await this.plugin.saveSettings();
+            this.plugin.refreshAPIs();
+          })
+      );
+  }
 }

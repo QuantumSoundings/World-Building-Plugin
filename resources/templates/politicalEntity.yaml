@@ -29,7 +29,7 @@ geography:
 
 # The population demographics of the entity.
 demographics:
-  # Average age of death. US average is 78.6 years.
+  # Average age of death. US average is 78 years.
   life_expectancy: 55
   # Percentage increase per year. [0, 100]
   population_growth_rate: 1.1

@@ -1,140 +1,90 @@
 import { TAbstractFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import Psd, { Layer } from "@webtoon/psd";
-import { stringify } from "yaml";
+import { CacheManager } from "./cacheManager";
 
 class CountryData {
-    name: string;
-    pixelCount: number;
+  name: string;
+  pixelCount: number;
 }
 
 class PoliticalData {
-    countryData: CountryData[];
+  countryData: CountryData[];
 }
 
 class MapData {
-    height: number;
-    width: number;
-    politicalData: PoliticalData;
+  height: number;
+  width: number;
+  politicalData: PoliticalData;
 }
 
-export class PSDManager {
-    fileCache: Map<string, TAbstractFile>;
-    psdFileCache: Map<string, Psd>;
-    mapDataCache: Map<string, MapData>;
-    plugin: WorldBuildingPlugin;
+class PsdData {
+  file: Psd;
+  mapData: MapData;
+}
 
-    constructor(plugin: WorldBuildingPlugin) {
-        this.fileCache = new Map<string, TAbstractFile>();
-        this.psdFileCache = new Map<string, Psd>();
-        this.mapDataCache = new Map<string, MapData>();
-        this.plugin = plugin;
+export class PSDManager extends CacheManager<PsdData> {
+  constructor(plugin: WorldBuildingPlugin) {
+    super(plugin);
+  }
+
+  override async readFile(fullPath: string): Promise<PsdData | undefined> {
+    if (fullPath.endsWith(".psd")) {
+      const binaryFile = await this.plugin.adapter.readBinary(fullPath);
+      const psd: Psd = Psd.parse(binaryFile);
+      const psdData: PsdData = await this.parsePsd(fullPath, psd);
+      return psdData;
     }
+    return undefined;
+  }
 
-    public async load() {
-        await this.reloadAndCachePSDFiles();
-        await this.gatherAndWriteStatistics();
-        this.configureReloadEvents();
+  override async writeFile<Content>(fullPath: string, content: Content) {
+    // No-op for now.
+  }
+
+  override isFileManageable(file: TAbstractFile): boolean {
+    if (file.name.endsWith(".psd")) {
+      return true;
     }
+    return false;
+  }
 
-    public async reload() {
-        await this.reloadAndCachePSDFiles();
-        await this.gatherAndWriteStatistics();
-    }
+  private async parsePsd(fullPath: string, psd: Psd): Promise<PsdData> {
+    const psdData = new PsdData();
+    psdData.file = psd;
 
-    public async unload() {
-        this.invalidateCache();
-    }
-
-    private invalidateCache() {
-        this.psdFileCache.clear();
-        this.mapDataCache.clear();
-        this.fileCache.clear();
-    }
-
-    public getPSDData(fileName: string): Psd | undefined {
-        const data = this.psdFileCache.get(fileName);
-        if (data === undefined) {
-            console.error("Cache did not contain this file.");
-            return undefined;
+    for (const node of psd.children) {
+      if (node.type === "Group" && node.name === "Political") {
+        const mapData: MapData = new MapData();
+        mapData.height = psdData.file.height;
+        mapData.width = psdData.file.width;
+        mapData.politicalData = new PoliticalData();
+        const pData = mapData.politicalData;
+        pData.countryData = [];
+        for (let politicalLayer of node.children) {
+          const countryData = new CountryData();
+          countryData.name = politicalLayer.name;
+          politicalLayer = politicalLayer as Layer;
+          const pixels = await politicalLayer.composite(false, false);
+          countryData.pixelCount = this.countPixels(pixels);
+          pData.countryData.push(countryData);
         }
-        return data;
+        psdData.mapData = mapData;
+      }
     }
 
-    private async reloadAndCachePSDFiles() {
-        this.invalidateCache();
-        console.log("Loading all PSD files in vault.");
-        const allFiles = this.plugin.app.vault.getAllLoadedFiles();
-        let loadedFiles = 0;
-        for (const file of allFiles) {
-            if (file.name.endsWith('.psd')) {
-                const binaryFile = await this.plugin.adapter.readBinary(file.path);
-                const psdFile: Psd = Psd.parse(binaryFile);
-                this.psdFileCache.set(file.name, psdFile);
-                this.fileCache.set(file.name, file);
-                loadedFiles = loadedFiles + 1;
-            }
-            else {
-                continue;
-            }
-        }
+    const newFilePath = fullPath.replace(".psd", ".md");
+    this.plugin.yamlManager.writeFile(newFilePath, psdData.mapData);
+    return psdData;
+  }
 
-        console.info('Found and cached ' + loadedFiles + ' PSD files.');
-	}
-
-    public async gatherAndWriteStatistics() {
-        for (const [fileName, psdFile] of this.psdFileCache) {
-            for (const node of psdFile.children) {
-                if (node.type === 'Group' &&
-                    node.name === 'Political') {
-                    const mapData: MapData = new MapData();
-                    mapData.height = psdFile.height;
-                    mapData.width = psdFile.width;
-                    mapData.politicalData = new PoliticalData();
-                    const pData = mapData.politicalData;
-                    pData.countryData = [];
-                    for (let politicalLayer of node.children) {
-                        const countryData = new CountryData();
-                        countryData.name = politicalLayer.name;
-                        politicalLayer = politicalLayer as Layer;
-                        const pixels = await politicalLayer.composite(false, false);
-                        countryData.pixelCount = this.countPixels(pixels);
-                        pData.countryData.push(countryData);
-                    }
-                    this.mapDataCache.set(fileName, mapData);
-                }
-            }
-        }
-        console.log('Found and cached ' + this.mapDataCache.size + ' maps with political data.');
-
-        for (const [fileName, mapData] of this.mapDataCache) {
-            const content = "---\n" + stringify(mapData) + "---\n";
-            const path = this.fileCache.get(fileName)?.path.split('/').slice(0, -1).join('/');
-            const cleanName = fileName.split('.').slice(0, -1).join('.');
-            await this.plugin.adapter.write(path + '/' + cleanName + '.md', content);
-        }
+  private countPixels(pixels: Uint8ClampedArray): number {
+    let count = 0;
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i + 3] !== 0) {
+        count++;
+      }
     }
-
-    private countPixels(pixels: Uint8ClampedArray): number {
-        let count = 0;
-        for (let i = 0; i < pixels.length; i += 4) {
-            if (pixels[i+3] !== 0) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private configureReloadEvents() {
-        const reloadFunction = async (file: TAbstractFile) => {
-			if (file.path.endsWith('.psd')) {
-				await this.reload();
-                this.plugin.refreshAPIs();
-			}
-		}
-		this.plugin.registerEvent(this.plugin.app.vault.on('create', reloadFunction));
-		this.plugin.registerEvent(this.plugin.app.vault.on('delete', reloadFunction));
-		this.plugin.registerEvent(this.plugin.app.vault.on('modify', reloadFunction));
-		this.plugin.registerEvent(this.plugin.app.vault.on('rename', reloadFunction));
-    }
+    return count;
+  }
 }
