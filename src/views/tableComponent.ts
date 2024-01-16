@@ -1,7 +1,7 @@
 /* eslint-disable no-debugger */
 import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
-import { ButtonComponent, Notice, Setting, ToggleComponent } from "obsidian";
+import { ButtonComponent, MarkdownRenderChild, Setting, ToggleComponent } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 
 class TableState {
@@ -12,7 +12,7 @@ class TableState {
   currentlyLoading: boolean;
 }
 
-export class TableElement extends HTMLElement {
+export class TableComponent extends MarkdownRenderChild {
   plugin: WorldBuildingPlugin;
 
   // Table Settings Objects
@@ -35,6 +35,8 @@ export class TableElement extends HTMLElement {
   rowData: string[][];
   tableState: TableState;
 
+  fileSourcePath: string;
+
   // Callback functions to fix 'this' weirdness
   onHandsonTableChange = (changes: Handsontable.CellChange[], source: Handsontable.ChangeSource): void => {
     if (source === "loadData" || this.tableState.currentlyLoading) {
@@ -53,18 +55,20 @@ export class TableElement extends HTMLElement {
   // constructor
   constructor(parentElement: HTMLElement, fileSource: string, plugin: WorldBuildingPlugin) {
     //Calling the parent constructor
-    super();
+    super(parentElement);
     this.plugin = plugin;
     this.tableState = new TableState();
     this.tableState.headersActive = true;
     this.tableState.autoSave = false;
     this.tableState.currentlyLoading = false;
+    this.fileSourcePath = fileSource;
 
     // Setup html elements
     this.loadingBarElement = parentElement.createDiv();
     this.loadingBarElement.addClass("progress-bar");
     this.loadingBarElement.innerHTML =
       '<div class="progress-bar-message u-center-text">Loading CSV...</div><div class="progress-bar-indicator"><div class="progress-bar-line"></div><div class="progress-bar-subline" style="display: none;"></div><div class="progress-bar-subline mod-increase"></div><div class="progress-bar-subline mod-decrease"></div></div>';
+    this.loadingBarElement.show();
 
     this.fileOptionsElement = parentElement.createDiv();
     this.fileOptionsElement.classList.add("csv-controls");
@@ -75,6 +79,7 @@ export class TableElement extends HTMLElement {
 
     this.configureHandsonTable(handsonTableContainer);
     this.configureSettingComponents();
+    this.loadDataFromSource();
   }
 
   private configureHandsonTable(parentElement: HTMLElement) {
@@ -106,8 +111,10 @@ export class TableElement extends HTMLElement {
       formulas: {
         engine: HyperFormula,
       },
+      className: "custom-table-component",
       licenseKey: "non-commercial-and-evaluation",
     };
+
     this.handsonTable = new Handsontable(parentElement, this.handsonTableBaseSettings);
   }
 
@@ -163,8 +170,25 @@ export class TableElement extends HTMLElement {
     });
   }
 
-  private loadDataFromSource(fileSource: string) {
-    const fileData = this.plugin.csvManager.getCSVData(fileSource);
+  override onload(): void {}
+
+  override onunload(): void {
+    this.requestSave();
+    super.unload();
+  }
+
+  private requestSave() {
+    const dataCopy = JSON.parse(JSON.stringify(this.rowData));
+    if (this.tableState.headersActive) {
+      dataCopy.unshift(this.headerData);
+    }
+    this.plugin.csvManager.setDataByFile(this.fileSourcePath, dataCopy);
+    this.plugin.csvManager.saveDataByFile(this.fileSourcePath);
+    console.log("Saved CSV file " + this.fileSourcePath + ".");
+  }
+
+  private loadDataFromSource() {
+    const fileData = this.plugin.csvManager.getDataByFile(this.fileSourcePath);
     if (fileData === undefined) {
       console.error("File data was undefined.");
       return;
@@ -178,46 +202,29 @@ export class TableElement extends HTMLElement {
       } else {
         console.warn("File had no rows.");
         this.headerData = true;
+        this.tableState.headersActive = false;
       }
     } else {
       this.headerData = true;
+      this.tableState.headersActive = false;
     }
-    this.rowData = parsedData;
+    this.rowData = fileData;
+
+    // In case the file is empty give us a few rows and columns to work with.
+    if (this.rowData.length === 0) {
+      this.rowData = [
+        ["", "", "", "", ""],
+        ["", "", "", "", ""],
+        ["", "", "", "", ""],
+        ["", "", "", "", ""],
+      ];
+    }
+
+    this.rebindDataToTable();
+    this.loadingBarElement.hide();
   }
 
-  // Overrides on the class tree
-
-  // Member Functions
-  public setTableData(data: string | string[][]) {
-    const activeFile = this.plugin.app.workspace.getActiveFile();
-    if (activeFile === null) {
-      console.error("No active file.");
-      return;
-    }
-    const activeFilePath = activeFile.name;
-    this.handsonTable.rootElement.id = activeFilePath.split(".")[0];
-    this.handsonTableBaseSettings.colHeaders = true;
-
-    // strip Byte Order Mark if necessary (damn you, Excel)
-    if (data.charCodeAt(0) === 0xfeff) data = data.slice(1);
-
-    const parsedData = this.plugin.csvManager.parseCSVString(data);
-    // Toggle says we have headers, split them out from the row data.
-    if (this.headerToggle.getValue()) {
-      const parsedHeader = parsedData.shift();
-      if (parsedHeader !== undefined) {
-        this.headerData = parsedHeader;
-      } else {
-        console.warn("File had no rows.");
-        this.headerData = true;
-      }
-    } else {
-      this.headerData = true;
-    }
-    this.rowData = parsedData;
-  }
-
-  public rebindDataToTable() {
+  private rebindDataToTable() {
     this.handsonTableBaseSettings.data = this.rowData;
     this.handsonTableBaseSettings.colHeaders = this.headerData;
     this.handsonTable.updateSettings(this.handsonTableBaseSettings);

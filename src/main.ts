@@ -6,6 +6,7 @@ import { UnitConversionAPI } from "./api/unitConversionApi";
 import { YAMLManager } from "./dataManagers/yamlManager";
 import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
+import { TableComponent } from "./views/tableComponent";
 
 class WorldBuildingPluginSettings {
   dataDirectory: string;
@@ -48,6 +49,7 @@ export default class WorldBuildingPlugin extends Plugin {
     this.unitConversionAPI = new UnitConversionAPI(this);
 
     // Do any loading operations that need awaits.
+    await sleep(4000);
     await this.loadSettings();
     await this.csvManager.load();
     await this.yamlManager.load();
@@ -80,7 +82,7 @@ export default class WorldBuildingPlugin extends Plugin {
       return new CSVView(leaf, this);
     });
     this.registerExtensions(["csv"], "csv");
-
+    this.registerCodeBlockProcessor();
     this.registerEventHandlers();
 
     // Finished!
@@ -160,34 +162,10 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   private registerCodeBlockProcessor() {
-    this.registerMarkdownCodeBlockProcessor("wb-csv", (source, el, _) => {
+    this.registerMarkdownCodeBlockProcessor("wb-csv", (source, el, context) => {
       // Source should be the full path + file name + extension.
       source = source.trim();
-      console.log("Generating CSV table for " + source + ".");
-      const csvRows = this.csvManager.getDataByFile(source);
-      if (csvRows === undefined) {
-        console.error("Cache did not contain this source.");
-        console.error("CSV table not rendered");
-        return;
-      }
-
-      const table = el.createEl("table");
-      const header = table.createEl("thead");
-      const headerRow = header.createEl("tr");
-      const headerCSVRow = csvRows[0];
-      for (let j = 0; j < headerCSVRow.length; j++) {
-        headerRow.createEl("th", { text: headerCSVRow[j] });
-      }
-
-      const body = table.createEl("tbody");
-      for (let i = 1; i < csvRows.length; i++) {
-        const cols = csvRows[i];
-        const row = body.createEl("tr");
-
-        for (let j = 0; j < cols.length; j++) {
-          row.createEl("td", { text: cols[j] });
-        }
-      }
+      context.addChild(new TableComponent(el, source, this));
     });
   }
 }
