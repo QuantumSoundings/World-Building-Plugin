@@ -2,7 +2,7 @@ import { PopulationDensity } from "./api/populationApi";
 import { SettlementType } from "./api/settlementApi";
 import { Unit } from "./api/unitConversionApi";
 
-export const defaultPopulationDensityData: PopulationDensity[] = [
+export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = [
   { descriptor: "Uninhabited", minPopulation: 0, maxPopulation: 10, areaUnit: "mile^2" },
   { descriptor: "Inhospitable", minPopulation: 10, maxPopulation: 20, areaUnit: "mile^2" },
   { descriptor: "Arid", minPopulation: 20, maxPopulation: 40, areaUnit: "mile^2" },
@@ -13,7 +13,7 @@ export const defaultPopulationDensityData: PopulationDensity[] = [
   { descriptor: "Idyllic", minPopulation: 120, maxPopulation: 99999, areaUnit: "mile^2" },
 ];
 
-export const defaultSettlementData: SettlementType[] = [
+export const defaultSettlementData: Readonly<SettlementType[]> = [
   {
     type: "Isolated",
     description: "Comprised of outlaws, traveling merchants, adventurers, isolated families, etc.",
@@ -58,7 +58,7 @@ export const defaultSettlementData: SettlementType[] = [
   },
 ];
 
-export const defaultUnitConversionData: Unit[] = [
+export const defaultUnitConversionData: Readonly<Unit[]> = [
   {
     name: "feet",
     symbol: "ft",

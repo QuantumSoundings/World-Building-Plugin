@@ -1,5 +1,7 @@
+import { Type, plainToClass } from "class-transformer";
 import { defaultUnitConversionData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
+import { LogLevel, logger } from "src/util";
 
 export class ConversionFactor {
   toUnit: string;
@@ -9,20 +11,20 @@ export class ConversionFactor {
 export class Unit {
   name: string;
   symbol: string;
+
+  @Type(() => ConversionFactor)
   conversionFactors: ConversionFactor[];
 }
 
 export class UnitConversionAPI {
   plugin: WorldBuildingPlugin;
+  defaultDataString: string;
   data: Unit[];
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
+    this.defaultDataString = JSON.stringify(defaultUnitConversionData);
     this.data = [];
-  }
-
-  private loadDefaultData() {
-    this.data = JSON.parse(JSON.stringify(defaultUnitConversionData));
   }
 
   public saveDefaultData() {
@@ -31,31 +33,22 @@ export class UnitConversionAPI {
   }
 
   reloadData() {
+    const newData = JSON.parse(this.defaultDataString);
+    // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.unitConversionData !== "") {
-      this.data = [];
-      const dataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.unitConversionData;
-      console.log("Loading unit conversion data from " + this.plugin.settings.unitConversionData + ".");
-      const unitConversionData = this.plugin.yamlManager.getDataByFile(dataPath) as any;
-      if (unitConversionData === undefined) {
-        console.error("Could not load unit conversion data.");
-        this.loadDefaultData();
+      const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.unitConversionData;
+      const overrideData = this.plugin.csvManager.getDataByFile(overrideDataPath);
+      if (overrideData === undefined) {
+        logger(this, LogLevel.Error, "Could not load override data.");
         return;
       }
-      for (const unitData of unitConversionData) {
-        const unit = new Unit();
-        unit.name = unitData.name;
-        unit.symbol = unitData.symbol;
-        unit.conversionFactors = [];
-        for (const conversionFactorData of unitData.conversionFactors) {
-          const conversionFactor = new ConversionFactor();
-          conversionFactor.toUnit = conversionFactorData.toUnit;
-          conversionFactor.factor = conversionFactorData.factor;
-          unit.conversionFactors.push(conversionFactor);
-        }
-        this.data.push(unitData);
-      }
-    } else {
-      this.loadDefaultData();
+    }
+
+    // We are ready to apply the new data. Clear the old and add the new.
+    this.data = [];
+    for (const newDataEntry of newData) {
+      const newDataClassInstance = plainToClass(Unit, newDataEntry);
+      this.data.push(newDataClassInstance);
     }
   }
 

@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { App, FileSystemAdapter, Plugin, PluginSettingTab, Setting, TAbstractFile } from "obsidian";
 import { CSVManager } from "./dataManagers/csvManager";
 import { SettlementAPI } from "./api/settlementApi";

@@ -20,3 +20,27 @@ export function generateGaussianValue(min: number, max: number, skew: number) {
   }
   return num;
 }
+
+export enum LogLevel {
+  Debug = "Debug",
+  Info = "Info",
+  Warning = "Warning",
+  Error = "Error",
+} //test2
+
+export function logger(location: any, level: LogLevel, message: string) {
+  switch (level) {
+    case LogLevel.Debug:
+      console.debug(location.constructor.name + ": " + message);
+      break;
+    case LogLevel.Info:
+      console.info(location.constructor.name + ": " + message);
+      break;
+    case LogLevel.Warning:
+      console.warn(location.constructor.name + ": " + message);
+      break;
+    case LogLevel.Error:
+      console.error(location.constructor.name + ": " + message);
+      break;
+  }
+}

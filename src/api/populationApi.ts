@@ -1,5 +1,8 @@
+import { plainToClass } from "class-transformer";
+import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultPopulationDensityData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
+import { LogLevel, logger } from "src/util";
 
 export class PopulationDensity {
   descriptor: string;
@@ -10,15 +13,13 @@ export class PopulationDensity {
 
 export class PopulationAPI {
   plugin: WorldBuildingPlugin;
+  defaultDataString: string;
   data: PopulationDensity[];
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
+    this.defaultDataString = JSON.stringify(defaultPopulationDensityData);
     this.data = [];
-  }
-
-  private loadDefaultData() {
-    this.data = JSON.parse(JSON.stringify(defaultPopulationDensityData));
   }
 
   public saveDefaultData() {
@@ -27,26 +28,23 @@ export class PopulationAPI {
   }
 
   reloadData() {
+    let newData = JSON.parse(this.defaultDataString);
+    // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.populationDensityData !== "") {
-      this.data = [];
-      const dataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.populationDensityData;
-      const populationDensityData = this.plugin.csvManager.getDataByFile(dataPath);
-      if (populationDensityData === undefined) {
-        console.error("Could not load population data.");
-        this.loadDefaultData();
+      const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.populationDensityData;
+      const overrideData = this.plugin.csvManager.getDataByFile(overrideDataPath);
+      if (overrideData === undefined) {
+        logger(this, LogLevel.Error, "Could not load override data.");
         return;
       }
-      console.log("Loading population data from " + this.plugin.settings.populationDensityData + ".");
-      for (let i = 1; i < populationDensityData.length; i++) {
-        const populationDensity = new PopulationDensity();
-        populationDensity.descriptor = populationDensityData[i][0];
-        populationDensity.minPopulation = Number(populationDensityData[i][1]);
-        populationDensity.maxPopulation = Number(populationDensityData[i][2]);
-        populationDensity.areaUnit = populationDensityData[i][3];
-        this.data.push(populationDensity);
-      }
-    } else {
-      this.loadDefaultData();
+      newData = CSVManager.csvToPojoWithIncludedHeaders(overrideData);
+    }
+
+    // We are ready to apply the new data. Clear the old and add the new.
+    this.data = [];
+    for (const newDataEntry of newData) {
+      const newDataClassInstance = plainToClass(PopulationDensity, newDataEntry);
+      this.data.push(newDataClassInstance);
     }
   }
 

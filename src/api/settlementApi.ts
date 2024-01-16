@@ -1,6 +1,8 @@
+import { plainToClass } from "class-transformer";
+import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultSettlementData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
-import { generateGaussianValue } from "src/util";
+import { LogLevel, generateGaussianValue, logger } from "src/util";
 
 export class SettlementType {
   type: string;
@@ -18,15 +20,13 @@ export class Settlement {
 
 export class SettlementAPI {
   plugin: WorldBuildingPlugin;
+  defaultDataString: string;
   data: SettlementType[];
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
+    this.defaultDataString = JSON.stringify(defaultSettlementData);
     this.data = [];
-  }
-
-  private loadDefaultData() {
-    this.data = JSON.parse(JSON.stringify(defaultSettlementData));
   }
 
   public saveDefaultData() {
@@ -35,27 +35,23 @@ export class SettlementAPI {
   }
 
   reloadData() {
+    let newData = JSON.parse(this.defaultDataString);
+    // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.settlementData !== "") {
-      this.data = [];
-      const dataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.settlementData;
-      const data = this.plugin.csvManager.getDataByFile(dataPath);
-      if (data === undefined) {
-        console.error("Could not load settlement data.");
-        this.loadDefaultData();
+      const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.settlementData;
+      const overrideData = this.plugin.csvManager.getDataByFile(overrideDataPath);
+      if (overrideData === undefined) {
+        logger(this, LogLevel.Error, "Could not load override data.");
         return;
       }
-      console.log("Loading settlement data from " + this.plugin.settings.settlementData + ".");
-      for (let i = 1; i < data.length; i++) {
-        const settlement = new SettlementType();
-        settlement.type = data[i][0];
-        settlement.description = data[i][1];
-        settlement.distributionType = data[i][2];
-        settlement.minPopulation = Number(data[i][3]);
-        settlement.maxPopulation = Number(data[i][4]);
-        this.data.push(settlement);
-      }
-    } else {
-      this.loadDefaultData();
+      newData = CSVManager.csvToPojoWithIncludedHeaders(overrideData);
+    }
+
+    // We are ready to apply the new data. Clear the old and add the new.
+    this.data = [];
+    for (const newDataEntry of newData) {
+      const newDataClassInstance = plainToClass(SettlementType, newDataEntry);
+      this.data.push(newDataClassInstance);
     }
   }
 

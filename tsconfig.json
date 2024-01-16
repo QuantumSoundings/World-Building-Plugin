@@ -12,6 +12,8 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "isolatedModules": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
 	"strictNullChecks": true,
     "lib": [
       "DOM",

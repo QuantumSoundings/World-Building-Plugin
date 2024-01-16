@@ -68,4 +68,39 @@ export class CSVManager extends CacheManager<string[][]> {
     const converted = this.csvArrayToStringArray(parsed);
     return converted;
   }
+
+  static csvToPojoWithIncludedHeaders(content: string[][]): unknown {
+    const pojo: any = [];
+    const headers = content.shift();
+    if (headers === undefined) {
+      console.error("CSV has no headers.");
+      return undefined;
+    }
+
+    for (const row of content) {
+      const pojoRow: any = {};
+      for (let i = 0; i < row.length; i++) {
+        const value = row[i];
+        const header = headers[i];
+        pojoRow[header] = value;
+      }
+      pojo.push(pojoRow);
+    }
+    return pojo;
+  }
+
+  static csvToPojoWithoutHeaders(content: string[][], headers: string[]): unknown {
+    const pojo: any = [];
+
+    for (const row of content) {
+      const pojoRow: any = {};
+      for (let i = 0; i < row.length; i++) {
+        const value = row[i];
+        const header = headers[i];
+        pojoRow[header] = value;
+      }
+      pojo.push(pojoRow);
+    }
+    return pojo;
+  }
 }

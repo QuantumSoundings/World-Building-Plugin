@@ -12,7 +12,21 @@ class CacheEntry<T> {
   }
 }
 
-export class CacheManager<DataType> {
+export interface CacheManagerInterface {
+  load(): void;
+  readFile(fullPath: string): Promise<unknown | undefined>;
+  writeFile<Content>(fullPath: string, content: Content): Promise<void>;
+  getDataByFile(fullPath: string): unknown | undefined;
+  setDataByFile(fullPath: string, data: unknown): void;
+  saveDataByFile(fullPath: string): void;
+  saveAllData(): void;
+  onFileCreation(file: TAbstractFile): void;
+  onFileDeletion(file: TAbstractFile): void;
+  onFileRename(file: TAbstractFile, oldPath: string): void;
+  isFileManageable(file: TAbstractFile): boolean;
+}
+
+export class CacheManager<DataType> implements CacheManagerInterface {
   plugin: WorldBuildingPlugin;
   fileCache: Map<string, CacheEntry<DataType>>;
 
