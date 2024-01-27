@@ -1,4 +1,4 @@
-import { plainToClass } from "class-transformer";
+import { Type, plainToClass } from "class-transformer";
 import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultPopulationDensityData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
@@ -6,7 +6,9 @@ import { LogLevel, logger } from "src/util";
 
 export class PopulationDensity {
   descriptor: string;
+  @Type(() => Number)
   minPopulation: number;
+  @Type(() => Number)
   maxPopulation: number;
   areaUnit: string;
 }
@@ -24,7 +26,7 @@ export class PopulationAPI {
 
   public saveDefaultData() {
     const fullPath = this.plugin.settings.dataDirectory + "/default_population_density_data.csv";
-    this.plugin.csvManager.writeFile(fullPath, defaultPopulationDensityData);
+    this.plugin.csvManager.writeFile(fullPath, defaultPopulationDensityData, { header: true });
   }
 
   reloadData() {

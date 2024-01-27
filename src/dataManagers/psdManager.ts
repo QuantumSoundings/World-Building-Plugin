@@ -35,7 +35,7 @@ export class PSDManager extends CacheManager<PsdData> {
     return undefined;
   }
 
-  override async writeFile<Content>(fullPath: string, content: Content) {
+  override async writeFile<Content>(fullPath: string, content: Content, options: any = null) {
     // No-op for now.
   }
 
@@ -84,7 +84,7 @@ export class PSDManager extends CacheManager<PsdData> {
     for (const politicalLayer of politicalLayers) {
       const countryData = new CountryData();
       countryData.name = politicalLayer.name;
-      countryData.pixelCount = await this.findLayerIntersection(baseLayer, politicalLayer);
+      countryData.pixelCount = await this.findLayerIntersection(baseLayer, politicalLayer, psd.width, psd.height);
       mapData.countryData.push(countryData);
     }
 
@@ -129,7 +129,12 @@ export class PSDManager extends CacheManager<PsdData> {
   }
 
   // Not quite perfect. But good enough for now.
-  private async findLayerIntersection(layer1: Layer, layer2: Layer): Promise<number> {
+  private async findLayerIntersection(
+    layer1: Layer,
+    layer2: Layer,
+    fileWidth: number,
+    fileHeight: number
+  ): Promise<number> {
     // Find the intersection of the two layers.
     // The intersection is the pixels that are not transparent in both layers.
     const layer1Pixels = await layer1.composite(false, false);
@@ -147,8 +152,8 @@ export class PSDManager extends CacheManager<PsdData> {
 
     let intersectionPixelCount = 0;
 
-    for (let column = selection1Left; column < selection1Right; column++) {
-      for (let row = selection1Up; row < selection1Bottom; row++) {
+    for (let column = 0; column < fileWidth; column++) {
+      for (let row = 0; row < fileHeight; row++) {
         // Bounds checking Layer 1
         if (column < selection1Left || column >= selection1Right) {
           continue;

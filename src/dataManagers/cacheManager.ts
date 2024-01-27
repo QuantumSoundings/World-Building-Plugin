@@ -15,7 +15,7 @@ class CacheEntry<T> {
 export interface CacheManagerInterface {
   load(): void;
   readFile(fullPath: string): Promise<unknown | undefined>;
-  writeFile<Content>(fullPath: string, content: Content): Promise<void>;
+  writeFile<Content>(fullPath: string, content: Content, options: any): Promise<void>;
   getDataByFile(fullPath: string): unknown | undefined;
   setDataByFile(fullPath: string, data: unknown): void;
   saveDataByFile(fullPath: string): void;
@@ -65,7 +65,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
    * @param {string} fullPath  The full path of the file to write, including the file name and extension.
    * @param {DataType} data  The data to write to the file.
    */
-  public async writeFile<Content>(fullPath: string, data: Content): Promise<void> {
+  public async writeFile<Content>(fullPath: string, data: Content, options: any = null): Promise<void> {
     console.error(this.constructor.name + ": writeFile not implemented.");
     return;
   }

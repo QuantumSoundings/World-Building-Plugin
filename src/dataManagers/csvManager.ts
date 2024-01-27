@@ -24,10 +24,10 @@ export class CSVManager extends CacheManager<string[][]> {
     }
   }
 
-  override async writeFile<Content>(fullPath: string, content: Content) {
+  override async writeFile<Content>(fullPath: string, content: Content, options: any = null) {
     if (fullPath.endsWith(".csv")) {
       if (content instanceof Array) {
-        const stringified = stringify(content);
+        const stringified = stringify(content, options);
         await this.plugin.adapter.write(fullPath, stringified);
       } else {
         console.error("Invalid content type.");

@@ -1,4 +1,4 @@
-import { plainToClass } from "class-transformer";
+import { Type, plainToClass } from "class-transformer";
 import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultSettlementData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
@@ -8,7 +8,9 @@ export class SettlementType {
   type: string;
   description: string;
   distributionType: string;
+  @Type(() => Number)
   minPopulation: number;
+  @Type(() => Number)
   maxPopulation: number;
 }
 
@@ -31,7 +33,7 @@ export class SettlementAPI {
 
   public saveDefaultData() {
     const fullPath = this.plugin.settings.dataDirectory + "/default_settlement_data.csv";
-    this.plugin.csvManager.writeFile(fullPath, defaultSettlementData);
+    this.plugin.csvManager.writeFile(fullPath, defaultSettlementData, { header: true });
   }
 
   reloadData() {

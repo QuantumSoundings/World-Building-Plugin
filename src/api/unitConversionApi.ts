@@ -5,6 +5,7 @@ import { LogLevel, logger } from "src/util";
 
 export class ConversionFactor {
   toUnit: string;
+  @Type(() => Number)
   factor: number;
 }
 

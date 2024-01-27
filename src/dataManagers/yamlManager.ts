@@ -35,7 +35,7 @@ export class YAMLManager extends CacheManager<unknown[]> {
     }
   }
 
-  override async writeFile<Content>(fullPath: string, content: Content) {
+  override async writeFile<Content>(fullPath: string, content: Content, options: any = null) {
     if (fullPath.endsWith("yaml") || fullPath.endsWith("yml")) {
       await this.plugin.adapter.write(fullPath, stringify(content));
     } else if (fullPath.endsWith("md")) {
