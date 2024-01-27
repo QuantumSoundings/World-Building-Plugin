@@ -38,7 +38,7 @@ export class UnitConversionAPI {
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.unitConversionData !== "") {
       const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.unitConversionData;
-      const overrideData = this.plugin.csvManager.getDataByFile(overrideDataPath);
+      const overrideData = this.plugin.yamlManager.getDataByFile(overrideDataPath);
       if (overrideData === undefined) {
         logger(this, LogLevel.Error, "Could not load override data.");
         return;
