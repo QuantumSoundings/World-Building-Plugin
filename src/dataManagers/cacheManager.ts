@@ -23,6 +23,7 @@ export interface CacheManagerInterface {
   onFileCreation(file: TAbstractFile): void;
   onFileDeletion(file: TAbstractFile): void;
   onFileRename(file: TAbstractFile, oldPath: string): void;
+  onFileModify(file: TAbstractFile): void;
   isFileManageable(file: TAbstractFile): boolean;
 }
 
@@ -180,6 +181,11 @@ export class CacheManager<DataType> implements CacheManagerInterface {
     }
     this.fileCache.delete(oldPath);
     this.fileCache.set(file.path, fileEntry);
+  }
+
+  public onFileModify(file: TAbstractFile) {
+    this.onFileDeletion(file);
+    this.onFileCreation(file);
   }
 
   public isFileManageable(file: TAbstractFile): boolean {

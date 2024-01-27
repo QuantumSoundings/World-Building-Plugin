@@ -8,6 +8,7 @@ import { YAMLManager } from "./dataManagers/yamlManager";
 import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
+import { LogLevel, logger } from "./util";
 
 class WorldBuildingPluginSettings {
   dataDirectory: string;
@@ -87,13 +88,13 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerEventHandlers();
 
     // Finished!
-    console.log("Loaded plugin: WorldBuilding");
+    logger(this, LogLevel.Info, "Loaded plugin: WorldBuilding");
     // Debug, dump the state of the plugin to the console.
     console.log(this);
   }
 
   onunload() {
-    console.log("Unloading plugin: WorldBuilding");
+    logger(this, LogLevel.Info, "Unloading plugin: WorldBuilding");
     super.unload();
   }
 
@@ -157,9 +158,16 @@ export default class WorldBuildingPlugin extends Plugin {
         this.psdManager.onFileRename(file, oldPath);
       }
     };
+    const modifyEvent = (file: TAbstractFile) => {
+      if (this.psdManager.isFileManageable(file)) {
+        this.psdManager.onFileModify(file);
+      }
+    };
+
     this.registerEvent(this.app.vault.on("create", creationEvent));
     this.registerEvent(this.app.vault.on("delete", deletionEvent));
     this.registerEvent(this.app.vault.on("rename", renameEvent));
+    this.registerEvent(this.app.vault.on("modify", modifyEvent));
   }
 
   private registerCodeBlockProcessor() {
@@ -195,9 +203,7 @@ class WorldBuildingSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.dataDirectory)
           .onChange(async (value) => {
             this.plugin.settings.dataDirectory = value;
-            console.log("In the onChange for our settings function");
             await this.plugin.saveSettings();
-            //await this.plugin.csvManager.reload();
           })
       );
 
@@ -210,7 +216,6 @@ class WorldBuildingSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.settlementData)
           .onChange(async (value) => {
             this.plugin.settings.settlementData = value;
-            console.log("In the onChange for our settings function");
             await this.plugin.saveSettings();
             this.plugin.refreshAPIs();
           })
@@ -225,7 +230,6 @@ class WorldBuildingSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.populationDensityData)
           .onChange(async (value) => {
             this.plugin.settings.populationDensityData = value;
-            console.log("In the onChange for our settings function");
             await this.plugin.saveSettings();
             this.plugin.refreshAPIs();
           })
@@ -240,7 +244,6 @@ class WorldBuildingSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.unitConversionData)
           .onChange(async (value) => {
             this.plugin.settings.unitConversionData = value;
-            console.log("In the onChange for our settings function");
             await this.plugin.saveSettings();
             this.plugin.refreshAPIs();
           })

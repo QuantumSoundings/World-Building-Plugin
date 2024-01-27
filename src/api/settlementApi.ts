@@ -66,7 +66,7 @@ export class SettlementAPI {
   generateSettlement(type: string): Settlement | undefined {
     const settlementData = this.findSettlementDataByType(type);
     if (settlementData === undefined) {
-      console.error("Could not find settlement data for type: " + type);
+      logger(this, LogLevel.Error, "Could not find settlement data for type: " + type);
       return undefined;
     }
     const settlement = new Settlement();

@@ -57,10 +57,18 @@ export class PopulationAPI {
         const convertedMin = unitConversionAPI.convertUnit(density.minPopulation, density.areaUnit, areaUnit);
         const convertedMax = unitConversionAPI.convertUnit(density.maxPopulation, density.areaUnit, areaUnit);
         if (min === undefined) {
-          console.error("Could not convert population density from " + density.areaUnit + " to " + areaUnit);
+          logger(
+            this,
+            LogLevel.Error,
+            "Could not convert min population density from " + density.areaUnit + " to " + areaUnit
+          );
           continue;
         } else if (max === undefined) {
-          console.error("Could not convert population density from " + density.areaUnit + " to " + areaUnit);
+          logger(
+            this,
+            LogLevel.Error,
+            "Could not convert max population density from " + density.areaUnit + " to " + areaUnit
+          );
           continue;
         } else {
           min = convertedMin as number;

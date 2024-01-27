@@ -26,7 +26,7 @@ export enum LogLevel {
   Info = "Info",
   Warning = "Warning",
   Error = "Error",
-} //test2
+}
 
 export function logger(location: any, level: LogLevel, message: string) {
   switch (level) {

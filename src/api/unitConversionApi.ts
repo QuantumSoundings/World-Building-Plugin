@@ -59,12 +59,12 @@ export class UnitConversionAPI {
   convertUnit(value: number, fromUnit: string, toUnit: string): number | undefined {
     const fromUnitData = this.data.find((unit) => unit.name === fromUnit);
     if (fromUnitData === undefined) {
-      console.error("Could not find unit data for unit: " + fromUnit);
+      logger(this, LogLevel.Error, "Could not find unit data for unit: " + fromUnit);
       return undefined;
     }
     const conversionFactor = fromUnitData.conversionFactors.find((factor) => factor.toUnit === toUnit);
     if (conversionFactor === undefined) {
-      console.error("Could not find conversion unit: " + toUnit);
+      logger(this, LogLevel.Error, "Could not find conversion factor from " + fromUnit + " to " + toUnit);
       return undefined;
     }
     return value * conversionFactor.factor;
@@ -73,7 +73,7 @@ export class UnitConversionAPI {
   getSymbolForUnit(unitName: string): string | undefined {
     const unitData = this.data.find((unit) => unit.name === unitName);
     if (unitData === undefined) {
-      console.error("Could not find unit data for unit: " + unitName);
+      logger(this, LogLevel.Error, "Could not find unit data for unit: " + unitName);
       return undefined;
     }
     return unitData.symbol;
