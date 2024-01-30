@@ -16,6 +16,8 @@ class WorldBuildingPluginSettings {
   populationDensityData: string;
   unitConversionData: string;
   cacheFilesOnLoad: boolean;
+  defaultCsvHeadersPresent: boolean;
+  writeMapStatisticsOnLoad: boolean;
 }
 
 const DEFAULT_SETTINGS: WorldBuildingPluginSettings = {
@@ -24,6 +26,8 @@ const DEFAULT_SETTINGS: WorldBuildingPluginSettings = {
   populationDensityData: "",
   unitConversionData: "",
   cacheFilesOnLoad: true,
+  defaultCsvHeadersPresent: true,
+  writeMapStatisticsOnLoad: false,
 };
 
 export default class WorldBuildingPlugin extends Plugin {
@@ -76,6 +80,17 @@ export default class WorldBuildingPlugin extends Plugin {
         } else {
           return false;
         }
+      },
+    });
+
+    this.addCommand({
+      id: "save-calculated-map-data",
+      name: "Save Map Data to Config Files",
+      checkCallback: (checking: boolean) => {
+        if (!checking) {
+          this.psdManager.writeMapConfigData();
+        }
+        return true;
       },
     });
 

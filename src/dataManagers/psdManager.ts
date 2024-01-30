@@ -46,6 +46,24 @@ export class PSDManager extends CacheManager<PsdData> {
     return false;
   }
 
+  public writeMapConfigData(fullPath: string = "") {
+    // If no path is passed in, write all the files.
+    if (fullPath === "") {
+      for (const [key, value] of this.fileCache) {
+        const newFilePath = key.replace(".psd", ".md");
+        this.plugin.yamlManager.writeFile(newFilePath, value.data?.mapData);
+      }
+    } else {
+      const psdData = this.fileCache.get(fullPath);
+      if (psdData === undefined) {
+        logger(this, LogLevel.Error, "Could not find psd data.");
+        return;
+      }
+      const newFilePath = fullPath.replace(".psd", ".md");
+      this.plugin.yamlManager.writeFile(newFilePath, psdData.data?.mapData);
+    }
+  }
+
   private async parsePsd(fullPath: string, psd: Psd): Promise<PsdData> {
     const psdData = new PsdData();
     psdData.file = psd;
@@ -90,8 +108,10 @@ export class PSDManager extends CacheManager<PsdData> {
 
     psdData.mapData = mapData;
 
-    const newFilePath = fullPath.replace(".psd", ".md");
-    this.plugin.yamlManager.writeFile(newFilePath, psdData.mapData);
+    if (this.plugin.settings.writeMapStatisticsOnLoad) {
+      this.writeMapConfigData(fullPath);
+    }
+
     return psdData;
   }
 

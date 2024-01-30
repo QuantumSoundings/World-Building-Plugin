@@ -3,46 +3,61 @@ name: EntityName
 
 geography:
   size: 0
-  units: mile^2
+  sizeUnit: mile^2
   # Average land fertility. How many people can be supported per square unit of land.
   # Affected by technology, climate, and other factors.
-  # 180 is a good starting value, but can range from 20 to 400+.
-  land_fertility: 180.0
-  # How the territory is organized. List of territory types.
-  organization:
-    # If the territory organization is hierarchical or flat.
-    type: Hierarchical
-    territories:
-      - type: Province
-        average_size: 13000
-        average_population:
-        # Size or population can be used to approximate the number of territories.
-        generation_method: Size
-        parent: None
+  # 180 is a good starting value, but can range from 20 to 400+. Assuming mile^2 unit.
+  landFertility: 180.0
+  landFertilityUnit: mile^2
+  # How much of the land is lived on.
+  cultivatedLand: 0.0
+  cultivatedLandUnit: percent
 
+  # How the territories are distributed. Good to get a rough idea of scale.
+  territories:
+    - type: Province # User defined type.
+      generation:
+        # Size, Population, Static (both defined)
+        method: Size
+        averageSize: 13000
+        averagePopulation:
+      sizeUnit: mile^2
+      # None is special and means it is directly under the entity.
+      # Otherwise, it should be the type of the parent territory.
+      parentTerritory: None
 
   # How the settlements are distributed. List of settlement types and their portion of the population.
-  # Settlement types are defined in the settlement_types.csv dataset.
   settlements:
-    - SettlementType: Type
-      population_percentage: 0.0
+    - SettlementType: Type # defined internally or overridden by settlement_types dataset setting.
+      populationPercentage: 0.0
 
 # The population demographics of the entity.
 demographics:
   # Average age of death. US average is 78 years.
-  life_expectancy: 55
+  lifeExpectancy: 55
   # Percentage increase per year. [0, 100]
-  population_growth_rate: 1.1
+  populationGrowthRate: 1.1
 
 # Cultural Origin of the entity. Used to generate names.
-cultural_origin: English
+culture:
+  firstNameOrigin: English
+  lastNameOrigin: English
+  territoryNameOrigin: English
+  settlementNameOrigin: English
 
-species:
+# Validation check that total percentage should equal 100.
+speciesDistribution:
   - name:
-    population_percentage: 0.0
+    populationPercentage: 0.0
 
-languages:
+languageDistribution:
   - name:
-    population_percentage: 0.0
+    populationPercentage: 0.0
+
+staticDatasets:
+  # A dataset for all the named territories. A named territory includes a static name, type, population, and size.
+  territories:
+  # A dataset for all the named settlements. A named settlement includes a static name, type, population, and size.
+  settlements:
 
 version: 0.0.1

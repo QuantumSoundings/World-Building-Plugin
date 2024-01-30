@@ -57,7 +57,7 @@ export class CSVView extends TextFileView {
     super(leaf);
     this.plugin = plugin;
     this.viewState = new CSVViewState();
-    this.viewState.headersActive = true;
+    this.viewState.headersActive = this.plugin.settings.defaultCsvHeadersPresent;
     this.viewState.autoSave = false;
     this.viewState.currentlyLoading = false;
 
