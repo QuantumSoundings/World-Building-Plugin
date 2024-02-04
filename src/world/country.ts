@@ -1,24 +1,48 @@
 import { Type, plainToClass } from "class-transformer";
+import { UnitConversionAPI } from "src/api/unitConversionApi";
 import WorldBuildingPlugin from "src/main";
-import { Country } from "src/templates/countryTemplate";
+import { Country, convertToCountry } from "src/templates/countryTemplate";
 import { LogLevel, logger } from "src/util";
 
 export class CountryView {
   plugin: WorldBuildingPlugin;
   yamlProperties: any;
-  country: Country;
+  country: Country; // FrontMatter data
+
+  // Calculated Values
   population: number;
 
   constructor(plugin: WorldBuildingPlugin, sourcePath: string) {
     this.plugin = plugin;
     this.yamlProperties = this.plugin.yamlManager.readFile(sourcePath);
-    this.country = plainToClass(Country, this.yamlProperties);
-    this.calculatePopulation();
+    this.country = convertToCountry(this.yamlProperties);
+
+    // What all can we calculate on creation?
+    // Population
+    // Net Growth Rate
+    // Births/year
+    // Deaths/year
+    this.generateStaticInformation();
   }
-  private calculatePopulation() {
-    const size = this.country.geography.size;
-    const cultivated = size * this.country.geography.cultivationPercentage;
-    const landFertility = this.country.geography.landFertility;
+  private generateStaticInformation() {
+    // Population Information
+    {
+      const size = this.country.geography.size;
+      const sizeUnit = this.country.geography.sizeUnit;
+      let cultivatedLand = size * this.country.geography.cultivatedLand;
+      const cultivatedLandUnit = this.country.geography.cultivatedLandUnit;
+      let landFertility = this.country.geography.landFertility;
+      const landFertilityUnit = this.country.geography.landFertilityUnit;
+
+      // Convert cultivatedLand and LandFertility to the same unit as size.
+      const unitApi: UnitConversionAPI = this.plugin.getUnitConversionAPI();
+      if (cultivatedLandUnit === "percent") {
+        cultivatedLand = size * cultivatedLand;
+      } else {
+        cultivatedLand = unitApi.convertUnit(cultivatedLand, cultivatedLandUnit, sizeUnit);
+      }
+      landFertility = unitApi.convertUnit(landFertility, landFertilityUnit, sizeUnit);
+    }
 
     this.population = size * cultivated * landFertility;
   }
@@ -31,6 +55,7 @@ export class CountryView {
     return "|" + rows.join(" | ") + " |\n";
   }
 
+  // Someone fixed versions of the old view code.
   private generateOverviewTable() {
     let overviewTable = this.formatRow(["Overview", "-"]);
     overviewTable += this.formatRow(["---", "---"]);
