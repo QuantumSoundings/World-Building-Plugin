@@ -9,7 +9,7 @@ import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { LogLevel, logger } from "./util";
-import { SovereignEntity } from "./world/country";
+import { SovereignEntity } from "./world/sovereignEntity";
 
 class WorldBuildingPluginSettings {
   dataDirectory: string;
