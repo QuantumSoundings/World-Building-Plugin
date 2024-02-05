@@ -6,7 +6,8 @@ import { LogLevel, logger } from "src/util";
 
 class CountryData {
   name: string;
-  pixelCount: number;
+  rawPixelCount: number;
+  percentOfTotalMapArea: number;
 }
 
 class MapData {
@@ -102,7 +103,8 @@ export class PSDManager extends CacheManager<PsdData> {
     for (const politicalLayer of politicalLayers) {
       const countryData = new CountryData();
       countryData.name = politicalLayer.name;
-      countryData.pixelCount = await this.findLayerIntersection(baseLayer, politicalLayer, psd.width, psd.height);
+      countryData.rawPixelCount = await this.findLayerIntersection(baseLayer, politicalLayer, psd.width, psd.height);
+      countryData.percentOfTotalMapArea = countryData.rawPixelCount / (psd.width * psd.height);
       mapData.countryData.push(countryData);
     }
 

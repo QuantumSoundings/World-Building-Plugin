@@ -183,9 +183,9 @@ export class CacheManager<DataType> implements CacheManagerInterface {
     this.fileCache.set(file.path, fileEntry);
   }
 
-  public onFileModify(file: TAbstractFile) {
+  public async onFileModify(file: TAbstractFile) {
     this.onFileDeletion(file);
-    this.onFileCreation(file);
+    await this.onFileCreation(file);
   }
 
   public isFileManageable(file: TAbstractFile): boolean {

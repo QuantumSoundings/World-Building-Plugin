@@ -1,0 +1,1 @@
+cp ../output/main.js ../manifest.json ../.hotreload ../styles.css ~/Documents/World\ Building/.obsidian/plugins/world-building-plugin/

@@ -174,9 +174,9 @@ export default class WorldBuildingPlugin extends Plugin {
         this.psdManager.onFileRename(file, oldPath);
       }
     };
-    const modifyEvent = (file: TAbstractFile) => {
+    const modifyEvent = async (file: TAbstractFile) => {
       if (this.psdManager.isFileManageable(file)) {
-        this.psdManager.onFileModify(file);
+        await this.psdManager.onFileModify(file);
       }
     };
 
