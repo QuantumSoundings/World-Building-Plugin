@@ -142,8 +142,13 @@ export class SovereignEntity {
   private generateSpeciesTable() {
     let speciesTable = Utils.formatRow(["Species", "Population"]);
     speciesTable += Utils.formatRow(["---", "---"]);
+    let warnBadDistribution = 0;
     for (const species of this.sovereignEntityFM.species) {
       speciesTable += Utils.formatRow([species.name, species.value * this.population]);
+      warnBadDistribution += species.value;
+    }
+    if (warnBadDistribution > 1.0 || warnBadDistribution < 1.0) {
+      logger(this, LogLevel.Warning, "Species distribution does not equal 100%. Total: " + warnBadDistribution);
     }
     return speciesTable;
   }
@@ -193,6 +198,7 @@ export class SovereignEntity {
   private generateSettlementTable() {
     let settlementTable = Utils.formatRow(["Settlement Type", "Count", "Total Population", "Average Population"]);
     settlementTable += Utils.formatRow(["---", "---", "---", "---"]);
+    let warnBadDistribution = 0;
     for (const settlement of this.sovereignEntityFM.geography.settlements) {
       const settlementData = this.plugin.getSettlementAPI().findSettlementDataByType(settlement.name);
       if (settlementData === undefined) {
@@ -202,7 +208,23 @@ export class SovereignEntity {
       const settlementTotalPopulation = this.population * settlement.value;
       // Do this to coerce to integer numbers of settlements.
       let averagePopulation = (settlementData.minPopulation + settlementData.maxPopulation) / 2;
-      const settlementCount = Math.round(settlementTotalPopulation / averagePopulation);
+      let settlementCount = Math.round(settlementTotalPopulation / averagePopulation);
+      if (settlementCount === 0) {
+        if (
+          settlementTotalPopulation > settlementData.minPopulation &&
+          settlementTotalPopulation < settlementData.maxPopulation
+        ) {
+          settlementCount = 1;
+        } else {
+          logger(
+            this,
+            LogLevel.Warning,
+            "Not enough population to support a settlement of type: " +
+              settlement.name +
+              ". Try adjusting the distribution."
+          );
+        }
+      }
       averagePopulation = settlementTotalPopulation / settlementCount;
 
       settlementTable += Utils.formatRow([
@@ -211,7 +233,13 @@ export class SovereignEntity {
         settlementTotalPopulation,
         averagePopulation,
       ]);
+      warnBadDistribution += settlement.value;
     }
+
+    if (warnBadDistribution > 1.0 || warnBadDistribution < 1.0) {
+      logger(this, LogLevel.Warning, "Settlement distribution does not equal 100%. Total: " + warnBadDistribution);
+    }
+
     return settlementTable;
   }
 }
