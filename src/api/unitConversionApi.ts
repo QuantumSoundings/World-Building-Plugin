@@ -1,5 +1,7 @@
 import { Type, plainToClass } from "class-transformer";
+import { Result } from "obsidian-dataview";
 import { defaultUnitConversionData } from "src/defaultData";
+import { BaseError } from "src/errors/baseError";
 import WorldBuildingPlugin from "src/main";
 import { LogLevel, logger } from "src/util";
 
@@ -57,26 +59,26 @@ export class UnitConversionAPI {
     return this.data;
   }
 
-  convertUnit(value: number, fromUnit: string, toUnit: string): number | undefined {
+  convertUnit(value: number, fromUnit: string, toUnit: string): Result<number> {
     const fromUnitData = this.data.find((unit) => unit.name === fromUnit);
     if (fromUnitData === undefined) {
-      logger(this, LogLevel.Error, "Could not find unit data for unit: " + fromUnit);
-      return undefined;
+      return { success: false, error: new BaseError("Could not find unit data for unit: " + fromUnit) };
     }
     const conversionFactor = fromUnitData.conversionFactors.find((factor) => factor.toUnit === toUnit);
     if (conversionFactor === undefined) {
-      logger(this, LogLevel.Error, "Could not find conversion factor from " + fromUnit + " to " + toUnit);
-      return undefined;
+      return {
+        success: false,
+        error: new BaseError("Could not find conversion factor from " + fromUnit + " to " + toUnit),
+      };
     }
-    return value * conversionFactor.factor;
+    return { success: true, result: value * conversionFactor.factor };
   }
 
-  getSymbolForUnit(unitName: string): string | undefined {
+  getSymbolForUnit(unitName: string): Result<string> {
     const unitData = this.data.find((unit) => unit.name === unitName);
     if (unitData === undefined) {
-      logger(this, LogLevel.Error, "Could not find unit data for unit: " + unitName);
-      return undefined;
+      return { success: false, error: new BaseError("Could not find unit data for unit: " + unitName) };
     }
-    return unitData.symbol;
+    return { success: true, result: unitData.symbol };
   }
 }

@@ -1,4 +1,6 @@
-export type Result<T, E extends Error = Error> = { success: true; result: T } | { success: false; error: E };
+import { BaseError } from "./baseError";
+
+export type Result<T, E extends BaseError = BaseError> = { success: true; result: T } | { success: false; error: E };
 
 export function validateError(value: Error) {
   if (value instanceof Error) return value;

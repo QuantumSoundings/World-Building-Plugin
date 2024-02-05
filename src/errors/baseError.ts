@@ -1,3 +1,5 @@
+import { LogLevel, logger } from "src/util";
+
 type Jsonable =
   | string
   | number
@@ -11,12 +13,14 @@ type Jsonable =
 export class BaseError extends Error {
   public readonly context?: Jsonable;
 
-  constructor(message: string, options: { error?: Error; context?: Jsonable } = {}) {
-    const { error, context } = options;
+  constructor(message: string, options: { cause?: Error; context?: Jsonable } = {}) {
+    const { cause, context } = options;
 
-    super(message);
+    super(message, { cause });
     this.name = this.constructor.name;
 
     this.context = context;
+
+    logger(this, LogLevel.Error, context as string);
   }
 }

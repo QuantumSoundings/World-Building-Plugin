@@ -9,6 +9,7 @@ import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { LogLevel, logger } from "./util";
+import { SovereignEntity } from "./world/country";
 
 class WorldBuildingPluginSettings {
   dataDirectory: string;
@@ -190,6 +191,12 @@ export default class WorldBuildingPlugin extends Plugin {
       // Source should be the full path + file name + extension.
       source = source.trim();
       context.addChild(new TableComponent(el, source, this));
+    });
+
+    this.registerMarkdownCodeBlockProcessor("wb-se", (source, el, context) => {
+      source = source.trim();
+      const country = new SovereignEntity(this, context.frontmatter);
+      country.buildMarkdownView(el);
     });
   }
 }

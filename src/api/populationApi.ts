@@ -1,6 +1,8 @@
 import { Type, plainToClass } from "class-transformer";
 import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultPopulationDensityData } from "src/defaultData";
+import { BaseError } from "src/errors/baseError";
+import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
 import { LogLevel, logger } from "src/util";
 
@@ -50,7 +52,7 @@ export class PopulationAPI {
     }
   }
 
-  getDescriptorForPopulation(populationDensity: number, areaUnit: string) {
+  getDescriptorForPopulation(populationDensity: number, areaUnit: string): Result<string> {
     const unitConversionAPI = this.plugin.getUnitConversionAPI();
     for (const density of this.data) {
       let min = density.minPopulation;
@@ -79,8 +81,9 @@ export class PopulationAPI {
       }
 
       if (populationDensity >= min && populationDensity < max) {
-        return density.descriptor;
+        return { success: true, result: density.descriptor };
       }
     }
+    return { success: false, error: new BaseError("Could not find a descriptor for the given population density") };
   }
 }

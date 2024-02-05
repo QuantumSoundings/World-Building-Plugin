@@ -1,172 +1,215 @@
-import { Type, plainToClass } from "class-transformer";
-import { UnitConversionAPI } from "src/api/unitConversionApi";
 import WorldBuildingPlugin from "src/main";
-import { Country, convertToCountry } from "src/templates/countryTemplate";
-import { LogLevel, logger } from "src/util";
+import { SovereignEntityFM, convertToSovereignEntityFM } from "src/frontmatter/sovereignEntityFM";
+import { LogLevel, Utils, logger } from "src/util";
 
-export class CountryView {
+export class SovereignEntity {
   plugin: WorldBuildingPlugin;
   yamlProperties: any;
-  country: Country; // FrontMatter data
+  sovereignEntityFM: SovereignEntityFM; // FrontMatter data
 
-  // Calculated Values
+  // Calculated Values used in several places.
+  // On Frontmatter change, these should be recalculated.
   population: number;
+  //populationDensity: number;
+  //populationDensityDescriptor: string;
+  //birthsPerYear: number;
+  //deathsPerYear: number;
+  //netGrowthPerYear: number;
+  overviewTable: string;
+  // Geography Section
+  territoryTable: string;
+  settlementTable: string;
+  // Demographics Section
+  populationTable: string;
+  speciesTable: string;
+  languageTable: string;
 
-  constructor(plugin: WorldBuildingPlugin, sourcePath: string) {
+  constructor(plugin: WorldBuildingPlugin, frontMatter: any) {
     this.plugin = plugin;
-    this.yamlProperties = this.plugin.yamlManager.readFile(sourcePath);
-    this.country = convertToCountry(this.yamlProperties);
+    //this.yamlProperties = this.plugin.yamlManager.readFile(sourcePath);
+    this.sovereignEntityFM = convertToSovereignEntityFM(frontMatter);
+    console.log(this.sovereignEntityFM);
 
-    // What all can we calculate on creation?
-    // Population
-    // Net Growth Rate
-    // Births/year
-    // Deaths/year
-    this.generateStaticInformation();
+    this.calculatePopulation();
+    // Build our tables
+    this.overviewTable = this.generateOverviewTable();
+    this.territoryTable = this.generateTerritoryTable();
+    this.settlementTable = this.generateSettlementTable();
+    this.populationTable = this.generatePopulationTable();
+    this.speciesTable = this.generateSpeciesTable();
+    this.languageTable = this.generateLanguageTable();
   }
-  private generateStaticInformation() {
-    // Population Information
-    {
-      const size = this.country.geography.size;
-      const sizeUnit = this.country.geography.sizeUnit;
-      let cultivatedLand = size * this.country.geography.cultivatedLand;
-      const cultivatedLandUnit = this.country.geography.cultivatedLandUnit;
-      let landFertility = this.country.geography.landFertility;
-      const landFertilityUnit = this.country.geography.landFertilityUnit;
 
-      // Convert cultivatedLand and LandFertility to the same unit as size.
-      const unitApi: UnitConversionAPI = this.plugin.getUnitConversionAPI();
-      if (cultivatedLandUnit === "percent") {
-        cultivatedLand = size * cultivatedLand;
-      } else {
-        cultivatedLand = unitApi.convertUnit(cultivatedLand, cultivatedLandUnit, sizeUnit);
+  public buildMarkdownView(el: HTMLElement) {
+    el.createEl("h1", { text: "Generated Statistics" });
+    el.createEl("h2", { text: "Overview" });
+    Utils.markdownTableToHtml(el, this.overviewTable);
+    el.createEl("h2", { text: "Geography" });
+    el.createEl("h3", { text: "Territories" });
+    Utils.markdownTableToHtml(el, this.territoryTable);
+    el.createEl("h3", { text: "Settlements" });
+    Utils.markdownTableToHtml(el, this.settlementTable);
+    el.createEl("h2", { text: "Demographics" });
+    el.createEl("h3", { text: "Population" });
+    Utils.markdownTableToHtml(el, this.populationTable);
+    el.createEl("h3", { text: "Species" });
+    Utils.markdownTableToHtml(el, this.speciesTable);
+    el.createEl("h3", { text: "Languages" });
+    Utils.markdownTableToHtml(el, this.languageTable);
+  }
+
+  private calculatePopulation() {
+    // Population Information
+    const size = this.sovereignEntityFM.geography.size;
+    const sizeUnit = this.sovereignEntityFM.geography.sizeUnit;
+
+    let cultivatedLand = this.sovereignEntityFM.geography.cultivatedLand;
+    const cultivatedLandUnit = this.sovereignEntityFM.geography.cultivatedLandUnit;
+
+    let landFertility = this.sovereignEntityFM.geography.landFertility;
+    const landFertilityUnit = this.sovereignEntityFM.geography.landFertilityUnit;
+
+    const unitApi = this.plugin.getUnitConversionAPI();
+
+    // Convert cultivatedLand and LandFertility to the same unit as size.
+    if (cultivatedLandUnit === "Percent") {
+      cultivatedLand = size * (cultivatedLand / 100);
+    } else if (cultivatedLandUnit !== sizeUnit) {
+      const result = unitApi.convertUnit(cultivatedLand, cultivatedLandUnit, sizeUnit);
+      if (result.success === false) {
+        return;
       }
-      landFertility = unitApi.convertUnit(landFertility, landFertilityUnit, sizeUnit);
+      cultivatedLand = result.result;
     }
 
-    this.population = size * cultivated * landFertility;
-  }
+    if (landFertilityUnit !== sizeUnit) {
+      const result = unitApi.convertUnit(landFertility, landFertilityUnit, sizeUnit);
+      if (result.success === false) {
+        return;
+      }
+      landFertility = result.result;
+    }
 
-  private formatNumber(number: number, unit: string = ""): string {
-    return number.toLocaleString("en-US") + (unit !== "" ? " " + unit : "");
-  }
-
-  private formatRow(rows: any[]): string {
-    return "|" + rows.join(" | ") + " |\n";
+    this.population = cultivatedLand * landFertility;
   }
 
   // Someone fixed versions of the old view code.
   private generateOverviewTable() {
-    let overviewTable = this.formatRow(["Overview", "-"]);
-    overviewTable += this.formatRow(["---", "---"]);
-    overviewTable += this.formatRow(["Country Name", this.country.name]);
-    overviewTable += this.formatRow([
+    let overviewTable = Utils.formatRow(["Overview", "-"]);
+    overviewTable += Utils.formatRow(["---", "---"]);
+    overviewTable += Utils.formatRow(["Country Name", this.sovereignEntityFM.name]);
+    overviewTable += Utils.formatRow([
       "Country Size",
-      this.formatNumber(this.country.geography.size, this.country.geography.units),
+      Utils.formatNumberWithUnit(this.sovereignEntityFM.geography.size, this.sovereignEntityFM.geography.sizeUnit),
     ]);
-    overviewTable += this.formatRow(["Population", this.formatNumber(this.population)]);
+    overviewTable += Utils.formatRow(["Population", this.population]);
     return overviewTable;
   }
 
   private generatePopulationTable() {
-    const populationDensity = this.population / this.country.geography.size;
-    const densityDescriptor = this.plugin
+    const populationDensity = this.population / this.sovereignEntityFM.geography.size;
+    const densityDescriptorResult = this.plugin
       .getPopulationAPI()
-      .getDescriptorForPopulation(populationDensity, this.country.geography.units);
-    const lifeExpectancy = this.country.demographics.lifeExpectancy;
-    const growthRate = this.country.demographics.populationGrowthRate;
+      .getDescriptorForPopulation(populationDensity, this.sovereignEntityFM.geography.sizeUnit);
+    if (densityDescriptorResult.success === false) {
+      logger(this, LogLevel.Error, densityDescriptorResult.error.message);
+      return "";
+    }
+    const densityDescriptor = densityDescriptorResult.result;
+    const lifeExpectancy = this.sovereignEntityFM.demographics.lifeExpectancy;
+    const growthRate = this.sovereignEntityFM.demographics.populationGrowthRate;
     const netGrowthPerYear = this.population * (growthRate / 100);
     const deathsPerYear = this.population / lifeExpectancy;
     const birthsPerYear = netGrowthPerYear + deathsPerYear;
 
-    let populationTable = this.formatRow(["Population", "-"]);
-    populationTable = this.formatRow(["---", "---"]);
+    let populationTable = Utils.formatRow(["Statistic", "-"]);
+    populationTable += Utils.formatRow(["---", "---"]);
 
-    populationTable += this.formatRow(["Population", this.formatNumber(this.population)]);
-    populationTable += this.formatRow([
+    populationTable += Utils.formatRow(["Population", this.population]);
+    populationTable += Utils.formatRow([
       "Population Density",
-      this.formatNumber(populationDensity) + `(${densityDescriptor})`,
+      Utils.formatNumberWithUnit(populationDensity, `(${densityDescriptor})`),
     ]);
-    populationTable += this.formatRow(["Life Expectancy", this.formatNumber(this.country.demographics.lifeExpectancy)]);
-    populationTable += this.formatRow(["Births/year", this.formatNumber(birthsPerYear)]);
-    populationTable += this.formatRow(["Deaths/year", this.formatNumber(deathsPerYear)]);
-    populationTable += this.formatRow(["Net/year", this.formatNumber(netGrowthPerYear)]);
-    populationTable += this.formatRow(["Growth %", this.formatNumber(growthRate) + "%"]);
+    populationTable += Utils.formatRow(["Life Expectancy", this.sovereignEntityFM.demographics.lifeExpectancy]);
+    populationTable += Utils.formatRow(["Births/year", birthsPerYear]);
+    populationTable += Utils.formatRow(["Deaths/year", deathsPerYear]);
+    populationTable += Utils.formatRow(["Net/year", netGrowthPerYear]);
+    populationTable += Utils.formatRow(["Growth %", Utils.formatNumberWithUnit(growthRate, "%")]);
 
     return populationTable;
   }
 
   private generateSpeciesTable() {
-    let speciesTable = this.formatRow(["Species", "Population"]);
-    for (const species of this.country.species) {
-      speciesTable += this.formatRow([species.name, this.formatNumber(species.populationPercentage * this.population)]);
+    let speciesTable = Utils.formatRow(["Species", "Population"]);
+    speciesTable += Utils.formatRow(["---", "---"]);
+    for (const species of this.sovereignEntityFM.species) {
+      speciesTable += Utils.formatRow([species.name, species.value * this.population]);
     }
     return speciesTable;
   }
 
   private generateLanguageTable() {
-    let languageTable = this.formatRow(["Language", "Speakers"]);
-    for (const Language of this.country.languages) {
-      languageTable += this.formatRow([
-        Language.name,
-        this.formatNumber(Language.populationPercentage * this.population),
-      ]);
+    let languageTable = Utils.formatRow(["Language", "# of Speakers"]);
+    languageTable += Utils.formatRow(["---", "---"]);
+    for (const language of this.sovereignEntityFM.languages) {
+      languageTable += Utils.formatRow([language.name, language.value * this.population]);
     }
     return languageTable;
   }
 
   private generateTerritoryTable() {
-    let territoryTable = this.formatRow(["Territory", "Count", "Average Size", "Average Population"]);
-    territoryTable += this.formatRow(["---", "---", "---", "---"]);
-    for (const territoryType of this.country.geography.territoryTypes) {
+    let territoryTable = Utils.formatRow(["Territory", "Count", "Average Size", "Average Population"]);
+    territoryTable += Utils.formatRow(["---", "---", "---", "---"]);
+    const generationMethod = this.sovereignEntityFM.geography.generation.method;
+    for (const territory of this.sovereignEntityFM.geography.territories) {
       let averagePopulation = 0;
       let averageSize = 0;
       let territoryCount = 0;
-      switch (territoryType.generationMethod) {
+      switch (generationMethod) {
         case "Size":
-          averageSize = territoryType.averageSize;
-          territoryCount = this.country.geography.size / territoryType.averageSize;
+          averageSize = territory.value;
+          territoryCount = this.sovereignEntityFM.geography.size / averageSize;
           averagePopulation = this.population / territoryCount;
           break;
         case "Population":
-          averagePopulation = territoryType.averagePopulation;
-          territoryCount = this.population / territoryType.averagePopulation;
-          averageSize = this.country.geography.size / territoryCount;
+          averagePopulation = territory.value;
+          territoryCount = this.population / averagePopulation;
+          averageSize = this.sovereignEntityFM.geography.size / territoryCount;
           break;
         default:
-          logger(this, LogLevel.Error, "Unknown territory generation method: " + territoryType.generationMethod);
+          logger(this, LogLevel.Error, "Unknown territory generation method: " + generationMethod);
           return "";
       }
-      territoryTable += this.formatRow([
-        territoryType.type,
+      territoryTable += Utils.formatRow([
+        territory.type,
         territoryCount,
-        this.formatNumber(averageSize, this.country.geography.units),
-        this.formatNumber(averagePopulation),
+        Utils.formatNumberWithUnit(averageSize, this.sovereignEntityFM.geography.sizeUnit),
+        averagePopulation,
       ]);
     }
     return territoryTable;
   }
 
   private generateSettlementTable() {
-    let settlementTable = this.formatRow(["Settlement Type", "Count", "Total Population", "Average Population"]);
-    settlementTable += this.formatRow(["---", "---", "---", "---"]);
-    for (const settlement of this.country.geography.settlementTypes) {
-      const settlementData = this.plugin.getSettlementAPI().findSettlementDataByType(settlement.type);
+    let settlementTable = Utils.formatRow(["Settlement Type", "Count", "Total Population", "Average Population"]);
+    settlementTable += Utils.formatRow(["---", "---", "---", "---"]);
+    for (const settlement of this.sovereignEntityFM.geography.settlements) {
+      const settlementData = this.plugin.getSettlementAPI().findSettlementDataByType(settlement.name);
       if (settlementData === undefined) {
-        logger(this, LogLevel.Error, "Could not find settlement data for type: " + settlement.type);
+        logger(this, LogLevel.Error, "Could not find settlement data for type: " + settlement.name);
         continue;
       }
-      const settlementTotalPopulation = this.population * settlement.populationPercentage;
+      const settlementTotalPopulation = this.population * settlement.value;
       // Do this to coerce to integer numbers of settlements.
       let averagePopulation = (settlementData.minPopulation + settlementData.maxPopulation) / 2;
       const settlementCount = Math.round(settlementTotalPopulation / averagePopulation);
       averagePopulation = settlementTotalPopulation / settlementCount;
 
-      settlementTable += this.formatRow([
-        settlement.type,
-        this.formatNumber(settlementCount),
-        this.formatNumber(settlementTotalPopulation),
-        this.formatNumber(averagePopulation),
+      settlementTable += Utils.formatRow([
+        settlement.name,
+        settlementCount,
+        settlementTotalPopulation,
+        averagePopulation,
       ]);
     }
     return settlementTable;

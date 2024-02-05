@@ -2,7 +2,7 @@ import { Type, plainToClass } from "class-transformer";
 import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultSettlementData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
-import { LogLevel, generateGaussianValue, logger } from "src/util";
+import { LogLevel, Utils, logger } from "src/util";
 
 export class SettlementType {
   type: string;
@@ -81,7 +81,7 @@ export class SettlementAPI {
   private generatePopulation(settlementData: SettlementType): number {
     switch (settlementData.distributionType) {
       case "gaussian":
-        return generateGaussianValue(settlementData.minPopulation, settlementData.maxPopulation, 1.0);
+        return Utils.generateGaussianValue(settlementData.minPopulation, settlementData.maxPopulation, 1.0);
       default:
         return NaN;
     }

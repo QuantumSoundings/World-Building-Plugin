@@ -1,5 +1,7 @@
 # Represents an independent political entity, a sovereign state, nation, group, etc.
+# They have a dependent population and territory.
 name: EntityName
+id: 0 # Unique identifier for the entity. Used for referencing in other files.
 
 geography:
   size: 0
@@ -9,27 +11,27 @@ geography:
   # 180 is a good starting value, but can range from 20 to 400+. Assuming mile^2 unit.
   landFertility: 180.0
   landFertilityUnit: mile^2
-  # How much of the land is lived on.
+  # How much of the controlled land is lived on.
   cultivatedLand: 0.0
-  cultivatedLandUnit: percent
+  cultivatedLandUnit: Percent # Percent or Unit
 
-  # How the territories are distributed. Good to get a rough idea of scale.
+  generation:
+    # Size or Population
+    method: Size
+    unit: mile^2
+
+  # How the types of territories are distributed and organized. Good to get a rough idea of scale.
   territories:
     - type: Province # User defined type.
-      generation:
-        # Size, Population, Static (both defined)
-        method: Size
-        averageSize: 13000
-        averagePopulation:
-      sizeUnit: mile^2
+      value: 0
       # None is special and means it is directly under the entity.
       # Otherwise, it should be the type of the parent territory.
       parentTerritory: None
 
   # How the settlements are distributed. List of settlement types and their portion of the population.
   settlements:
-    - SettlementType: Type # defined internally or overridden by settlement_types dataset setting.
-      populationPercentage: 0.0
+    - name: Type # defined internally or overridden by settlement_types dataset setting.
+      value: 0.0
 
 # The population demographics of the entity.
 demographics:
@@ -46,13 +48,13 @@ culture:
   settlementNameOrigin: English
 
 # Validation check that total percentage should equal 100.
-speciesDistribution:
-  - name:
-    populationPercentage: 0.0
+species:
+  - name: Human
+    value: 0.0
 
-languageDistribution:
-  - name:
-    populationPercentage: 0.0
+languages:
+  - name: Central
+    value: 0.0
 
 staticDatasets:
   # A dataset for all the named territories. A named territory includes a static name, type, population, and size.

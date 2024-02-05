@@ -1,11 +1,12 @@
 import { Type, plainToClass } from "class-transformer";
 
-export function convertToCountry(input: any): Country {
-  return plainToClass(Country, input);
+export function convertToSovereignEntityFM(input: any): SovereignEntityFM {
+  return plainToClass(SovereignEntityFM, input);
 }
 
-export class Country {
+export class SovereignEntityFM {
   name: string;
+  id: string;
 
   @Type(() => Geography)
   geography: Geography;
@@ -37,6 +38,8 @@ export class Geography {
   cultivatedLand: number;
   cultivatedLandUnit: string;
 
+  @Type(() => TerritoryGeneration)
+  generation: TerritoryGeneration;
   @Type(() => Territory)
   territories: Territory[];
 
@@ -68,19 +71,13 @@ export class Culture {
 export class Territory {
   type: string;
 
-  @Type(() => TerritoryGeneration)
-  generation: TerritoryGeneration;
+  @Type(() => Number)
+  value: number;
 
-  sizeUnit: string;
-  parent: string;
+  parentTerritory: string;
 }
 
 export class TerritoryGeneration {
   method: string;
-
-  @Type(() => Number)
-  averageSize: number;
-
-  @Type(() => Number)
-  averagePopulation: number;
+  unit: string;
 }
