@@ -56,7 +56,6 @@ export default class WorldBuildingPlugin extends Plugin {
     this.unitConversionAPI = new UnitConversionAPI(this);
 
     // Do any loading operations that need awaits.
-    await sleep(4000);
     await this.loadSettings();
     await this.csvManager.load();
     await this.yamlManager.load();

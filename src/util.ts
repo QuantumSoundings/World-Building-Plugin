@@ -73,15 +73,15 @@ export class Utils {
 
 export class Logger {
   public static info(classObject: any, message: any) {
-    console.info(classObject.constructor.name + ": " + message);
+    console.info(`${classObject.constructor.name}: `, message);
   }
   public static debug(classObject: any, message: any) {
-    console.debug(classObject.constructor.name + ": " + message);
+    console.debug(`${classObject.constructor.name}: `, message);
   }
   public static warn(classObject: any, message: any) {
-    console.warn(classObject.constructor.name + ": " + message);
+    console.warn(`${classObject.constructor.name}: `, message);
   }
   public static error(classObject: any, message: any) {
-    console.error(classObject.constructor.name + ": " + message);
+    console.error(`${classObject.constructor.name}: `, message);
   }
 }

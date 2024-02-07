@@ -93,8 +93,15 @@ export class PSDManager extends CacheManager<PsdData> {
   }
 
   private async parsePsd(fullPath: string, psd: Psd): Promise<PsdData> {
+    // Setup our data structure in case we need to return early.
     const psdData = new PsdData();
     psdData.file = psd;
+    const mapData: MapData = new MapData();
+    mapData.pixelHeight = psdData.file.height;
+    mapData.pixelWidth = psdData.file.width;
+    mapData.countryData = [];
+
+    psdData.mapData = mapData;
 
     let baseLayer: Layer | undefined = undefined;
     let politicalLayers: Layer[] = [];
@@ -122,22 +129,26 @@ export class PSDManager extends CacheManager<PsdData> {
       return psdData;
     }
 
-    const mapData: MapData = new MapData();
-    mapData.pixelHeight = psdData.file.height;
-    mapData.pixelWidth = psdData.file.width;
-    mapData.countryData = [];
-
+    const promises = [];
     for (const politicalLayer of politicalLayers) {
       const countryData = new CountryData();
       countryData.name = politicalLayer.name;
-      countryData.rawPixelCount = await this.findLayerIntersection(baseLayer, politicalLayer, psd.width, psd.height);
-      countryData.percentOfTotalMapArea = countryData.rawPixelCount / (psd.width * psd.height);
+      promises.push(this.findLayerIntersection(baseLayer, politicalLayer, psd.width, psd.height));
       mapData.countryData.push(countryData);
     }
 
-    this.updateCountriesUsingConfigData(mapData, fullPath, psd);
+    const results = await Promise.allSettled(promises);
+    // Fill in the country data with the results.
+    for (let i = 0; i < results.length; i++) {
+      if (results[i].status === "fulfilled") {
+        const result = results[i] as PromiseFulfilledResult<number>;
+        const countryData = mapData.countryData[i];
+        countryData.rawPixelCount = result.value;
+        countryData.percentOfTotalMapArea = countryData.rawPixelCount / (psd.width * psd.height);
+      }
+    }
 
-    psdData.mapData = mapData;
+    this.updateCountriesUsingConfigData(mapData, fullPath, psd);
 
     if (this.plugin.settings.writeMapStatisticsOnLoad) {
       this.writeMapConfigData(fullPath);
