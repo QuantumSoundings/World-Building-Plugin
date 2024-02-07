@@ -44,7 +44,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public async load() {
     // Performs an initial load of the cache.
     // Future changes use the event listeners to keep the cache up to date.
-    Logger.info(this, "Loading all manageable files in vault.");
+    Logger.debug(this, "Loading all manageable files in vault.");
     const allFiles = this.plugin.app.vault.getFiles();
     let loadedFiles = 0;
     for (const file of allFiles) {
@@ -55,7 +55,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
         continue;
       }
     }
-    Logger.info(this, "Loaded " + loadedFiles + " files.");
+    Logger.debug(this, "Loaded " + loadedFiles + " files.");
   }
 
   /**
@@ -87,7 +87,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
     }
     const fileData = fileEntry.data;
     if (fileData === undefined) {
-      Logger.info(this, "File found but not cached, reading from disk.");
+      Logger.debug(this, "File found but not cached, reading from disk.");
       this.readFile(fullPath).then((data) => {
         if (data === undefined) {
           Logger.error(this, "Failed to load file " + fileEntry.file.name + ".");
@@ -129,27 +129,27 @@ export class CacheManager<DataType> implements CacheManagerInterface {
       return;
     }
     if (fileEntry.data === undefined) {
-      Logger.info(this, "Data was never cached for " + fullPath + ", skipping save.");
+      Logger.debug(this, "Data was never cached for " + fullPath + ", skipping save.");
       return;
     }
     if (fileEntry.unsavedChanges) {
       await this.writeFile(fullPath, fileEntry.data);
     } else {
-      Logger.info(this, "Data was not modified for " + fullPath + ", skipping save.");
+      Logger.debug(this, "Data was not modified for " + fullPath + ", skipping save.");
     }
   }
 
   public async saveAllData(): Promise<void> {
     for (const [fileName, fileEntry] of this.fileCache) {
       if (fileEntry.data === undefined) {
-        Logger.info(this, "Data was never cached for " + fileName + ", skipping save.");
+        Logger.debug(this, "Data was never cached for " + fileName + ", skipping save.");
         continue;
       }
       if (fileEntry.unsavedChanges) {
         await this.writeFile(fileEntry.file.path, fileEntry.data);
         fileEntry.unsavedChanges = false;
       } else {
-        Logger.info(this, "Data was not modified for " + fileName + ", skipping save.");
+        Logger.debug(this, "Data was not modified for " + fileName + ", skipping save.");
       }
     }
   }

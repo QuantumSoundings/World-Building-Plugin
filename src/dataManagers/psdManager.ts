@@ -41,7 +41,9 @@ export class PSDManager extends CacheManager<PsdData> {
     if (fullPath.endsWith(".psd")) {
       const binaryFile = await this.plugin.adapter.readBinary(fullPath);
       const psd: Psd = Psd.parse(binaryFile);
-      const psdData: PsdData = await this.parsePsd(fullPath, psd);
+      const psdData = new PsdData();
+      psdData.file = psd;
+      psdData.mapData = new MapData();
       return psdData;
     }
     return undefined;
@@ -56,6 +58,31 @@ export class PSDManager extends CacheManager<PsdData> {
       return true;
     }
     return false;
+  }
+
+  public async processPSDs() {
+    Logger.debug(this, "Processing found PSD files.");
+    const keys: string[] = [];
+    const promises = [];
+    for (const [key, value] of this.fileCache) {
+      if (value.data) {
+        keys.push(key);
+        promises.push(this.parsePsd(value.file.path, value.data.file));
+      }
+    }
+    return Promise.allSettled(promises).then((results) => {
+      for (let i = 0; i < results.length; i++) {
+        if (results[i].status === "fulfilled") {
+          const result = results[i] as PromiseFulfilledResult<PsdData>;
+          const cacheEntry = this.fileCache.get(keys[i]);
+          if (cacheEntry === undefined) {
+            Logger.error(this, "Could not find cache entry.");
+            return;
+          }
+          cacheEntry.data = result.value;
+        }
+      }
+    });
   }
 
   public findCountryData(country: string): Result<CountryData> {
@@ -75,6 +102,7 @@ export class PSDManager extends CacheManager<PsdData> {
   }
 
   public writeMapConfigData(fullPath: string = "") {
+    Logger.debug(this, "Writing processed map data.");
     // If no path is passed in, write all the files.
     if (fullPath === "") {
       for (const [key, value] of this.fileCache) {

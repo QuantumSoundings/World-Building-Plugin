@@ -45,6 +45,10 @@ export default class WorldBuildingPlugin extends Plugin {
 
   async onload() {
     super.onload();
+    // Load settings and make them available to downstream configuration.
+    await this.loadSettings();
+    this.addSettingTab(new WorldBuildingSettingTab(this.app, this));
+
     // Initialize all the members of the plugin
     this.adapter = this.app.vault.adapter as FileSystemAdapter;
     this.csvManager = new CSVManager(this);
@@ -55,16 +59,11 @@ export default class WorldBuildingPlugin extends Plugin {
     this.populationAPI = new PopulationAPI(this);
     this.unitConversionAPI = new UnitConversionAPI(this);
 
-    // Do any loading operations that need awaits.
-    await this.loadSettings();
-    await this.csvManager.load();
-    await this.yamlManager.load();
-    await this.psdManager.load();
-
-    this.refreshAPIs();
-
-    // This adds a settings tab so the user can configure various aspects of the plugin
-    this.addSettingTab(new WorldBuildingSettingTab(this.app, this));
+    if (this.app.workspace.layoutReady) {
+      await this.indexVault();
+    } else {
+      this.app.workspace.onLayoutReady(async () => this.indexVault());
+    }
 
     this.addCommand({
       id: "save-default-data-to-data-directory",
@@ -103,13 +102,13 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerEventHandlers();
 
     // Finished!
-    Logger.info(this, "WorldBuilding plugin loaded.");
+    Logger.debug(this, "WorldBuilding plugin loaded.");
     // Dump the state of the plugin.
     Logger.debug(this, this);
   }
 
   onunload() {
-    Logger.info(this, "Unloading plugin: WorldBuilding");
+    Logger.debug(this, "Unloading plugin: WorldBuilding");
     super.unload();
   }
 
@@ -119,6 +118,19 @@ export default class WorldBuildingPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  async indexVault() {
+    // Do any loading operations that need awaits.
+    const promises = [];
+    promises.push(this.csvManager.load());
+    promises.push(this.yamlManager.load());
+    promises.push(this.psdManager.load());
+
+    await Promise.allSettled(promises);
+    this.psdManager.processPSDs().then(() => {
+      this.refreshAPIs();
+    });
   }
 
   refreshAPIs() {

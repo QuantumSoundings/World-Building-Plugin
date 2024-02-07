@@ -36,7 +36,7 @@ export class SovereignEntity {
       this.sovereignEntityFM = convertToSovereignEntityFM(frontMatter);
     }
 
-    Logger.info(this, this.sovereignEntityFM);
+    Logger.debug(this, this.sovereignEntityFM);
 
     this.calculatePopulation();
     // Build our tables

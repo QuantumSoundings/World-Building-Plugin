@@ -190,12 +190,12 @@ export class TableComponent extends MarkdownRenderChild {
     }
     this.plugin.csvManager.setDataByFile(this.fileSourcePath, dataCopy);
     this.plugin.csvManager.saveDataByFile(this.fileSourcePath);
-    Logger.info(this, "Saved CSV file " + this.fileSourcePath + ".");
+    Logger.debug(this, "Saved CSV file " + this.fileSourcePath + ".");
   }
 
   public loadDataFromSource(fileSourcePath: string) {
     this.fileSourcePath = fileSourcePath;
-    Logger.info(this, "Loading CSV file " + fileSourcePath + ".");
+    Logger.debug(this, "Loading CSV file " + fileSourcePath + ".");
     const fileData = this.plugin.csvManager.getDataByFile(fileSourcePath);
     if (fileData === undefined) {
       Logger.error(this, "File data was undefined.");
