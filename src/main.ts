@@ -175,7 +175,9 @@ export default class WorldBuildingPlugin extends Plugin {
       }
     };
     const modifyEvent = async (file: TAbstractFile) => {
-      if (this.psdManager.isFileManageable(file)) {
+      if (this.csvManager.isFileManageable(file)) {
+        await this.csvManager.onFileModify(file);
+      } else if (this.psdManager.isFileManageable(file)) {
         await this.psdManager.onFileModify(file);
       }
     };

@@ -177,7 +177,7 @@ export class TableComponent extends MarkdownRenderChild {
     super.unload();
   }
 
-  private requestSave() {
+  public requestSave() {
     const dataCopy = JSON.parse(JSON.stringify(this.rowData));
     if (this.tableState.headersActive) {
       dataCopy.unshift(this.headerData);

@@ -27,7 +27,18 @@ export class SovereignEntity {
   constructor(plugin: WorldBuildingPlugin, frontMatter: any) {
     this.plugin = plugin;
     //this.yamlProperties = this.plugin.yamlManager.readFile(sourcePath);
-    this.sovereignEntityFM = convertToSovereignEntityFM(frontMatter);
+    if (frontMatter.geography.size === "MAP") {
+      const countryDataResult = this.plugin.psdManager.findCountryData(frontMatter.name);
+      if (countryDataResult.success === false) {
+        logger(this, LogLevel.Error, countryDataResult.error.message);
+        return;
+      }
+      const fmCopy = JSON.parse(JSON.stringify(frontMatter));
+      fmCopy.geography.size = countryDataResult.result.unitArea;
+      this.sovereignEntityFM = convertToSovereignEntityFM(fmCopy);
+    } else {
+      this.sovereignEntityFM = convertToSovereignEntityFM(frontMatter);
+    }
     console.log(this.sovereignEntityFM);
 
     this.calculatePopulation();

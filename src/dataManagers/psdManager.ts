@@ -3,16 +3,27 @@ import WorldBuildingPlugin from "../main";
 import Psd, { Layer, NodeChild } from "@webtoon/psd";
 import { CacheManager } from "./cacheManager";
 import { LogLevel, logger } from "src/util";
+import { Result } from "src/errors/result";
+import { BaseError } from "src/errors/baseError";
 
 class CountryData {
   name: string;
   rawPixelCount: number;
   percentOfTotalMapArea: number;
+  //The following will be populated if _MapConfig.csv exists in the same directory as the PSD file and has an entry for this country.
+  unitArea: number;
 }
 
 class MapData {
-  height: number;
-  width: number;
+  pixelHeight: number;
+  pixelWidth: number;
+  unitHeight: number;
+  unitWidth: number;
+  unitArea: number;
+  unit: string;
+  unitHeightToPixelRatio: number;
+  unitWidthToPixelRatio: number;
+  unitAreaToPixelRatio: number;
   countryData: CountryData[];
 }
 
@@ -45,6 +56,22 @@ export class PSDManager extends CacheManager<PsdData> {
       return true;
     }
     return false;
+  }
+
+  public findCountryData(country: string): Result<CountryData> {
+    for (const [key, value] of this.fileCache) {
+      if (value.data) {
+        if (value.data.mapData.countryData !== undefined) {
+          for (const countryData of value.data.mapData.countryData) {
+            if (countryData.name === country) {
+              this.populateConfigData(value.data.mapData, key, value.data.file);
+              return { success: true, result: countryData };
+            }
+          }
+        }
+      }
+    }
+    return { success: false, error: new BaseError("Country not found.") };
   }
 
   public writeMapConfigData(fullPath: string = "") {
@@ -96,8 +123,8 @@ export class PSDManager extends CacheManager<PsdData> {
     }
 
     const mapData: MapData = new MapData();
-    mapData.height = psdData.file.height;
-    mapData.width = psdData.file.width;
+    mapData.pixelHeight = psdData.file.height;
+    mapData.pixelWidth = psdData.file.width;
     mapData.countryData = [];
 
     for (const politicalLayer of politicalLayers) {
@@ -107,6 +134,8 @@ export class PSDManager extends CacheManager<PsdData> {
       countryData.percentOfTotalMapArea = countryData.rawPixelCount / (psd.width * psd.height);
       mapData.countryData.push(countryData);
     }
+
+    this.populateConfigData(mapData, fullPath, psd);
 
     psdData.mapData = mapData;
 
@@ -132,6 +161,32 @@ export class PSDManager extends CacheManager<PsdData> {
 
     logger(this, LogLevel.Warning, "Topography group node has no base layer.");
     return undefined;
+  }
+
+  private populateConfigData(mapData: MapData, fullPath: string, psd: Psd) {
+    // Read in _MapConfig.csv if it exists
+    const fileName = fullPath.split("/").pop();
+    if (fileName !== undefined) {
+      const mapConfig = this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
+      if (mapConfig !== undefined) {
+        mapConfig.shift();
+        for (const mapConfigRow of mapConfig) {
+          if (fullPath.includes(mapConfigRow[0])) {
+            mapData.unitHeight = parseInt(mapConfigRow[1]);
+            mapData.unitWidth = parseInt(mapConfigRow[2]);
+            mapData.unit = mapConfigRow[3];
+            mapData.unitArea = mapData.unitHeight * mapData.unitWidth;
+            mapData.unitHeightToPixelRatio = mapData.unitHeight / psd.height;
+            mapData.unitWidthToPixelRatio = mapData.unitWidth / psd.width;
+            mapData.unitAreaToPixelRatio = mapData.unitArea / (psd.width * psd.height);
+
+            for (const countryData of mapData.countryData) {
+              countryData.unitArea = countryData.rawPixelCount * mapData.unitAreaToPixelRatio;
+            }
+          }
+        }
+      }
+    }
   }
 
   // Pass in the political group then get the political layers.
