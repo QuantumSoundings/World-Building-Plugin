@@ -2,7 +2,7 @@ import { TAbstractFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import Psd, { Layer, NodeChild } from "@webtoon/psd";
 import { CacheManager } from "./cacheManager";
-import { LogLevel, logger } from "src/util";
+import { Logger } from "src/util";
 import { Result } from "src/errors/result";
 import { BaseError } from "src/errors/baseError";
 
@@ -64,7 +64,7 @@ export class PSDManager extends CacheManager<PsdData> {
         if (value.data.mapData.countryData !== undefined) {
           for (const countryData of value.data.mapData.countryData) {
             if (countryData.name === country) {
-              this.populateConfigData(value.data.mapData, key, value.data.file);
+              this.updateCountriesUsingConfigData(value.data.mapData, key, value.data.file);
               return { success: true, result: countryData };
             }
           }
@@ -84,7 +84,7 @@ export class PSDManager extends CacheManager<PsdData> {
     } else {
       const psdData = this.fileCache.get(fullPath);
       if (psdData === undefined) {
-        logger(this, LogLevel.Error, "Could not find psd data.");
+        Logger.error(this, "Could not find psd data.");
         return;
       }
       const newFilePath = fullPath.replace(".psd", ".md");
@@ -114,11 +114,11 @@ export class PSDManager extends CacheManager<PsdData> {
     }
 
     if (baseLayer === undefined) {
-      logger(this, LogLevel.Warning, "No base layer found.");
+      Logger.warn(this, "No base layer found.");
       return psdData;
     }
     if (politicalLayers.length === 0) {
-      logger(this, LogLevel.Warning, "No political layers found.");
+      Logger.warn(this, "No political layers found.");
       return psdData;
     }
 
@@ -135,7 +135,7 @@ export class PSDManager extends CacheManager<PsdData> {
       mapData.countryData.push(countryData);
     }
 
-    this.populateConfigData(mapData, fullPath, psd);
+    this.updateCountriesUsingConfigData(mapData, fullPath, psd);
 
     psdData.mapData = mapData;
 
@@ -149,7 +149,7 @@ export class PSDManager extends CacheManager<PsdData> {
   // Pass in the topography group then get the base layer.
   private getBaseLayer(topographyGroupNode: NodeChild): Layer | undefined {
     if (topographyGroupNode.children === undefined) {
-      logger(this, LogLevel.Warning, "Topography group node has no children.");
+      Logger.warn(this, "Topography group node has no children.");
       return undefined;
     }
 
@@ -159,31 +159,35 @@ export class PSDManager extends CacheManager<PsdData> {
       }
     }
 
-    logger(this, LogLevel.Warning, "Topography group node has no base layer.");
+    Logger.warn(this, "Topography group node has no base layer.");
     return undefined;
   }
 
-  private populateConfigData(mapData: MapData, fullPath: string, psd: Psd) {
+  private updateCountriesUsingConfigData(mapData: MapData, fullPath: string, psd: Psd) {
     // Read in _MapConfig.csv if it exists
     const fileName = fullPath.split("/").pop();
-    if (fileName !== undefined) {
-      const mapConfig = this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
-      if (mapConfig !== undefined) {
-        mapConfig.shift();
-        for (const mapConfigRow of mapConfig) {
-          if (fullPath.includes(mapConfigRow[0])) {
-            mapData.unitHeight = parseInt(mapConfigRow[1]);
-            mapData.unitWidth = parseInt(mapConfigRow[2]);
-            mapData.unit = mapConfigRow[3];
-            mapData.unitArea = mapData.unitHeight * mapData.unitWidth;
-            mapData.unitHeightToPixelRatio = mapData.unitHeight / psd.height;
-            mapData.unitWidthToPixelRatio = mapData.unitWidth / psd.width;
-            mapData.unitAreaToPixelRatio = mapData.unitArea / (psd.width * psd.height);
+    if (fileName === undefined) {
+      return;
+    }
 
-            for (const countryData of mapData.countryData) {
-              countryData.unitArea = countryData.rawPixelCount * mapData.unitAreaToPixelRatio;
-            }
-          }
+    const mapConfig = this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
+    if (mapConfig === undefined) {
+      return;
+    }
+
+    mapConfig.shift();
+    for (const mapConfigRow of mapConfig) {
+      if (fullPath.includes(mapConfigRow[0])) {
+        mapData.unitHeight = parseInt(mapConfigRow[1]);
+        mapData.unitWidth = parseInt(mapConfigRow[2]);
+        mapData.unit = mapConfigRow[3];
+        mapData.unitArea = mapData.unitHeight * mapData.unitWidth;
+        mapData.unitHeightToPixelRatio = mapData.unitHeight / psd.height;
+        mapData.unitWidthToPixelRatio = mapData.unitWidth / psd.width;
+        mapData.unitAreaToPixelRatio = mapData.unitHeightToPixelRatio * mapData.unitWidthToPixelRatio;
+
+        for (const countryData of mapData.countryData) {
+          countryData.unitArea = countryData.rawPixelCount * mapData.unitAreaToPixelRatio;
         }
       }
     }
@@ -192,7 +196,7 @@ export class PSDManager extends CacheManager<PsdData> {
   // Pass in the political group then get the political layers.
   private getPoliticalLayers(politicalGroupNode: NodeChild): Layer[] {
     if (politicalGroupNode.children === undefined) {
-      logger(this, LogLevel.Warning, "Political group node has no children.");
+      Logger.warn(this, "Political group node has no children.");
       return [];
     }
 
@@ -252,10 +256,10 @@ export class PSDManager extends CacheManager<PsdData> {
 
         // Composite Space bounds checking
         if (index1 < 0 || index1 >= layer1Pixels.length) {
-          logger(this, LogLevel.Error, "Index 1 out of bounds.");
+          Logger.error(this, "Index 1 out of bounds.");
         }
         if (index2 < 0 || index2 >= layer2Pixels.length) {
-          logger(this, LogLevel.Error, "Index 2 out of bounds.");
+          Logger.error(this, "Index 2 out of bounds.");
         }
 
         // Is the pixel visible in both layers?

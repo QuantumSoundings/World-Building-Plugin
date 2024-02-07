@@ -1,6 +1,6 @@
 import WorldBuildingPlugin from "src/main";
 import { SovereignEntityFM, convertToSovereignEntityFM } from "src/frontmatter/sovereignEntityFM";
-import { LogLevel, Utils, logger } from "src/util";
+import { Utils, Logger } from "src/util";
 
 export class SovereignEntity {
   plugin: WorldBuildingPlugin;
@@ -10,11 +10,7 @@ export class SovereignEntity {
   // Calculated Values used in several places.
   // On Frontmatter change, these should be recalculated.
   population: number;
-  //populationDensity: number;
-  //populationDensityDescriptor: string;
-  //birthsPerYear: number;
-  //deathsPerYear: number;
-  //netGrowthPerYear: number;
+
   overviewTable: string;
   // Geography Section
   territoryTable: string;
@@ -26,11 +22,11 @@ export class SovereignEntity {
 
   constructor(plugin: WorldBuildingPlugin, frontMatter: any) {
     this.plugin = plugin;
-    //this.yamlProperties = this.plugin.yamlManager.readFile(sourcePath);
+
     if (frontMatter.geography.size === "MAP") {
       const countryDataResult = this.plugin.psdManager.findCountryData(frontMatter.name);
       if (countryDataResult.success === false) {
-        logger(this, LogLevel.Error, countryDataResult.error.message);
+        Logger.error(this, countryDataResult.error.message);
         return;
       }
       const fmCopy = JSON.parse(JSON.stringify(frontMatter));
@@ -39,7 +35,8 @@ export class SovereignEntity {
     } else {
       this.sovereignEntityFM = convertToSovereignEntityFM(frontMatter);
     }
-    console.log(this.sovereignEntityFM);
+
+    Logger.info(this, this.sovereignEntityFM);
 
     this.calculatePopulation();
     // Build our tables
@@ -123,7 +120,7 @@ export class SovereignEntity {
       .getPopulationAPI()
       .getDescriptorForPopulation(populationDensity, this.sovereignEntityFM.geography.sizeUnit);
     if (densityDescriptorResult.success === false) {
-      logger(this, LogLevel.Error, densityDescriptorResult.error.message);
+      Logger.error(this, densityDescriptorResult.error.message);
       return "";
     }
     const densityDescriptor = densityDescriptorResult.result;
@@ -159,7 +156,7 @@ export class SovereignEntity {
       warnBadDistribution += species.value;
     }
     if (warnBadDistribution > 1.0 || warnBadDistribution < 1.0) {
-      logger(this, LogLevel.Warning, "Species distribution does not equal 100%. Total: " + warnBadDistribution);
+      Logger.warn(this, "Species distribution does not equal 100%. Total: " + warnBadDistribution);
     }
     return speciesTable;
   }
@@ -193,7 +190,7 @@ export class SovereignEntity {
           averageSize = this.sovereignEntityFM.geography.size / territoryCount;
           break;
         default:
-          logger(this, LogLevel.Error, "Unknown territory generation method: " + generationMethod);
+          Logger.error(this, "Unknown territory generation method: " + generationMethod);
           return "";
       }
       territoryTable += Utils.formatRow([
@@ -213,7 +210,7 @@ export class SovereignEntity {
     for (const settlement of this.sovereignEntityFM.geography.settlements) {
       const settlementData = this.plugin.getSettlementAPI().findSettlementDataByType(settlement.name);
       if (settlementData === undefined) {
-        logger(this, LogLevel.Error, "Could not find settlement data for type: " + settlement.name);
+        Logger.error(this, "Could not find settlement data for type: " + settlement.name);
         continue;
       }
       const settlementTotalPopulation = this.population * settlement.value;
@@ -227,9 +224,8 @@ export class SovereignEntity {
         ) {
           settlementCount = 1;
         } else {
-          logger(
+          Logger.warn(
             this,
-            LogLevel.Warning,
             "Not enough population to support a settlement of type: " +
               settlement.name +
               ". Try adjusting the distribution."
@@ -248,7 +244,7 @@ export class SovereignEntity {
     }
 
     if (warnBadDistribution > 1.0 || warnBadDistribution < 1.0) {
-      logger(this, LogLevel.Warning, "Settlement distribution does not equal 100%. Total: " + warnBadDistribution);
+      Logger.warn(this, "Settlement distribution does not equal 100%. Total: " + warnBadDistribution);
     }
 
     return settlementTable;

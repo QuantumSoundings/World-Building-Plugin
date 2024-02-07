@@ -3,6 +3,7 @@ import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
 import { ButtonComponent, MarkdownRenderChild, Setting, ToggleComponent } from "obsidian";
 import WorldBuildingPlugin from "src/main";
+import { Logger } from "src/util";
 
 class TableState {
   // Settings
@@ -23,6 +24,7 @@ export class TableComponent extends MarkdownRenderChild {
   // HTML Elements
   fileOptionsElement: HTMLElement;
   loadingBarElement: HTMLElement;
+  tableContainerElement: HTMLElement;
 
   // Members
   handsonTable: Handsontable;
@@ -53,7 +55,7 @@ export class TableComponent extends MarkdownRenderChild {
   };
 
   // constructor
-  constructor(parentElement: HTMLElement, fileSource: string, plugin: WorldBuildingPlugin) {
+  constructor(parentElement: HTMLElement, plugin: WorldBuildingPlugin) {
     //Calling the parent constructor
     super(parentElement);
     this.plugin = plugin;
@@ -61,7 +63,7 @@ export class TableComponent extends MarkdownRenderChild {
     this.tableState.headersActive = true;
     this.tableState.autoSave = false;
     this.tableState.currentlyLoading = false;
-    this.fileSourcePath = fileSource;
+    //this.fileSourcePath = fileSourcePath;
 
     // Setup html elements
     this.loadingBarElement = parentElement.createDiv();
@@ -73,13 +75,13 @@ export class TableComponent extends MarkdownRenderChild {
     this.fileOptionsElement = parentElement.createDiv();
     this.fileOptionsElement.classList.add("csv-controls");
 
-    const tableContainer = parentElement.createDiv();
-    tableContainer.classList.add("csv-table-wrapper");
-    const handsonTableContainer = tableContainer.createDiv();
+    const tableContainerElement = parentElement.createDiv();
+    tableContainerElement.classList.add("csv-table-wrapper");
+    const handsonTableContainer = tableContainerElement.createDiv();
 
     this.configureHandsonTable(handsonTableContainer);
     this.configureSettingComponents();
-    this.loadDataFromSource();
+    //this.loadDataFromSource(this.fileSourcePath);
   }
 
   private configureHandsonTable(parentElement: HTMLElement) {
@@ -132,10 +134,10 @@ export class TableComponent extends MarkdownRenderChild {
             if (shiftedData !== undefined) {
               this.headerData = shiftedData;
             } else {
-              console.warn("File had no rows.");
+              Logger.warn(this, "File had no rows.");
             }
           } else if (this.headerData instanceof Array) {
-            console.warn("Headers already enabled.");
+            Logger.warn(this, "Headers already enabled.");
           }
         } else {
           // Headers are currently enabled,
@@ -144,7 +146,7 @@ export class TableComponent extends MarkdownRenderChild {
             this.rowData.unshift(this.headerData);
             this.headerData = true;
           } else if (this.headerData === true) {
-            console.warn("Headers already disabled.");
+            Logger.warn(this, "Headers already disabled.");
           }
         }
         this.rebindDataToTable();
@@ -170,8 +172,12 @@ export class TableComponent extends MarkdownRenderChild {
     });
   }
 
-  override onload(): void {}
+  // Public functions to control the state of the table.
+  override onload(): void {
+    super.onload();
+  }
 
+  // Call this when you are about to destroy the component.
   override onunload(): void {
     this.requestSave();
     super.unload();
@@ -184,13 +190,15 @@ export class TableComponent extends MarkdownRenderChild {
     }
     this.plugin.csvManager.setDataByFile(this.fileSourcePath, dataCopy);
     this.plugin.csvManager.saveDataByFile(this.fileSourcePath);
-    console.log("Saved CSV file " + this.fileSourcePath + ".");
+    Logger.info(this, "Saved CSV file " + this.fileSourcePath + ".");
   }
 
-  private loadDataFromSource() {
-    const fileData = this.plugin.csvManager.getDataByFile(this.fileSourcePath);
+  public loadDataFromSource(fileSourcePath: string) {
+    this.fileSourcePath = fileSourcePath;
+    Logger.info(this, "Loading CSV file " + fileSourcePath + ".");
+    const fileData = this.plugin.csvManager.getDataByFile(fileSourcePath);
     if (fileData === undefined) {
-      console.error("File data was undefined.");
+      Logger.error(this, "File data was undefined.");
       return;
     }
 
@@ -200,7 +208,7 @@ export class TableComponent extends MarkdownRenderChild {
       if (parsedHeader !== undefined) {
         this.headerData = parsedHeader;
       } else {
-        console.warn("File had no rows.");
+        Logger.warn(this, "File had no rows.");
         this.headerData = true;
         this.tableState.headersActive = false;
       }

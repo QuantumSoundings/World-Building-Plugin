@@ -3,6 +3,7 @@ import WorldBuildingPlugin from "../main";
 import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 import { CacheManager } from "./cacheManager";
+import { Logger } from "src/util";
 
 // Manages the state of all the csv files in the project.
 // All operations on csv files should go through this class.
@@ -19,7 +20,7 @@ export class CSVManager extends CacheManager<string[][]> {
       const converted = CSVManager.csvArrayToStringArray(parsed);
       return converted;
     } else {
-      console.error("Invalid file extension.");
+      Logger.error(this, "Invalid file extension.");
       return undefined;
     }
   }
@@ -30,10 +31,10 @@ export class CSVManager extends CacheManager<string[][]> {
         const stringified = stringify(content, options);
         await this.plugin.adapter.write(fullPath, stringified);
       } else {
-        console.error("Invalid content type.");
+        Logger.error(this, "Invalid content type.");
       }
     } else {
-      console.error("Invalid file extension.");
+      Logger.error(this, "Invalid file extension.");
     }
   }
 
@@ -73,7 +74,7 @@ export class CSVManager extends CacheManager<string[][]> {
     const pojo: any = [];
     const headers = content.shift();
     if (headers === undefined) {
-      console.error("CSV has no headers.");
+      Logger.error(this, "CSV has no headers.");
       return undefined;
     }
 

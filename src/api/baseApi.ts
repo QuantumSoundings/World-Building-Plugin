@@ -1,7 +1,7 @@
 import { plainToClass } from "class-transformer";
 import { CacheManagerInterface } from "src/dataManagers/cacheManager";
 import WorldBuildingPlugin from "src/main";
-import { LogLevel, logger } from "src/util";
+import { Logger } from "src/util";
 
 // WIP
 export class BaseAPI<DataType> {
@@ -27,7 +27,7 @@ export class BaseAPI<DataType> {
       const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.populationDensityData;
       const overrideData = this.dataManager.getDataByFile(overrideDataPath);
       if (overrideData === undefined) {
-        logger(this, LogLevel.Error, "Could not load override data.");
+        Logger.error(this, "Could not load override data.");
         return;
       }
       newData = this.formatIncomingData(newData);

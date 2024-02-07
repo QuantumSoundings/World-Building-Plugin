@@ -71,26 +71,17 @@ export class Utils {
   }
 }
 
-export enum LogLevel {
-  Debug = "Debug",
-  Info = "Info",
-  Warning = "Warning",
-  Error = "Error",
-}
-
-export function logger(location: any, level: LogLevel, message: string) {
-  switch (level) {
-    case LogLevel.Debug:
-      console.debug(location.constructor.name + ": " + message);
-      break;
-    case LogLevel.Info:
-      console.info(location.constructor.name + ": " + message);
-      break;
-    case LogLevel.Warning:
-      console.warn(location.constructor.name + ": " + message);
-      break;
-    case LogLevel.Error:
-      console.error(location.constructor.name + ": " + message);
-      break;
+export class Logger {
+  public static info(classObject: any, message: any) {
+    console.info(classObject.constructor.name + ": " + message);
+  }
+  public static debug(classObject: any, message: any) {
+    console.debug(classObject.constructor.name + ": " + message);
+  }
+  public static warn(classObject: any, message: any) {
+    console.warn(classObject.constructor.name + ": " + message);
+  }
+  public static error(classObject: any, message: any) {
+    console.error(classObject.constructor.name + ": " + message);
   }
 }

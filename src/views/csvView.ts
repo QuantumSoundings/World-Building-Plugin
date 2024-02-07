@@ -2,7 +2,7 @@
 import { TextFileView, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { TableComponent } from "./tableComponent";
-import { LogLevel, logger } from "src/util";
+import { Logger } from "src/util";
 
 export class CSVView extends TextFileView {
   plugin: WorldBuildingPlugin;
@@ -24,20 +24,21 @@ export class CSVView extends TextFileView {
   override setViewData(data: string, clear: boolean): void {
     // We are loading a new file, save the old table if it exists and create a new one.
     if (clear) {
-      if (this.tableComponent !== undefined) {
-        this.tableComponent.requestSave();
-      }
-
       if (this.file === null || this.file.path === null) {
-        logger(this, LogLevel.Error, "File is null or has no path.");
+        Logger.error(this, "File is null or has no path.");
         return;
       }
-      this.tableComponent = new TableComponent(this.rootNode, this.file.path, this.plugin);
+
+      if (this.tableComponent === undefined) {
+        this.tableComponent = new TableComponent(this.rootNode, this.plugin);
+      }
+
+      this.tableComponent.loadDataFromSource(this.file.path);
     }
   }
 
   override async save(clear?: boolean): Promise<void> {
-    if (this.tableComponent) {
+    if (this.tableComponent !== undefined) {
       this.tableComponent.requestSave();
     }
   }

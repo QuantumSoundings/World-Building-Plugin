@@ -2,6 +2,7 @@ import { TAbstractFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import { parse, stringify } from "yaml";
 import { CacheManager } from "./cacheManager";
+import { Logger } from "src/util";
 
 // Manages yaml files and md files in the data directory.
 export class YAMLManager extends CacheManager<unknown[]> {
@@ -30,7 +31,7 @@ export class YAMLManager extends CacheManager<unknown[]> {
       const parsed = parse(yamlContent);
       return parsed;
     } else {
-      console.error("Invalid file extension.");
+      Logger.error(this, "Invalid file extension.");
       return undefined;
     }
   }
@@ -42,7 +43,7 @@ export class YAMLManager extends CacheManager<unknown[]> {
       const stringified = "---\n" + stringify(content) + "\n---\n";
       await this.plugin.adapter.write(fullPath, stringified);
     } else {
-      console.error("Invalid file extension.");
+      Logger.error(this, "Invalid file extension.");
     }
   }
 

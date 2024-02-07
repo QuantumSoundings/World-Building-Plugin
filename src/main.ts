@@ -8,7 +8,7 @@ import { YAMLManager } from "./dataManagers/yamlManager";
 import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
-import { LogLevel, logger } from "./util";
+import { Logger } from "./util";
 import { SovereignEntity } from "./world/sovereignEntity";
 
 class WorldBuildingPluginSettings {
@@ -104,13 +104,13 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerEventHandlers();
 
     // Finished!
-    logger(this, LogLevel.Info, "Loaded plugin: WorldBuilding");
-    // Debug, dump the state of the plugin to the console.
-    console.log(this);
+    Logger.info(this, "WorldBuilding plugin loaded.");
+    // Dump the state of the plugin.
+    Logger.debug(this, this);
   }
 
   onunload() {
-    logger(this, LogLevel.Info, "Unloading plugin: WorldBuilding");
+    Logger.info(this, "Unloading plugin: WorldBuilding");
     super.unload();
   }
 
@@ -192,7 +192,9 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerMarkdownCodeBlockProcessor("wb-csv", (source, el, context) => {
       // Source should be the full path + file name + extension.
       source = source.trim();
-      context.addChild(new TableComponent(el, source, this));
+      const tableComponent = new TableComponent(el, this);
+      tableComponent.loadDataFromSource(source);
+      context.addChild(tableComponent);
     });
 
     this.registerMarkdownCodeBlockProcessor("wb-se", (source, el, context) => {

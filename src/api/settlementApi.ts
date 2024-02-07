@@ -2,7 +2,7 @@ import { Type, plainToClass } from "class-transformer";
 import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultSettlementData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
-import { LogLevel, Utils, logger } from "src/util";
+import { Utils, Logger } from "src/util";
 
 export class SettlementType {
   type: string;
@@ -43,7 +43,7 @@ export class SettlementAPI {
       const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.settlementData;
       const overrideData = this.plugin.csvManager.getDataByFile(overrideDataPath);
       if (overrideData === undefined) {
-        logger(this, LogLevel.Error, "Could not load override data.");
+        Logger.error(this, "Could not load override data.");
         return;
       }
       newData = CSVManager.csvToPojoWithIncludedHeaders(overrideData);
@@ -68,7 +68,7 @@ export class SettlementAPI {
   generateSettlement(type: string): Settlement | undefined {
     const settlementData = this.findSettlementDataByType(type);
     if (settlementData === undefined) {
-      logger(this, LogLevel.Error, "Could not find settlement data for type: " + type);
+      Logger.error(this, "Could not find settlement data for type: " + type);
       return undefined;
     }
     const settlement = new Settlement();

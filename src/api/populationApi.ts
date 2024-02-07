@@ -4,7 +4,7 @@ import { defaultPopulationDensityData } from "src/defaultData";
 import { BaseError } from "src/errors/baseError";
 import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
-import { LogLevel, logger } from "src/util";
+import { Logger } from "src/util";
 
 export class PopulationDensity {
   descriptor: string;
@@ -38,7 +38,7 @@ export class PopulationAPI {
       const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.populationDensityData;
       const overrideData = this.plugin.csvManager.getDataByFile(overrideDataPath);
       if (overrideData === undefined) {
-        logger(this, LogLevel.Error, "Could not load override data.");
+        Logger.error(this, "Could not load override data.");
         return;
       }
       newData = CSVManager.csvToPojoWithIncludedHeaders(overrideData);
@@ -61,18 +61,10 @@ export class PopulationAPI {
         const convertedMin = unitConversionAPI.convertUnit(density.minPopulation, density.areaUnit, areaUnit);
         const convertedMax = unitConversionAPI.convertUnit(density.maxPopulation, density.areaUnit, areaUnit);
         if (min === undefined) {
-          logger(
-            this,
-            LogLevel.Error,
-            "Could not convert min population density from " + density.areaUnit + " to " + areaUnit
-          );
+          Logger.error(this, "Could not convert min population density from " + density.areaUnit + " to " + areaUnit);
           continue;
         } else if (max === undefined) {
-          logger(
-            this,
-            LogLevel.Error,
-            "Could not convert max population density from " + density.areaUnit + " to " + areaUnit
-          );
+          Logger.error(this, "Could not convert max population density from " + density.areaUnit + " to " + areaUnit);
           continue;
         } else {
           min = convertedMin as number;

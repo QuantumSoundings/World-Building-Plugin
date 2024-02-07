@@ -1,5 +1,6 @@
 import { TAbstractFile } from "obsidian";
 import WorldBuildingPlugin from "src/main";
+import { Logger } from "src/util";
 
 class CacheEntry<T> {
   file: TAbstractFile;
@@ -14,12 +15,16 @@ class CacheEntry<T> {
 
 export interface CacheManagerInterface {
   load(): void;
+
   readFile(fullPath: string): Promise<unknown | undefined>;
   writeFile<Content>(fullPath: string, content: Content, options: any): Promise<void>;
+
   getDataByFile(fullPath: string): unknown | undefined;
   setDataByFile(fullPath: string, data: unknown): void;
-  saveDataByFile(fullPath: string): void;
-  saveAllData(): void;
+
+  saveDataByFile(fullPath: string): Promise<void>;
+  saveAllData(): Promise<void>;
+
   onFileCreation(file: TAbstractFile): void;
   onFileDeletion(file: TAbstractFile): void;
   onFileRename(file: TAbstractFile, oldPath: string): void;
@@ -39,8 +44,8 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public async load() {
     // Performs an initial load of the cache.
     // Future changes use the event listeners to keep the cache up to date.
-    console.log(this.constructor.name + ": Loading all manageable files in vault.");
-    const allFiles = this.plugin.app.vault.getAllLoadedFiles();
+    Logger.info(this, "Loading all manageable files in vault.");
+    const allFiles = this.plugin.app.vault.getFiles();
     let loadedFiles = 0;
     for (const file of allFiles) {
       if (this.isFileManageable(file)) {
@@ -50,14 +55,14 @@ export class CacheManager<DataType> implements CacheManagerInterface {
         continue;
       }
     }
-    console.log(this.constructor.name + ": Loaded " + loadedFiles + " files.");
+    Logger.info(this, "Loaded " + loadedFiles + " files.");
   }
 
   /**
    * @param {string} fullPath  The full path of the file to read, including the file name and extension.
    */
   public async readFile(fullPath: string): Promise<DataType | undefined> {
-    console.error(this.constructor.name + ": readFile not implemented.");
+    Logger.error(this, "readFile not implemented.");
     return undefined;
   }
 
@@ -66,7 +71,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
    * @param {DataType} data  The data to write to the file.
    */
   public async writeFile<Content>(fullPath: string, data: Content, options: any = null): Promise<void> {
-    console.error(this.constructor.name + ": writeFile not implemented.");
+    Logger.error(this, "writeFile not implemented.");
     return;
   }
 
@@ -77,15 +82,15 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public getDataByFile(fullPath: string): DataType | undefined {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
-      console.error(this.constructor.name + ": Cache did not contain this file.");
+      Logger.error(this, "Cache did not contain this file.");
       return undefined;
     }
     const fileData = fileEntry.data;
     if (fileData === undefined) {
-      console.log(this.constructor.name + ": File found but not cached, reading from disk.");
+      Logger.info(this, "File found but not cached, reading from disk.");
       this.readFile(fullPath).then((data) => {
         if (data === undefined) {
-          console.error(this.constructor.name + ": Failed to load CSV file " + fileEntry.file.name + ".");
+          Logger.error(this, "Failed to load file " + fileEntry.file.name + ".");
           return;
         }
         fileEntry.data = data;
@@ -105,7 +110,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public setDataByFile(fullPath: string, data: DataType) {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
-      console.error(this.constructor.name + ": Cache did not contain this file. Please verify the file name.");
+      Logger.error(this, "Cache did not contain this file. Please verify the file name.");
       return;
     }
 
@@ -117,34 +122,34 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   /**
    * @param {string} fullPath  The full path of the file data to save, including the file name and extension.
    */
-  public saveDataByFile(fullPath: string) {
+  public async saveDataByFile(fullPath: string): Promise<void> {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
-      console.error(this.constructor.name + ": Cache did not contain this file. Please verify the file name.");
+      Logger.error(this, "Cache did not contain this file. Please verify the file name.");
       return;
     }
     if (fileEntry.data === undefined) {
-      console.info(this.constructor.name + ": Data was never cached for " + fullPath + ", skipping save.");
+      Logger.info(this, "Data was never cached for " + fullPath + ", skipping save.");
       return;
     }
     if (fileEntry.unsavedChanges) {
-      this.writeFile(fullPath, fileEntry.data);
+      await this.writeFile(fullPath, fileEntry.data);
     } else {
-      console.info(this.constructor.name + ": Data was not modified for " + fullPath + ", skipping save.");
+      Logger.info(this, "Data was not modified for " + fullPath + ", skipping save.");
     }
   }
 
-  public saveAllData() {
+  public async saveAllData(): Promise<void> {
     for (const [fileName, fileEntry] of this.fileCache) {
       if (fileEntry.data === undefined) {
-        console.info(this.constructor.name + ": Data was never cached for " + fileName + ", skipping save.");
+        Logger.info(this, "Data was never cached for " + fileName + ", skipping save.");
         continue;
       }
       if (fileEntry.unsavedChanges) {
-        this.writeFile(fileEntry.file.path, fileEntry.data);
+        await this.writeFile(fileEntry.file.path, fileEntry.data);
         fileEntry.unsavedChanges = false;
       } else {
-        console.info(this.constructor.name + ": Data was not modified for " + fileName + ", skipping save.");
+        Logger.info(this, "Data was not modified for " + fileName + ", skipping save.");
       }
     }
   }
@@ -156,7 +161,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
     if (this.plugin.settings.cacheFilesOnLoad) {
       const data = await this.readFile(file.path);
       if (data === undefined) {
-        console.error(this.constructor.name + ": Failed to load file " + file.name + ".");
+        Logger.error(this, "Failed to load file " + file.name + ".");
         return;
       }
       fileEntry.data = data;
@@ -168,7 +173,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public onFileDeletion(file: TAbstractFile) {
     const result = this.fileCache.delete(file.path);
     if (!result) {
-      console.error(this.constructor.name + ": Cache did not contain this file.");
+      Logger.error(this, "Cache did not contain this file.");
       return;
     }
   }
@@ -176,7 +181,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public onFileRename(file: TAbstractFile, oldPath: string) {
     const fileEntry = this.fileCache.get(oldPath);
     if (fileEntry === undefined) {
-      console.error(this.constructor.name + ": Cache did not contain this file.");
+      Logger.error(this, "Cache did not contain this file.");
       return;
     }
     this.fileCache.delete(oldPath);
@@ -189,7 +194,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   }
 
   public isFileManageable(file: TAbstractFile): boolean {
-    console.error(this.constructor.name + ": isFileManageable not implemented.");
+    Logger.error(this, "isFileManageable not implemented.");
     return false;
   }
 }

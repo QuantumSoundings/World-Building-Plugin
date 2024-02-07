@@ -1,4 +1,4 @@
-import { LogLevel, logger } from "src/util";
+import { Logger } from "src/util";
 
 type Jsonable =
   | string
@@ -21,6 +21,6 @@ export class BaseError extends Error {
 
     this.context = context;
 
-    logger(this, LogLevel.Error, context as string);
+    Logger.error(this, message);
   }
 }
