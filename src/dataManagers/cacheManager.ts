@@ -82,7 +82,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public getDataByFile(fullPath: string): DataType | undefined {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
-      Logger.error(this, "Cache did not contain this file.");
+      Logger.warn(this, "Cache did not contain this file.");
       return undefined;
     }
     const fileData = fileEntry.data;
@@ -110,7 +110,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   public setDataByFile(fullPath: string, data: DataType) {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
-      Logger.error(this, "Cache did not contain this file. Please verify the file name.");
+      Logger.warn(this, "Cache did not contain this file. Please verify the file name.");
       return;
     }
 
