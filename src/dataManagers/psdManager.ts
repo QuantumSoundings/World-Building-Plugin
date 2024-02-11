@@ -32,25 +32,26 @@ class PsdData {
   mapData: MapData;
 }
 
-export class PSDManager extends CacheManager<PsdData> {
+type CacheType = PsdData;
+export class PSDManager extends CacheManager<CacheType> {
   constructor(plugin: WorldBuildingPlugin) {
     super(plugin);
   }
 
-  override async readFile(fullPath: string): Promise<PsdData | undefined> {
+  override async readFile(fullPath: string): Promise<Result<CacheType>> {
     if (fullPath.endsWith(".psd")) {
       const binaryFile = await this.plugin.adapter.readBinary(fullPath);
       const psd: Psd = Psd.parse(binaryFile);
       const psdData = new PsdData();
       psdData.file = psd;
       psdData.mapData = new MapData();
-      return psdData;
+      return { success: true, result: psdData };
     }
-    return undefined;
+    return { success: false, error: new BaseError("Invalid file extension.") };
   }
 
-  override async writeFile<Content>(fullPath: string, content: Content, options: any = null) {
-    // No-op for now.
+  override async writeFile(fullPath: string, content: PsdData, options: any = null): Promise<Result<void>> {
+    return { success: false, error: new BaseError("Not implemented.") };
   }
 
   override isFileManageable(file: TAbstractFile): boolean {
@@ -209,11 +210,12 @@ export class PSDManager extends CacheManager<PsdData> {
       return;
     }
 
-    const mapConfig = this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
-    if (mapConfig === undefined) {
+    const result = this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
+    if (result.success === false) {
       return;
     }
 
+    const mapConfig = result.result;
     mapConfig.shift();
     for (const mapConfigRow of mapConfig) {
       if (fullPath.includes(mapConfigRow[0])) {

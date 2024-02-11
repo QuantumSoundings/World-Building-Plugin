@@ -41,12 +41,11 @@ export class SettlementAPI {
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.settlementData !== "") {
       const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.settlementData;
-      const overrideData = this.plugin.csvManager.getDataByFile(overrideDataPath);
-      if (overrideData === undefined) {
-        Logger.error(this, "Could not load override data.");
+      const overrideDataResult = this.plugin.csvManager.getDataByFile(overrideDataPath);
+      if (overrideDataResult.success === false) {
         return;
       }
-      newData = CSVManager.csvToPojoWithIncludedHeaders(overrideData);
+      newData = CSVManager.csvToPojoWithIncludedHeaders(overrideDataResult.result);
     }
 
     // We are ready to apply the new data. Clear the old and add the new.

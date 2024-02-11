@@ -38,6 +38,7 @@ export class TableComponent extends MarkdownRenderChild {
   tableState: TableState;
 
   fileSourcePath: string;
+  unloaded: boolean;
 
   // Callback functions to fix 'this' weirdness
   onHandsonTableChange = (changes: Handsontable.CellChange[], source: Handsontable.ChangeSource): void => {
@@ -64,6 +65,7 @@ export class TableComponent extends MarkdownRenderChild {
     this.tableState.autoSave = false;
     this.tableState.currentlyLoading = false;
     //this.fileSourcePath = fileSourcePath;
+    this.unloaded = true;
 
     // Setup html elements
     this.loadingBarElement = parentElement.createDiv();
@@ -75,9 +77,9 @@ export class TableComponent extends MarkdownRenderChild {
     this.fileOptionsElement = parentElement.createDiv();
     this.fileOptionsElement.classList.add("csv-controls");
 
-    const tableContainerElement = parentElement.createDiv();
-    tableContainerElement.classList.add("csv-table-wrapper");
-    const handsonTableContainer = tableContainerElement.createDiv();
+    this.tableContainerElement = parentElement.createDiv();
+    this.tableContainerElement.classList.add("csv-table-wrapper");
+    const handsonTableContainer = this.tableContainerElement.createDiv();
 
     this.configureHandsonTable(handsonTableContainer);
     this.configureSettingComponents();
@@ -184,11 +186,17 @@ export class TableComponent extends MarkdownRenderChild {
   }
 
   public requestSave() {
+    if (this.unloaded) {
+      return;
+    }
     const dataCopy = JSON.parse(JSON.stringify(this.rowData));
     if (this.tableState.headersActive) {
       dataCopy.unshift(this.headerData);
     }
-    this.plugin.csvManager.setDataByFile(this.fileSourcePath, dataCopy);
+    const setResult = this.plugin.csvManager.setDataByFile(this.fileSourcePath, dataCopy);
+    if (setResult.success === false) {
+      return;
+    }
     this.plugin.csvManager.saveDataByFile(this.fileSourcePath);
     Logger.debug(this, "Saved CSV file " + this.fileSourcePath + ".");
   }
@@ -196,13 +204,19 @@ export class TableComponent extends MarkdownRenderChild {
   public loadDataFromSource(fileSourcePath: string) {
     this.fileSourcePath = fileSourcePath;
     Logger.debug(this, "Loading CSV file " + fileSourcePath + ".");
-    const fileData = this.plugin.csvManager.getDataByFile(fileSourcePath);
-    if (fileData === undefined) {
+    const fileDataResult = this.plugin.csvManager.getDataByFile(fileSourcePath);
+    if (fileDataResult.success === false) {
       Logger.error(this, "File data was undefined.");
+      this.containerEl.createEl("h2", { text: "Failed to find CSV file to load." });
+      this.loadingBarElement.hide();
+      this.fileOptionsElement.hide();
+      this.tableContainerElement.hide();
+      this.unloaded = true;
       return;
     }
 
     // Toggle says we have headers, split them out from the row data.
+    const fileData = fileDataResult.result;
     if (this.headerToggle.getValue()) {
       const parsedHeader = fileData.shift();
       if (parsedHeader !== undefined) {
@@ -230,6 +244,7 @@ export class TableComponent extends MarkdownRenderChild {
 
     this.rebindDataToTable();
     this.loadingBarElement.hide();
+    this.unloaded = false;
   }
 
   private rebindDataToTable() {

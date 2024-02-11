@@ -3,48 +3,74 @@ import WorldBuildingPlugin from "../main";
 import { parse, stringify } from "yaml";
 import { CacheManager } from "./cacheManager";
 import { Logger } from "src/util";
+import { Result } from "src/errors/result";
+import { BaseError } from "src/errors/baseError";
 
+class FrontMatterParsed {
+  frontDelimiterIndex: number;
+  endDelimiterIndex: number;
+  frontMatter: string;
+}
+
+type CacheType = unknown[];
 // Manages yaml files and md files in the data directory.
-export class YAMLManager extends CacheManager<unknown[]> {
+export class YAMLManager extends CacheManager<CacheType> {
   constructor(plugin: WorldBuildingPlugin) {
     super(plugin);
   }
 
   // Public api for reading and writing yaml files that bypasses the cache.
   // Prefer using the get and set methods to make use of the cache.
-  override async readFile(fullPath: string): Promise<unknown[] | undefined> {
+  override async readFile(fullPath: string): Promise<Result<CacheType>> {
     if (fullPath.endsWith("yaml") || fullPath.endsWith("yml")) {
       const content = await this.plugin.adapter.read(fullPath);
       const parsed = parse(content);
       return parsed;
     } else if (fullPath.endsWith("md")) {
       const content = await this.plugin.adapter.read(fullPath);
-      const lines = content.split("\n");
-      const yamlLines = [];
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].startsWith("---")) {
-          break;
-        }
-        yamlLines.push(lines[i]);
+      const parsed = this.readFrontMatter(content);
+      if (parsed === undefined) {
+        return { success: false, error: new BaseError("Invalid frontmatter.") };
       }
-      const yamlContent = yamlLines.join("\n");
-      const parsed = parse(yamlContent);
-      return parsed;
+      return { success: true, result: parsed };
     } else {
-      Logger.error(this, "Invalid file extension.");
-      return undefined;
+      return { success: false, error: new BaseError("Invalid file extension.") };
     }
   }
 
-  override async writeFile<Content>(fullPath: string, content: Content, options: any = null) {
+  override async writeFile(fullPath: string, content: CacheType | unknown, options: any = null): Promise<Result<void>> {
+    if (!(content instanceof Array)) {
+      return { success: false, error: new BaseError("Invalid content type.") };
+    }
+    const cacheEntry = this.fileCache.get(fullPath);
+    let existingFile = false;
+    if (cacheEntry !== undefined) {
+      if (cacheEntry.unsavedChanges) {
+        return {
+          success: false,
+          error: new BaseError("Unsaved changes detected. Please save the file before writing to it."),
+        };
+      }
+      existingFile = true;
+    }
+
+    let newFileContent = "";
     if (fullPath.endsWith("yaml") || fullPath.endsWith("yml")) {
-      await this.plugin.adapter.write(fullPath, stringify(content));
+      newFileContent = stringify(content);
     } else if (fullPath.endsWith("md")) {
-      const stringified = "---\n" + stringify(content) + "\n---\n";
-      await this.plugin.adapter.write(fullPath, stringified);
+      if (existingFile) {
+        const currentFileContent = await this.plugin.adapter.read(fullPath);
+        newFileContent = this.replaceFrontMatter(currentFileContent, content);
+      } else {
+        newFileContent = "---\n" + stringify(content) + "\n---\n";
+      }
     } else {
       Logger.error(this, "Invalid file extension.");
+      return { success: false, error: new BaseError("Invalid file extension.") };
     }
+
+    await this.plugin.adapter.write(fullPath, newFileContent);
+    return { success: true, result: undefined };
   }
 
   override isFileManageable(file: TAbstractFile): boolean {
@@ -54,5 +80,68 @@ export class YAMLManager extends CacheManager<unknown[]> {
       }
     }
     return false;
+  }
+
+  private parseMD(content: string): FrontMatterParsed | undefined {
+    const fmp = new FrontMatterParsed();
+    fmp.frontDelimiterIndex = 0;
+    fmp.endDelimiterIndex = 0;
+
+    const lines = content.split("\n");
+    // Set front delimiter index
+    if (lines[0] === "---") {
+      fmp.frontDelimiterIndex = 0;
+    } else if (lines[0] !== "---") {
+      Logger.error(this, "Invalid frontmatter.");
+      return undefined;
+    }
+
+    // Set end delimiter index
+    let foundEnd = false;
+    for (let i = 1; i < lines.length; i++) {
+      if (!foundEnd && lines[i].startsWith("---")) {
+        fmp.endDelimiterIndex = i;
+        foundEnd = true;
+      } else if (foundEnd && lines[i].startsWith("---")) {
+        Logger.error(this, "Invalid frontmatter. Multiple end delimiters found.");
+        return undefined;
+      }
+    }
+
+    // Validate Indexes
+    if (fmp.endDelimiterIndex === 0) {
+      Logger.error(this, "Invalid frontmatter. End delimiter not found.");
+      return undefined;
+    }
+    // If there is no frontmatter
+    else if (fmp.frontDelimiterIndex + 1 === fmp.endDelimiterIndex) {
+      fmp.frontMatter = "";
+      return fmp;
+    } else {
+      fmp.frontMatter = lines.slice(fmp.frontDelimiterIndex + 1, fmp.endDelimiterIndex).join("\n");
+      return fmp;
+    }
+  }
+
+  private readFrontMatter(content: string): unknown[] | undefined {
+    const fmp = this.parseMD(content);
+    if (fmp === undefined) {
+      return undefined;
+    }
+
+    return parse(fmp.frontMatter);
+  }
+
+  private replaceFrontMatter(currentFileContent: string, newFrontMatter: CacheType): string {
+    const fmp = this.parseMD(currentFileContent);
+    if (fmp === undefined) {
+      return currentFileContent;
+    }
+
+    const newFMString = stringify(newFrontMatter);
+
+    const lines = currentFileContent.split("\n");
+    lines.splice(fmp.frontDelimiterIndex + 1, fmp.endDelimiterIndex - fmp.frontDelimiterIndex - 1, newFMString);
+    return lines.join("\n");
   }
 }

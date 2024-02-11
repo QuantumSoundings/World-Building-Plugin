@@ -1,4 +1,6 @@
 import { TAbstractFile } from "obsidian";
+import { BaseError } from "src/errors/baseError";
+import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util";
 
@@ -13,17 +15,17 @@ class CacheEntry<T> {
   }
 }
 
-export interface CacheManagerInterface {
+export interface CacheManagerInterface<DataType> {
   load(): void;
 
-  readFile(fullPath: string): Promise<unknown | undefined>;
-  writeFile<Content>(fullPath: string, content: Content, options: any): Promise<void>;
+  readFile(fullPath: string): Promise<Result<DataType>>;
+  writeFile(fullPath: string, content: DataType | unknown, options: any): Promise<Result<void>>;
 
-  getDataByFile(fullPath: string): unknown | undefined;
-  setDataByFile(fullPath: string, data: unknown): void;
+  getDataByFile(fullPath: string): Result<DataType>;
+  setDataByFile(fullPath: string, data: DataType): Result<void>;
 
-  saveDataByFile(fullPath: string): Promise<void>;
-  saveAllData(): Promise<void>;
+  saveDataByFile(fullPath: string): Promise<Result<void>>;
+  saveAllData(): Promise<Result<void>>;
 
   onFileCreation(file: TAbstractFile): void;
   onFileDeletion(file: TAbstractFile): void;
@@ -32,7 +34,7 @@ export interface CacheManagerInterface {
   isFileManageable(file: TAbstractFile): boolean;
 }
 
-export class CacheManager<DataType> implements CacheManagerInterface {
+export class CacheManager<DataType> implements CacheManagerInterface<DataType> {
   plugin: WorldBuildingPlugin;
   fileCache: Map<string, CacheEntry<DataType>>;
 
@@ -61,85 +63,87 @@ export class CacheManager<DataType> implements CacheManagerInterface {
   /**
    * @param {string} fullPath  The full path of the file to read, including the file name and extension.
    */
-  public async readFile(fullPath: string): Promise<DataType | undefined> {
+  public async readFile(fullPath: string): Promise<Result<DataType>> {
     Logger.error(this, "readFile not implemented.");
-    return undefined;
+    return { success: false, error: new BaseError("readFile not implemented.") };
   }
 
   /**
    * @param {string} fullPath  The full path of the file to write, including the file name and extension.
    * @param {DataType} data  The data to write to the file.
    */
-  public async writeFile<Content>(fullPath: string, data: Content, options: any = null): Promise<void> {
+  public async writeFile(fullPath: string, data: DataType | unknown, options: any = null): Promise<Result<void>> {
     Logger.error(this, "writeFile not implemented.");
-    return;
+    return { success: false, error: new BaseError("writeFile not implemented.") };
   }
 
   /**
    * @param {string} fullPath  The full path of the file data to get, including the file name and extension.
-   * @returns {DataType | undefined}  The data from the cache, or undefined if the cache does not contain the file.
+   * @returns {Result<DataType>}  The data from the cache, or undefined if the cache does not contain the file.
    */
-  public getDataByFile(fullPath: string): DataType | undefined {
+  public getDataByFile(fullPath: string): Result<DataType> {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
       Logger.warn(this, "Cache did not contain this file.");
-      return undefined;
+      return { success: false, error: new BaseError("Cache did not contain this file.") };
     }
     const fileData = fileEntry.data;
     if (fileData === undefined) {
       Logger.debug(this, "File found but not cached, reading from disk.");
       this.readFile(fullPath).then((data) => {
-        if (data === undefined) {
+        if (data.success === false) {
           Logger.error(this, "Failed to load file " + fileEntry.file.name + ".");
           return;
         }
-        fileEntry.data = data;
+        fileEntry.data = data.result;
 
         // Return a copy of the data so the cache doesn't get unexpectedly mangled.
-        return JSON.parse(JSON.stringify(fileEntry.data));
+        return { success: true, result: JSON.parse(JSON.stringify(fileEntry.data)) };
       });
     }
     // Return a copy of the data so the cache doesn't get unexpectedly mangled.
-    return JSON.parse(JSON.stringify(fileEntry.data));
+    return { success: true, result: JSON.parse(JSON.stringify(fileEntry.data)) };
   }
 
   /**
    * @param {string} fullPath  The full path of the file data to set, including the file name and extension.
    * @param {DataType} data  The data to write to the cache.
    */
-  public setDataByFile(fullPath: string, data: DataType) {
+  public setDataByFile(fullPath: string, data: DataType): Result<void> {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
-      Logger.warn(this, "Cache did not contain this file. Please verify the file name.");
-      return;
+      Logger.error(this, "Cache did not contain this file. Please verify the file name.");
+      return { success: false, error: new BaseError("Cache did not contain this file.") };
     }
 
     // Save a copy of the data to the cache.
     fileEntry.data = JSON.parse(JSON.stringify(data));
     fileEntry.unsavedChanges = true;
+    return { success: true, result: undefined };
   }
 
   /**
    * @param {string} fullPath  The full path of the file data to save, including the file name and extension.
    */
-  public async saveDataByFile(fullPath: string): Promise<void> {
+  public async saveDataByFile(fullPath: string): Promise<Result<void>> {
     const fileEntry = this.fileCache.get(fullPath);
     if (fileEntry === undefined) {
       Logger.error(this, "Cache did not contain this file. Please verify the file name.");
-      return;
+      return { success: false, error: new BaseError("Cache did not contain this file.") };
     }
     if (fileEntry.data === undefined) {
       Logger.debug(this, "Data was never cached for " + fullPath + ", skipping save.");
-      return;
+      return { success: true, result: undefined };
     }
     if (fileEntry.unsavedChanges) {
       await this.writeFile(fullPath, fileEntry.data);
     } else {
       Logger.debug(this, "Data was not modified for " + fullPath + ", skipping save.");
     }
+    return { success: true, result: undefined };
   }
 
-  public async saveAllData(): Promise<void> {
+  public async saveAllData(): Promise<Result<void>> {
     for (const [fileName, fileEntry] of this.fileCache) {
       if (fileEntry.data === undefined) {
         Logger.debug(this, "Data was never cached for " + fileName + ", skipping save.");
@@ -152,6 +156,7 @@ export class CacheManager<DataType> implements CacheManagerInterface {
         Logger.debug(this, "Data was not modified for " + fileName + ", skipping save.");
       }
     }
+    return { success: true, result: undefined };
   }
 
   // Event handlers
@@ -160,11 +165,11 @@ export class CacheManager<DataType> implements CacheManagerInterface {
 
     if (this.plugin.settings.cacheFilesOnLoad) {
       const data = await this.readFile(file.path);
-      if (data === undefined) {
+      if (data.success === false) {
         Logger.error(this, "Failed to load file " + file.name + ".");
         return;
       }
-      fileEntry.data = data;
+      fileEntry.data = data.result;
     }
 
     this.fileCache.set(file.path, fileEntry);

@@ -1,7 +1,7 @@
 import { Type, plainToClass } from "class-transformer";
-import { Result } from "obsidian-dataview";
 import { defaultUnitConversionData } from "src/defaultData";
 import { BaseError } from "src/errors/baseError";
+import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util";
 
@@ -40,8 +40,8 @@ export class UnitConversionAPI {
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.unitConversionData !== "") {
       const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.unitConversionData;
-      const overrideData = this.plugin.yamlManager.getDataByFile(overrideDataPath);
-      if (overrideData === undefined) {
+      const overrideDataResult = this.plugin.yamlManager.getDataByFile(overrideDataPath);
+      if (overrideDataResult.success === false) {
         Logger.error(this, "Could not load override data.");
         return;
       }
