@@ -1,7 +1,6 @@
 # Represents an independent political entity, a sovereign state, nation, group, etc.
 # They have a dependent population and territory.
 name: EntityName
-id: 0 # Unique identifier for the entity. Used for referencing in other files.
 
 geography:
   size: 0
@@ -62,4 +61,8 @@ staticDatasets:
   # A dataset for all the named settlements. A named settlement includes a static name, type, population, and size.
   settlements:
 
-version: 0.0.1
+# Metadata used by the World Building Plugin.
+wbMeta:
+  type: sovereignEntity
+  version: 0.0.1
+  id: GEN

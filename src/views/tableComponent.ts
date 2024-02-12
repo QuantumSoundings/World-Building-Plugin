@@ -168,7 +168,7 @@ export class TableComponent extends MarkdownRenderChild {
     //Creating a Save button
     new Setting(this.fileOptionsElement).setName("Save").addButton((button: ButtonComponent) => {
       this.saveButton = button;
-      this.saveButton.onClick((e: MouseEvent) => {
+      this.saveButton.onClick(() => {
         this.requestSave();
       });
     });

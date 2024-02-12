@@ -50,6 +50,7 @@ export class PSDManager extends CacheManager<CacheType> {
     return { success: false, error: new BaseError("Invalid file extension.") };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   override async writeFile(fullPath: string, content: PsdData, options: any = null): Promise<Result<void>> {
     return { success: false, error: new BaseError("Not implemented.") };
   }

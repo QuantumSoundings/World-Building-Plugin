@@ -1,3 +1,3 @@
-import sovereignEntityTemplateBase64 from "resources/templates/sovereignEntity.yaml";
+import sovereignEntityTemplateBase64 from "./frontmatter/templates/sovereignEntity.yaml";
 
 export const sovereignEntityTemplateString = atob(sovereignEntityTemplateBase64);

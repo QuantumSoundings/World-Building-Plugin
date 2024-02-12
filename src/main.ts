@@ -10,6 +10,7 @@ import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util";
 import { SovereignEntity } from "./world/sovereignEntity";
+import { sovereignEntityTemplateString } from "./templates";
 
 class WorldBuildingPluginSettings {
   dataDirectory: string;
@@ -88,6 +89,20 @@ export default class WorldBuildingPlugin extends Plugin {
       checkCallback: (checking: boolean) => {
         if (!checking) {
           this.psdManager.writeMapConfigData();
+        }
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "replace-frontmatter-template-sovereign-entity",
+      name: "Set FrontMatter Template: Sovereign Entity",
+      checkCallback: (checking: boolean) => {
+        if (!checking) {
+          const activeFile = this.app.workspace.getActiveFile();
+          if (activeFile !== null) {
+            this.yamlManager.writeFrontMatterTemplate(activeFile.path, sovereignEntityTemplateString);
+          }
         }
         return true;
       },

@@ -1,4 +1,5 @@
 import { Type, plainToClass } from "class-transformer";
+import { Distribution, WBMetaData } from "./utilFM";
 
 export function convertToSovereignEntityFM(input: any): SovereignEntityFM {
   return plainToClass(SovereignEntityFM, input);
@@ -6,7 +7,6 @@ export function convertToSovereignEntityFM(input: any): SovereignEntityFM {
 
 export class SovereignEntityFM {
   name: string;
-  id: string;
 
   @Type(() => Geography)
   geography: Geography;
@@ -22,7 +22,11 @@ export class SovereignEntityFM {
   @Type(() => Distribution)
   languages: Distribution[];
 
-  version: string;
+  @Type(() => Datasets)
+  staticDatasets: Datasets;
+
+  @Type(() => WBMetaData)
+  wbMeta: WBMetaData;
 }
 
 export class Geography {
@@ -45,13 +49,6 @@ export class Geography {
 
   @Type(() => Distribution)
   settlements: Distribution[];
-}
-
-export class Distribution {
-  name: string;
-
-  @Type(() => Number)
-  value: number;
 }
 
 export class Demographics {
@@ -80,4 +77,9 @@ export class Territory {
 export class TerritoryGeneration {
   method: string;
   unit: string;
+}
+
+export class Datasets {
+  territories: string;
+  settlements: string;
 }

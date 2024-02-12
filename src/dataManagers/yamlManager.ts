@@ -39,6 +39,10 @@ export class YAMLManager extends CacheManager<CacheType> {
   }
 
   override async writeFile(fullPath: string, content: CacheType | unknown, options: any = null): Promise<Result<void>> {
+    if (options !== null) {
+      Logger.warn(this, "Options are not supported for yaml files.");
+    }
+
     if (!(content instanceof Array)) {
       return { success: false, error: new BaseError("Invalid content type.") };
     }
@@ -69,6 +73,7 @@ export class YAMLManager extends CacheManager<CacheType> {
       return { success: false, error: new BaseError("Invalid file extension.") };
     }
 
+    Logger.debug(this, "Writing file: " + fullPath);
     await this.plugin.adapter.write(fullPath, newFileContent);
     return { success: true, result: undefined };
   }
@@ -82,6 +87,12 @@ export class YAMLManager extends CacheManager<CacheType> {
     return false;
   }
 
+  public async writeFrontMatterTemplate(fullPath: string, template: string) {
+    const fileContent = await this.plugin.adapter.read(fullPath);
+    const replacedContent = this.replaceFrontMatter(fileContent, template);
+    await this.plugin.adapter.write(fullPath, replacedContent);
+  }
+
   private parseMD(content: string): FrontMatterParsed | undefined {
     const fmp = new FrontMatterParsed();
     fmp.frontDelimiterIndex = 0;
@@ -92,6 +103,19 @@ export class YAMLManager extends CacheManager<CacheType> {
     if (lines[0] === "---") {
       fmp.frontDelimiterIndex = 0;
     } else if (lines[0] !== "---") {
+      // If there are no delimiters, there is no frontmatter.
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith("---")) {
+          fmp.frontDelimiterIndex = i;
+          break;
+        }
+      }
+      // There is no front matter return the special 00 case
+      if (fmp.frontDelimiterIndex === 0) {
+        fmp.frontMatter = "";
+        return fmp;
+      }
+      // Otherwise its invalid
       Logger.error(this, "Invalid frontmatter.");
       return undefined;
     }
@@ -132,16 +156,27 @@ export class YAMLManager extends CacheManager<CacheType> {
     return parse(fmp.frontMatter);
   }
 
-  private replaceFrontMatter(currentFileContent: string, newFrontMatter: CacheType): string {
+  private replaceFrontMatter(currentFileContent: string, newFrontMatter: CacheType | string): string {
     const fmp = this.parseMD(currentFileContent);
     if (fmp === undefined) {
       return currentFileContent;
     }
 
-    const newFMString = stringify(newFrontMatter);
+    // Stringify the new front matter
+    let newFMString = "";
+    if (typeof newFrontMatter === "string") {
+      newFMString = newFrontMatter;
+    } else {
+      newFMString = stringify(newFrontMatter);
+    }
 
-    const lines = currentFileContent.split("\n");
-    lines.splice(fmp.frontDelimiterIndex + 1, fmp.endDelimiterIndex - fmp.frontDelimiterIndex - 1, newFMString);
-    return lines.join("\n");
+    // If we have no frontmatter add it easily
+    if (fmp.frontDelimiterIndex === 0 && fmp.endDelimiterIndex === 0) {
+      return "---\n" + newFMString + "\n---\n" + currentFileContent;
+    } else {
+      const lines = currentFileContent.split("\n");
+      lines.splice(fmp.frontDelimiterIndex + 1, fmp.endDelimiterIndex - fmp.frontDelimiterIndex - 1, newFMString);
+      return lines.join("\n");
+    }
   }
 }

@@ -63,6 +63,7 @@ export class CacheManager<DataType> implements CacheManagerInterface<DataType> {
   /**
    * @param {string} fullPath  The full path of the file to read, including the file name and extension.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async readFile(fullPath: string): Promise<Result<DataType>> {
     Logger.error(this, "readFile not implemented.");
     return { success: false, error: new BaseError("readFile not implemented.") };
@@ -72,6 +73,7 @@ export class CacheManager<DataType> implements CacheManagerInterface<DataType> {
    * @param {string} fullPath  The full path of the file to write, including the file name and extension.
    * @param {DataType} data  The data to write to the file.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async writeFile(fullPath: string, data: DataType | unknown, options: any = null): Promise<Result<void>> {
     Logger.error(this, "writeFile not implemented.");
     return { success: false, error: new BaseError("writeFile not implemented.") };
@@ -198,6 +200,7 @@ export class CacheManager<DataType> implements CacheManagerInterface<DataType> {
     await this.onFileCreation(file);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public isFileManageable(file: TAbstractFile): boolean {
     Logger.error(this, "isFileManageable not implemented.");
     return false;
