@@ -10,7 +10,6 @@ import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util";
 import { SovereignEntity } from "./world/sovereignEntity";
-import { sovereignEntityTemplateString } from "./templates";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
 
 class WorldBuildingPluginSettings {
