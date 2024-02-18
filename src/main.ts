@@ -67,7 +67,7 @@ export default class WorldBuildingPlugin extends Plugin {
     }
 
     this.addCommand({
-      id: "save-default-data-to-data-directory",
+      id: "wb-save-default-data-to-data-directory",
       name: "Save Default Data to Data Directory",
       checkCallback: (checking: boolean) => {
         // COnly show this command if the data directory is set.
@@ -84,7 +84,7 @@ export default class WorldBuildingPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "save-calculated-map-data",
+      id: "wb-save-calculated-map-data",
       name: "Save Map Data to Config Files",
       checkCallback: (checking: boolean) => {
         if (!checking) {
@@ -95,7 +95,7 @@ export default class WorldBuildingPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "replace-frontmatter-template",
+      id: "wb-replace-frontmatter-template",
       name: "Set FrontMatter Template Picker",
       checkCallback: (checking: boolean) => {
         if (!checking) {
@@ -143,12 +143,13 @@ export default class WorldBuildingPlugin extends Plugin {
     const promises = [];
     promises.push(this.csvManager.load());
     promises.push(this.yamlManager.load());
-    promises.push(this.psdManager.load());
 
     await Promise.allSettled(promises);
-    this.psdManager.processPSDs().then(() => {
-      this.refreshAPIs();
-    });
+
+    // The psd files might require a lot of compute, and they have dependencies
+    await this.psdManager.load();
+    await this.psdManager.processPSDs();
+    this.refreshAPIs();
   }
 
   refreshAPIs() {

@@ -64,6 +64,16 @@ export class PSDManager extends CacheManager<CacheType> {
 
   public async processPSDs() {
     Logger.debug(this, "Processing found PSD files.");
+    for (const [, value] of this.fileCache) {
+      if (value.data) {
+        const psd = await this.parsePsd(value.file.path, value.data.file);
+        value.data = psd;
+      }
+    }
+  }
+
+  public async processPSDsConcurrently() {
+    Logger.debug(this, "Processing found PSD files concurrently.");
     const keys: string[] = [];
     const promises = [];
     for (const [key, value] of this.fileCache) {
