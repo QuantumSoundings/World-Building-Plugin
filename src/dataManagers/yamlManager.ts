@@ -79,10 +79,8 @@ export class YAMLManager extends CacheManager<CacheType> {
   }
 
   override isFileManageable(file: TAbstractFile): boolean {
-    if (file.path.includes(this.plugin.settings.dataDirectory)) {
-      if (file.path.includes(".yaml") || file.path.includes(".yml") || file.path.includes(".md")) {
-        return true;
-      }
+    if (file.path.includes(".yaml") || file.path.includes(".yml") || file.path.includes(".md")) {
+      return true;
     }
     return false;
   }
