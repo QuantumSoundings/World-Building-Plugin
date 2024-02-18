@@ -1,5 +1,5 @@
 import { Type, plainToClass } from "class-transformer";
-import { Distribution, WBMetaData } from "./utilFM";
+import { Distribution, WBMetaData } from "./sharedFM";
 
 export function convertToSovereignEntityFM(input: any): SovereignEntityFM {
   return plainToClass(SovereignEntityFM, input);
