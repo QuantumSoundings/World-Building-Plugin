@@ -12,3 +12,8 @@ export class WBMetaData {
   version: string;
   id: string;
 }
+
+export class Datasets {
+  territories: string;
+  settlements: string;
+}

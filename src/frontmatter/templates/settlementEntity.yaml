@@ -1,0 +1,19 @@
+# Represents a settlement of people. A town, city, village, etc.
+
+name: Yuiel
+
+demographics:
+  population: 0
+  # Used to override the
+  overrides:
+    culturalOrigin: English
+
+politics:
+  rulingParty: Mayor
+  parentTerritory: None
+  parentSovereignEntity: None
+
+wbMeta:
+  type: settlement
+  version: 0.0.1
+  id: GEN

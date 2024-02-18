@@ -1,5 +1,5 @@
 import { Type, plainToClass } from "class-transformer";
-import { Distribution, WBMetaData } from "./sharedFM";
+import { Datasets, Distribution, WBMetaData } from "./sharedFM";
 
 export function convertToSovereignEntityFM(input: any): SovereignEntityFM {
   return plainToClass(SovereignEntityFM, input);
@@ -79,7 +79,22 @@ export class TerritoryGeneration {
   unit: string;
 }
 
-export class Datasets {
-  territories: string;
-  settlements: string;
+export function upgradeConversion(frontmatter: any): SovereignEntityFM {
+  const upgraded = new SovereignEntityFM();
+
+  const version = frontmatter.wbMeta.version as string;
+  switch (version) {
+    case "0.0.1":
+      upgraded.name = frontmatter.name;
+      upgraded.geography = frontmatter.geography;
+      upgraded.demographics = frontmatter.demographics;
+      upgraded.culture = frontmatter.culture;
+      upgraded.species = frontmatter.species;
+      upgraded.languages = frontmatter.languages;
+      upgraded.staticDatasets = frontmatter.staticDatasets;
+      upgraded.wbMeta = frontmatter.wbMeta;
+      break;
+  }
+
+  return upgraded;
 }

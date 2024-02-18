@@ -11,6 +11,7 @@ import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util";
 import { SovereignEntity } from "./world/sovereignEntity";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
+import { sovereignEntityGeneratedStats } from "./postProcessors/sovereignEntityMDPP";
 
 class WorldBuildingPluginSettings {
   dataDirectory: string;
@@ -229,8 +230,8 @@ export default class WorldBuildingPlugin extends Plugin {
 
     this.registerMarkdownCodeBlockProcessor("wb-se", (source, el, context) => {
       source = source.trim();
-      const country = new SovereignEntity(this, context.frontmatter);
-      country.buildMarkdownView(el);
+      const sovereignEntity = new SovereignEntity(this, context.frontmatter);
+      sovereignEntityGeneratedStats(sovereignEntity, el);
     });
   }
 }
