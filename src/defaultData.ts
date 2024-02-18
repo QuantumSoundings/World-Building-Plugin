@@ -1,6 +1,17 @@
 import { PopulationDensity } from "./api/populationApi";
 import { SettlementType } from "./api/settlementApi";
 import { Unit } from "./api/unitConversionApi";
+import WorldBuildingPlugin from "./main";
+
+export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: string = "") {
+  plugin.csvManager.writeFile(exportPath + "Default Population Density Data.csv", defaultPopulationDensityData, {
+    header: true,
+  });
+  plugin.csvManager.writeFile(exportPath + "Default Settlement Types Data.csv", defaultSettlementData, {
+    header: true,
+  });
+  plugin.yamlManager.writeFile(exportPath + "Default Unit Conversion Data.md", defaultUnitConversionData);
+}
 
 export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = [
   { descriptor: "Uninhabited", minPopulation: 0, maxPopulation: 10, areaUnit: "mile^2" },

@@ -3,7 +3,6 @@ import { defaultUnitConversionData } from "src/defaultData";
 import { BaseError } from "src/errors/baseError";
 import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
-import { Logger } from "src/util";
 
 export class ConversionFactor {
   toUnit: string;
@@ -30,20 +29,13 @@ export class UnitConversionAPI {
     this.data = [];
   }
 
-  public saveDefaultData() {
-    const fullPath = this.plugin.settings.dataDirectory + "/default_unit_conversion_data.md";
-    this.plugin.yamlManager.writeFile(fullPath, defaultUnitConversionData);
-  }
-
-  reloadData() {
-    const newData = JSON.parse(this.defaultDataString);
+  reloadData(overrideDataPath: string) {
+    let newData = JSON.parse(this.defaultDataString);
     // If we are overriding the default data, load the new data from the manager.
-    if (this.plugin.settings.unitConversionData !== "") {
-      const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.unitConversionData;
+    if (this.plugin.settings.unitConversionDataOverridePath !== "") {
       const overrideDataResult = this.plugin.yamlManager.getDataByFile(overrideDataPath);
-      if (overrideDataResult.success === false) {
-        Logger.error(this, "Could not load override data.");
-        return;
+      if (overrideDataResult.success === true) {
+        newData = overrideDataResult.result;
       }
     }
 
@@ -53,10 +45,6 @@ export class UnitConversionAPI {
       const newDataClassInstance = plainToClass(Unit, newDataEntry);
       this.data.push(newDataClassInstance);
     }
-  }
-
-  getRawData(): Unit[] {
-    return this.data;
   }
 
   convertUnit(value: number, fromUnit: string, toUnit: string): Result<number> {

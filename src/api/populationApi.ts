@@ -4,7 +4,6 @@ import { defaultPopulationDensityData } from "src/defaultData";
 import { BaseError } from "src/errors/baseError";
 import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
-import { Logger } from "src/util";
 
 export class PopulationDensity {
   descriptor: string;
@@ -26,21 +25,14 @@ export class PopulationAPI {
     this.data = [];
   }
 
-  public saveDefaultData() {
-    const fullPath = this.plugin.settings.dataDirectory + "/default_population_density_data.csv";
-    this.plugin.csvManager.writeFile(fullPath, defaultPopulationDensityData, { header: true });
-  }
-
-  reloadData() {
+  reloadData(overrideDataPath: string) {
     let newData = JSON.parse(this.defaultDataString);
     // If we are overriding the default data, load the new data from the manager.
-    if (this.plugin.settings.populationDensityData !== "") {
-      const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.populationDensityData;
+    if (overrideDataPath !== "") {
       const overrideDataResult = this.plugin.csvManager.getDataByFile(overrideDataPath);
-      if (overrideDataResult.success === false) {
-        return;
+      if (overrideDataResult.success === true) {
+        newData = CSVManager.csvToPojoWithIncludedHeaders(overrideDataResult.result);
       }
-      newData = CSVManager.csvToPojoWithIncludedHeaders(overrideDataResult.result);
     }
 
     // We are ready to apply the new data. Clear the old and add the new.

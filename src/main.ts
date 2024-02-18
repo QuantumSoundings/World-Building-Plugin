@@ -12,22 +12,26 @@ import { Logger } from "./util";
 import { SovereignEntity } from "./world/sovereignEntity";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
 import { sovereignEntityGeneratedStats } from "./postProcessors/sovereignEntityMDPP";
+import { exportDefaultData } from "./defaultData";
 
 class WorldBuildingPluginSettings {
-  dataDirectory: string;
-  settlementData: string;
-  populationDensityData: string;
-  unitConversionData: string;
+  // Overrides for the internal data files.
+  exportPath: string;
+  settlementTypeDataOverridePath: string;
+  populationDensityDataOverridePath: string;
+  unitConversionDataOverridePath: string;
+  // Loading Behavior
   cacheFilesOnLoad: boolean;
-  defaultCsvHeadersPresent: boolean;
   writeMapStatisticsOnLoad: boolean;
+  // CSV Behavior
+  defaultCsvHeadersPresent: boolean;
 }
 
 const DEFAULT_SETTINGS: WorldBuildingPluginSettings = {
-  dataDirectory: "",
-  settlementData: "",
-  populationDensityData: "",
-  unitConversionData: "",
+  exportPath: "",
+  settlementTypeDataOverridePath: "",
+  populationDensityDataOverridePath: "",
+  unitConversionDataOverridePath: "",
   cacheFilesOnLoad: true,
   defaultCsvHeadersPresent: true,
   writeMapStatisticsOnLoad: false,
@@ -68,19 +72,14 @@ export default class WorldBuildingPlugin extends Plugin {
     }
 
     this.addCommand({
-      id: "wb-save-default-data-to-data-directory",
-      name: "Save Default Data to Data Directory",
+      id: "wb-save-default-data-to-root",
+      name: "Save Default Data to Root Directory",
       checkCallback: (checking: boolean) => {
-        // COnly show this command if the data directory is set.
-        if (this.settings.dataDirectory !== "") {
-          // Checking is true when the command is being registered, and false when it is being called.
-          if (!checking) {
-            this.writeDefaultDataToDataDirectory();
-          }
-          return true;
-        } else {
-          return false;
+        // Checking is true when the command is being registered, and false when it is being called.
+        if (!checking) {
+          this.writeDefaultDataToDataDirectory();
         }
+        return true;
       },
     });
 
@@ -154,9 +153,9 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   refreshAPIs() {
-    this.settlementAPI.reloadData();
-    this.populationAPI.reloadData();
-    this.unitConversionAPI.reloadData();
+    this.settlementAPI.reloadData(this.settings.settlementTypeDataOverridePath);
+    this.populationAPI.reloadData(this.settings.populationDensityDataOverridePath);
+    this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
   }
 
   getSettlementAPI(): SettlementAPI {
@@ -172,9 +171,7 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   writeDefaultDataToDataDirectory() {
-    this.settlementAPI.saveDefaultData();
-    this.populationAPI.saveDefaultData();
-    this.unitConversionAPI.saveDefaultData();
+    exportDefaultData(this, this.settings.exportPath);
   }
 
   private registerEventHandlers() {
@@ -210,6 +207,16 @@ export default class WorldBuildingPlugin extends Plugin {
         await this.csvManager.onFileModify(file);
       } else if (this.psdManager.isFileManageable(file)) {
         await this.psdManager.onFileModify(file);
+      }
+      // Refresh Internal Override Data if it has changed.
+      if (file.path === this.settings.settlementTypeDataOverridePath) {
+        this.settlementAPI.reloadData(this.settings.settlementTypeDataOverridePath);
+      }
+      if (file.path === this.settings.populationDensityDataOverridePath) {
+        this.populationAPI.reloadData(this.settings.populationDensityDataOverridePath);
+      }
+      if (file.path === this.settings.unitConversionDataOverridePath) {
+        this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
       }
     };
 
@@ -250,29 +257,16 @@ class WorldBuildingSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName("Data Directory")
+      .setName("Settlement Data Override File Path")
       .setDesc(
-        "The directory where CSV/YAML/MD(with frontmatter) data is stored.\n These files are loaded and cached on start."
+        "This file overrides the internal settlement data. It is recommended to first export the default data to the root directory and then modify it."
       )
       .addText((text) =>
         text
-          .setPlaceholder("Enter the directory")
-          .setValue(this.plugin.settings.dataDirectory)
-          .onChange(async (value) => {
-            this.plugin.settings.dataDirectory = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Settlement Data File")
-      .setDesc("This file overrides the internal settlement data.")
-      .addText((text) =>
-        text
           .setPlaceholder("Enter the file name")
-          .setValue(this.plugin.settings.settlementData)
+          .setValue(this.plugin.settings.settlementTypeDataOverridePath)
           .onChange(async (value) => {
-            this.plugin.settings.settlementData = value;
+            this.plugin.settings.settlementTypeDataOverridePath = value;
             await this.plugin.saveSettings();
             this.plugin.refreshAPIs();
           })
@@ -280,13 +274,15 @@ class WorldBuildingSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Population Density Data File")
-      .setDesc("This file overrides the internal population density data.")
+      .setDesc(
+        "This file overrides the internal population density data. It is recommended to first export the default data to the root directory and then modify it."
+      )
       .addText((text) =>
         text
           .setPlaceholder("Enter the file name")
-          .setValue(this.plugin.settings.populationDensityData)
+          .setValue(this.plugin.settings.populationDensityDataOverridePath)
           .onChange(async (value) => {
-            this.plugin.settings.populationDensityData = value;
+            this.plugin.settings.populationDensityDataOverridePath = value;
             await this.plugin.saveSettings();
             this.plugin.refreshAPIs();
           })
@@ -294,13 +290,15 @@ class WorldBuildingSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Unit Conversion Data File")
-      .setDesc("This file overrides the internal unit conversion data.")
+      .setDesc(
+        "This file overrides the internal unit conversion data. It is recommended to first export the default data to the root directory and then modify it."
+      )
       .addText((text) =>
         text
           .setPlaceholder("Enter the file name")
-          .setValue(this.plugin.settings.unitConversionData)
+          .setValue(this.plugin.settings.unitConversionDataOverridePath)
           .onChange(async (value) => {
-            this.plugin.settings.unitConversionData = value;
+            this.plugin.settings.unitConversionDataOverridePath = value;
             await this.plugin.saveSettings();
             this.plugin.refreshAPIs();
           })

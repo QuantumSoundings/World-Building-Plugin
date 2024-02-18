@@ -31,21 +31,14 @@ export class SettlementAPI {
     this.data = [];
   }
 
-  public saveDefaultData() {
-    const fullPath = this.plugin.settings.dataDirectory + "/default_settlement_data.csv";
-    this.plugin.csvManager.writeFile(fullPath, defaultSettlementData, { header: true });
-  }
-
-  reloadData() {
+  reloadData(overrideDataPath: string) {
     let newData = JSON.parse(this.defaultDataString);
     // If we are overriding the default data, load the new data from the manager.
-    if (this.plugin.settings.settlementData !== "") {
-      const overrideDataPath = this.plugin.settings.dataDirectory + "/" + this.plugin.settings.settlementData;
+    if (overrideDataPath !== "") {
       const overrideDataResult = this.plugin.csvManager.getDataByFile(overrideDataPath);
-      if (overrideDataResult.success === false) {
-        return;
+      if (overrideDataResult.success === true) {
+        newData = CSVManager.csvToPojoWithIncludedHeaders(overrideDataResult.result);
       }
-      newData = CSVManager.csvToPojoWithIncludedHeaders(overrideDataResult.result);
     }
 
     // We are ready to apply the new data. Clear the old and add the new.
@@ -54,10 +47,6 @@ export class SettlementAPI {
       const newDataClassInstance = plainToClass(SettlementType, newDataEntry);
       this.data.push(newDataClassInstance);
     }
-  }
-
-  getRawData(): SettlementType[] {
-    return this.data;
   }
 
   findSettlementDataByType(type: string): SettlementType | undefined {
