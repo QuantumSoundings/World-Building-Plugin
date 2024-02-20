@@ -9,10 +9,10 @@ import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util";
-import { SovereignEntity } from "./world/sovereignEntity";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
 import { sovereignEntityGeneratedStats } from "./postProcessors/sovereignEntityMDPP";
 import { exportDefaultData } from "./defaultData";
+import { WorldEngine } from "./world/worldEngine";
 
 class WorldBuildingPluginSettings {
   // Overrides for the internal data files.
@@ -49,8 +49,15 @@ export default class WorldBuildingPlugin extends Plugin {
   private populationAPI: PopulationAPI;
   private unitConversionAPI: UnitConversionAPI;
 
+  worldEngine: WorldEngine;
+
   async onload() {
     super.onload();
+    // Wait for workspace to be ready before doing anything.
+    this.app.workspace.onLayoutReady(async () => this.loadAfterWorkspaceReady());
+  }
+
+  async loadAfterWorkspaceReady() {
     // Load settings and make them available to downstream configuration.
     await this.loadSettings();
     this.addSettingTab(new WorldBuildingSettingTab(this.app, this));
@@ -60,16 +67,20 @@ export default class WorldBuildingPlugin extends Plugin {
     this.csvManager = new CSVManager(this);
     this.yamlManager = new YAMLManager(this);
     this.psdManager = new PSDManager(this);
+    this.worldEngine = new WorldEngine(this);
 
     this.settlementAPI = new SettlementAPI(this);
     this.populationAPI = new PopulationAPI(this);
     this.unitConversionAPI = new UnitConversionAPI(this);
 
-    if (this.app.workspace.layoutReady) {
-      await this.indexVault();
-    } else {
-      this.app.workspace.onLayoutReady(async () => this.indexVault());
-    }
+    // Load our caches.
+    await this.indexVault();
+
+    // Now we can do things that make use of the data.
+    this.refreshAPIs();
+
+    // Load the world engine
+    this.worldEngine.load();
 
     this.addCommand({
       id: "wb-save-default-data-to-root",
@@ -149,7 +160,6 @@ export default class WorldBuildingPlugin extends Plugin {
     // The psd files might require a lot of compute, and they have dependencies
     await this.psdManager.load();
     await this.psdManager.processPSDs();
-    this.refreshAPIs();
   }
 
   refreshAPIs() {
@@ -183,6 +193,9 @@ export default class WorldBuildingPlugin extends Plugin {
       } else if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileCreation(file);
       }
+      if (file.path.endsWith(".md")) {
+        this.worldEngine.onFileCreation(file);
+      }
     };
     const deletionEvent = (file: TAbstractFile) => {
       if (this.csvManager.isFileManageable(file)) {
@@ -192,6 +205,9 @@ export default class WorldBuildingPlugin extends Plugin {
       } else if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileDeletion(file);
       }
+      if (file.path.endsWith(".md")) {
+        this.worldEngine.onFileDeletion(file);
+      }
     };
     const renameEvent = (file: TAbstractFile, oldPath: string) => {
       if (this.csvManager.isFileManageable(file)) {
@@ -200,6 +216,9 @@ export default class WorldBuildingPlugin extends Plugin {
         this.yamlManager.onFileRename(file, oldPath);
       } else if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileRename(file, oldPath);
+      }
+      if (file.path.endsWith(".md")) {
+        this.worldEngine.onFileRename(file, oldPath);
       }
     };
     const modifyEvent = async (file: TAbstractFile) => {
@@ -217,6 +236,9 @@ export default class WorldBuildingPlugin extends Plugin {
       }
       if (file.path === this.settings.unitConversionDataOverridePath) {
         this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
+      }
+      if (file.path.endsWith(".md")) {
+        this.worldEngine.onFileModify(file);
       }
     };
 
@@ -236,8 +258,11 @@ export default class WorldBuildingPlugin extends Plugin {
     });
 
     this.registerMarkdownCodeBlockProcessor("wb-se", (source, el, context) => {
-      source = source.trim();
-      const sovereignEntity = new SovereignEntity(this, context.frontmatter);
+      const sovereignEntity = this.worldEngine.sovereignEntities.get(context.sourcePath);
+      if (sovereignEntity === undefined) {
+        Logger.error(this, "Could not find sovereign entity for " + context.sourcePath);
+        return;
+      }
       sovereignEntityGeneratedStats(sovereignEntity, el);
     });
   }

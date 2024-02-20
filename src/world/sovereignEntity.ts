@@ -26,8 +26,6 @@ export class SovereignEntity {
       this.configuration = convertToSovereignEntityFM(frontMatter);
     }
 
-    Logger.debug(this, this.configuration);
-
     this.calculatePopulation();
   }
 
