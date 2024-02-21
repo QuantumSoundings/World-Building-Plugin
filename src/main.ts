@@ -13,6 +13,8 @@ import { TemplatePickerModal } from "./modal/templatePickerModal";
 import { sovereignEntityGeneratedStats } from "./postProcessors/sovereignEntityMDPP";
 import { exportDefaultData } from "./defaultData";
 import { WorldEngine } from "./world/worldEngine";
+import { FrontMatterManager } from "./dataManagers/frontMatterManager";
+import { SovereignEntity } from "./world/sovereignEntity";
 
 class WorldBuildingPluginSettings {
   // Overrides for the internal data files.
@@ -44,6 +46,7 @@ export default class WorldBuildingPlugin extends Plugin {
   csvManager: CSVManager;
   yamlManager: YAMLManager;
   psdManager: PSDManager;
+  frontMatterManager: FrontMatterManager;
   // APIs provided to other plugins
   private settlementAPI: SettlementAPI;
   private populationAPI: PopulationAPI;
@@ -67,6 +70,7 @@ export default class WorldBuildingPlugin extends Plugin {
     this.csvManager = new CSVManager(this);
     this.yamlManager = new YAMLManager(this);
     this.psdManager = new PSDManager(this);
+    this.frontMatterManager = new FrontMatterManager(this);
     this.worldEngine = new WorldEngine(this);
 
     this.settlementAPI = new SettlementAPI(this);
@@ -80,7 +84,7 @@ export default class WorldBuildingPlugin extends Plugin {
     this.refreshAPIs();
 
     // Load the world engine
-    this.worldEngine.load();
+    this.worldEngine.initialize();
 
     this.addCommand({
       id: "wb-save-default-data-to-root",
@@ -162,10 +166,10 @@ export default class WorldBuildingPlugin extends Plugin {
     await this.psdManager.processPSDs();
   }
 
-  refreshAPIs() {
+  async refreshAPIs() {
     this.settlementAPI.reloadData(this.settings.settlementTypeDataOverridePath);
     this.populationAPI.reloadData(this.settings.populationDensityDataOverridePath);
-    this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
+    await this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
   }
 
   getSettlementAPI(): SettlementAPI {
@@ -192,9 +196,6 @@ export default class WorldBuildingPlugin extends Plugin {
         this.yamlManager.onFileCreation(file);
       } else if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileCreation(file);
-      }
-      if (file.path.endsWith(".md")) {
-        this.worldEngine.onFileCreation(file);
       }
     };
     const deletionEvent = (file: TAbstractFile) => {
@@ -258,12 +259,14 @@ export default class WorldBuildingPlugin extends Plugin {
     });
 
     this.registerMarkdownCodeBlockProcessor("wb-se", (source, el, context) => {
-      const sovereignEntity = this.worldEngine.sovereignEntities.get(context.sourcePath);
+      const sovereignEntity = this.worldEngine.entities.get(context.sourcePath);
       if (sovereignEntity === undefined) {
         Logger.error(this, "Could not find sovereign entity for " + context.sourcePath);
         return;
       }
-      sovereignEntityGeneratedStats(sovereignEntity, el);
+      if (sovereignEntity instanceof SovereignEntity) {
+        sovereignEntityGeneratedStats(sovereignEntity, el);
+      }
     });
   }
 }
@@ -293,7 +296,7 @@ class WorldBuildingSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.settlementTypeDataOverridePath = value;
             await this.plugin.saveSettings();
-            this.plugin.refreshAPIs();
+            await this.plugin.refreshAPIs();
           })
       );
 
@@ -309,7 +312,7 @@ class WorldBuildingSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.populationDensityDataOverridePath = value;
             await this.plugin.saveSettings();
-            this.plugin.refreshAPIs();
+            await this.plugin.refreshAPIs();
           })
       );
 
@@ -325,7 +328,7 @@ class WorldBuildingSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.unitConversionDataOverridePath = value;
             await this.plugin.saveSettings();
-            this.plugin.refreshAPIs();
+            await this.plugin.refreshAPIs();
           })
       );
   }
