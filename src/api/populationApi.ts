@@ -1,9 +1,9 @@
 import { Type, plainToClass } from "class-transformer";
-import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultPopulationDensityData } from "src/defaultData";
 import { BaseError } from "src/errors/baseError";
 import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
+import { CSVUtils } from "src/util/csv";
 
 export class PopulationDensity {
   descriptor: string;
@@ -31,7 +31,7 @@ export class PopulationAPI {
     if (overrideDataPath !== "") {
       const overrideDataResult = this.plugin.csvManager.getDataByFile(overrideDataPath);
       if (overrideDataResult.success === true) {
-        newData = CSVManager.csvToPojoWithIncludedHeaders(overrideDataResult.result);
+        newData = CSVUtils.csvToPojo(overrideDataResult.result, true);
       }
     }
 

@@ -1,3 +1,4 @@
+name: World Name
 # The geometry of the world, sphere for planets, cylinder for artificial habitats.
 # Important for map projects.
 geometry: sphere
@@ -13,3 +14,8 @@ day_length: 24-00-00
 year_length: 0365-00-00-00
 # In the format YYYYY-DDDD
 current_time: 4000-0001
+
+wbMeta:
+  type: worldConfig
+  version: 0.0.1
+  id: GEN

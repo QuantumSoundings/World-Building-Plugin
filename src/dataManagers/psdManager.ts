@@ -1,4 +1,4 @@
-import { TAbstractFile } from "obsidian";
+import { TAbstractFile, TFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import Psd, { Layer, NodeChild } from "@webtoon/psd";
 import { CacheManager } from "./cacheManager";
@@ -27,6 +27,11 @@ class MapData {
   countryData: CountryData[];
 }
 
+class CompositeLayer {
+  layer: Layer;
+  composite: Uint8ClampedArray;
+}
+
 class PsdData {
   file: Psd;
   mapData: MapData;
@@ -42,6 +47,7 @@ export class PSDManager extends CacheManager<CacheType> {
     if (fullPath.endsWith(".psd")) {
       const binaryFile = await this.plugin.adapter.readBinary(fullPath);
       const psd: Psd = Psd.parse(binaryFile);
+      // Processing this maps is a different operation from loading them.
       const psdData = new PsdData();
       psdData.file = psd;
       psdData.mapData = new MapData();
@@ -56,45 +62,20 @@ export class PSDManager extends CacheManager<CacheType> {
   }
 
   override isFileManageable(file: TAbstractFile): boolean {
-    if (file.name.endsWith(".psd")) {
+    if (file.path.endsWith(".psd")) {
       return true;
     }
     return false;
   }
 
-  public async processPSDs() {
+  public async processPSDs(forceRecalculate: boolean) {
     Logger.debug(this, "Processing found PSD files.");
     for (const [, value] of this.fileCache) {
       if (value.data) {
-        const psd = await this.parsePsd(value.file.path, value.data.file);
+        const psd = await this.processPsd(value.file.path, value.data.file, forceRecalculate);
         value.data = psd;
       }
     }
-  }
-
-  public async processPSDsConcurrently() {
-    Logger.debug(this, "Processing found PSD files concurrently.");
-    const keys: string[] = [];
-    const promises = [];
-    for (const [key, value] of this.fileCache) {
-      if (value.data) {
-        keys.push(key);
-        promises.push(this.parsePsd(value.file.path, value.data.file));
-      }
-    }
-    return Promise.allSettled(promises).then((results) => {
-      for (let i = 0; i < results.length; i++) {
-        if (results[i].status === "fulfilled") {
-          const result = results[i] as PromiseFulfilledResult<PsdData>;
-          const cacheEntry = this.fileCache.get(keys[i]);
-          if (cacheEntry === undefined) {
-            Logger.error(this, "Could not find cache entry.");
-            return;
-          }
-          cacheEntry.data = result.value;
-        }
-      }
-    });
   }
 
   public findCountryData(country: string): Result<CountryData> {
@@ -113,26 +94,27 @@ export class PSDManager extends CacheManager<CacheType> {
     return { success: false, error: new BaseError("Country not found.") };
   }
 
-  public writeMapConfigData(fullPath: string = "") {
-    Logger.debug(this, "Writing processed map data.");
-    // If no path is passed in, write all the files.
-    if (fullPath === "") {
-      for (const [key, value] of this.fileCache) {
-        const newFilePath = key.replace(".psd", ".md");
-        this.plugin.yamlManager.writeFile(newFilePath, value.data?.mapData);
+  public writeAllProcessedMapData() {
+    for (const [, value] of this.fileCache) {
+      if (value.data !== undefined) {
+        if (value.data.mapData !== undefined) {
+          this.writeProcessedMapData(value.file.path, value.data.mapData);
+        }
       }
-    } else {
-      const psdData = this.fileCache.get(fullPath);
-      if (psdData === undefined) {
-        Logger.error(this, "Could not find psd data.");
-        return;
-      }
-      const newFilePath = fullPath.replace(".psd", ".md");
-      this.plugin.yamlManager.writeFile(newFilePath, psdData.data?.mapData);
     }
   }
 
-  private async parsePsd(fullPath: string, psd: Psd): Promise<PsdData> {
+  private async writeProcessedMapData(fullPath: string, mapData: MapData) {
+    Logger.debug(this, "Writing processed map data for " + fullPath + ".");
+    const newFilePath = fullPath.replace(".psd", ".md");
+    const file = this.plugin.app.vault.getAbstractFileByPath(newFilePath);
+    if (file === null) {
+      await this.plugin.app.vault.create(newFilePath, "---\n---\n");
+    }
+    await this.plugin.frontMatterManager.replaceFrontMatter(newFilePath, mapData);
+  }
+
+  private async processPsd(fullPath: string, psd: Psd, force: boolean = false): Promise<PsdData> {
     // Setup our data structure in case we need to return early.
     const psdData = new PsdData();
     psdData.file = psd;
@@ -140,59 +122,73 @@ export class PSDManager extends CacheManager<CacheType> {
     mapData.pixelHeight = psdData.file.height;
     mapData.pixelWidth = psdData.file.width;
     mapData.countryData = [];
-
     psdData.mapData = mapData;
 
-    let baseLayer: Layer | undefined = undefined;
-    let politicalLayers: Layer[] = [];
-
-    // Get Layer Groups
-    for (const node of psd.children) {
-      if (node.type === "Group") {
-        switch (node.name) {
-          case "Topography":
-            baseLayer = this.getBaseLayer(node);
-            break;
-          case "Political":
-            politicalLayers = this.getPoliticalLayers(node);
-            break;
+    // If we have a processed map file thats newer than the map file, use it.
+    if (force === false) {
+      const mapFile = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+      const processedMapFile = this.plugin.app.vault.getAbstractFileByPath(fullPath.replace(".psd", ".md"));
+      if (mapFile !== null && processedMapFile !== null) {
+        const mF = mapFile as TFile;
+        const pMF = processedMapFile as TFile;
+        // Map is older than the processed map.
+        if (mF.stat.mtime < pMF.stat.mtime) {
+          const mapData = (await this.plugin.frontMatterManager.getFrontMatter(pMF.path)) as MapData;
+          psdData.mapData = mapData;
+          return psdData;
         }
       }
     }
 
-    if (baseLayer === undefined) {
-      Logger.warn(this, "No base layer found.");
-      return psdData;
-    }
-    if (politicalLayers.length === 0) {
-      Logger.warn(this, "No political layers found.");
-      return psdData;
-    }
+    let baseCompositeLayer: CompositeLayer = new CompositeLayer();
+    const politicalCompositeLayers: CompositeLayer[] = [];
 
-    const promises = [];
-    for (const politicalLayer of politicalLayers) {
-      const countryData = new CountryData();
-      countryData.name = politicalLayer.name;
-      promises.push(this.findLayerIntersection(baseLayer, politicalLayer, psd.width, psd.height));
-      mapData.countryData.push(countryData);
-    }
-
-    const results = await Promise.allSettled(promises);
-    // Fill in the country data with the results.
-    for (let i = 0; i < results.length; i++) {
-      if (results[i].status === "fulfilled") {
-        const result = results[i] as PromiseFulfilledResult<number>;
-        const countryData = mapData.countryData[i];
-        countryData.rawPixelCount = result.value;
-        countryData.percentOfTotalMapArea = countryData.rawPixelCount / (psd.width * psd.height);
+    // Get the needed composite layers from the PSD.
+    for (const node of psd.children) {
+      if (node.type === "Group") {
+        switch (node.name) {
+          case "Topography": {
+            const baseLayer = this.getBaseLayer(node);
+            if (baseLayer !== undefined) {
+              baseCompositeLayer = await this.layerToComposite(baseLayer);
+            } else {
+              Logger.warn(this, "No base layer found.");
+              return psdData;
+            }
+            break;
+          }
+          case "Political": {
+            const politicalLayers = this.getPoliticalLayers(node);
+            if (politicalLayers.length === 0) {
+              Logger.warn(this, "No political layers found.");
+              return psdData;
+            }
+            for (const politicalLayer of politicalLayers) {
+              const compositeLayer = await this.layerToComposite(politicalLayer);
+              politicalCompositeLayers.push(compositeLayer);
+            }
+            break;
+          }
+        }
       }
+    }
+
+    for (const politicalLayer of politicalCompositeLayers) {
+      const countryData = new CountryData();
+      countryData.name = politicalLayer.layer.name;
+      countryData.rawPixelCount = await this.findLayerIntersection(
+        baseCompositeLayer,
+        politicalLayer,
+        psd.width,
+        psd.height
+      );
+      countryData.percentOfTotalMapArea = countryData.rawPixelCount / (psd.width * psd.height);
+      mapData.countryData.push(countryData);
     }
 
     this.updateCountriesUsingConfigData(mapData, fullPath, psd);
 
-    if (this.plugin.settings.writeMapStatisticsOnLoad) {
-      this.writeMapConfigData(fullPath);
-    }
+    await this.writeProcessedMapData(fullPath, mapData);
 
     return psdData;
   }
@@ -261,27 +257,35 @@ export class PSDManager extends CacheManager<CacheType> {
     return politicalLayers;
   }
 
+  private async layerToComposite(layer: Layer): Promise<CompositeLayer> {
+    const composite = await layer.composite(false, false);
+    const compositeLayer = new CompositeLayer();
+    compositeLayer.layer = layer;
+    compositeLayer.composite = composite;
+    return compositeLayer;
+  }
+
   // Not quite perfect. But good enough for now.
   private async findLayerIntersection(
-    layer1: Layer,
-    layer2: Layer,
+    layer1: CompositeLayer,
+    layer2: CompositeLayer,
     fileWidth: number,
     fileHeight: number
   ): Promise<number> {
     // Find the intersection of the two layers.
     // The intersection is the pixels that are not transparent in both layers.
-    const layer1Pixels = await layer1.composite(false, false);
-    const layer2Pixels = await layer2.composite(false, false);
+    const layer1Pixels = layer1.composite;
+    const layer2Pixels = layer1.composite;
 
-    const selection1Up = layer1.top;
-    const selection1Left = layer1.left;
-    const selection1Right = layer1.width + selection1Left - 1;
-    const selection1Bottom = layer1.height + selection1Up - 1;
+    const selection1Up = layer1.layer.top;
+    const selection1Left = layer1.layer.left;
+    const selection1Right = layer1.layer.width + selection1Left - 1;
+    const selection1Bottom = layer1.layer.height + selection1Up - 1;
 
-    const selection2Up = layer2.top;
-    const selection2Left = layer2.left;
-    const selection2Right = layer2.width + selection2Left - 1;
-    const selection2Bottom = layer2.height + selection2Up - 1;
+    const selection2Up = layer2.layer.top;
+    const selection2Left = layer2.layer.left;
+    const selection2Right = layer2.layer.width + selection2Left - 1;
+    const selection2Bottom = layer2.layer.height + selection2Up - 1;
 
     let intersectionPixelCount = 0;
 
@@ -303,8 +307,8 @@ export class PSDManager extends CacheManager<CacheType> {
           continue;
         }
 
-        const index1 = (column - selection1Left) * 4 + (row - selection1Up) * layer1.width * 4;
-        const index2 = (column - selection2Left) * 4 + (row - selection2Up) * layer2.width * 4;
+        const index1 = (column - selection1Left) * 4 + (row - selection1Up) * layer1.layer.width * 4;
+        const index2 = (column - selection2Left) * 4 + (row - selection2Up) * layer2.layer.width * 4;
 
         // Composite Space bounds checking
         if (index1 < 0 || index1 >= layer1Pixels.length) {

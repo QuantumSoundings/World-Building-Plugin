@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { App, FileSystemAdapter, Plugin, PluginSettingTab, Setting, TAbstractFile } from "obsidian";
+import { FileSystemAdapter, Notice, Plugin, TAbstractFile } from "obsidian";
 import { CSVManager } from "./dataManagers/csvManager";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";
@@ -15,32 +15,11 @@ import { exportDefaultData } from "./defaultData";
 import { WorldEngine } from "./world/worldEngine";
 import { FrontMatterManager } from "./dataManagers/frontMatterManager";
 import { SovereignEntity } from "./world/sovereignEntity";
-
-class WorldBuildingPluginSettings {
-  // Overrides for the internal data files.
-  exportPath: string;
-  settlementTypeDataOverridePath: string;
-  populationDensityDataOverridePath: string;
-  unitConversionDataOverridePath: string;
-  // Loading Behavior
-  cacheFilesOnLoad: boolean;
-  writeMapStatisticsOnLoad: boolean;
-  // CSV Behavior
-  defaultCsvHeadersPresent: boolean;
-}
-
-const DEFAULT_SETTINGS: WorldBuildingPluginSettings = {
-  exportPath: "",
-  settlementTypeDataOverridePath: "",
-  populationDensityDataOverridePath: "",
-  unitConversionDataOverridePath: "",
-  cacheFilesOnLoad: true,
-  defaultCsvHeadersPresent: true,
-  writeMapStatisticsOnLoad: false,
-};
+import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings/pluginSettings";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
+  settingsTab: WorldBuildingSettingTab;
   adapter: FileSystemAdapter;
   // Data Managers
   csvManager: CSVManager;
@@ -63,7 +42,8 @@ export default class WorldBuildingPlugin extends Plugin {
   async loadAfterWorkspaceReady() {
     // Load settings and make them available to downstream configuration.
     await this.loadSettings();
-    this.addSettingTab(new WorldBuildingSettingTab(this.app, this));
+    this.settingsTab = new WorldBuildingSettingTab(this.app, this);
+    this.addSettingTab(this.settingsTab);
 
     // Initialize all the members of the plugin
     this.adapter = this.app.vault.adapter as FileSystemAdapter;
@@ -93,17 +73,21 @@ export default class WorldBuildingPlugin extends Plugin {
         // Checking is true when the command is being registered, and false when it is being called.
         if (!checking) {
           this.writeDefaultDataToDataDirectory();
+          new Notice("Default data has been saved to the root directory!", 2000);
         }
         return true;
       },
     });
 
     this.addCommand({
-      id: "wb-save-calculated-map-data",
-      name: "Save Map Data to Config Files",
+      id: "wb-process-and-save-map-data",
+      name: "Process and Save Map Data to Markdown Files",
       checkCallback: (checking: boolean) => {
         if (!checking) {
-          this.psdManager.writeMapConfigData();
+          this.psdManager.processPSDs(true).then(() => {
+            this.psdManager.writeAllProcessedMapData();
+            new Notice("Maps have been processed and saved!", 2000);
+          });
         }
         return true;
       },
@@ -116,8 +100,9 @@ export default class WorldBuildingPlugin extends Plugin {
         if (!checking) {
           const activeFile = this.app.workspace.getActiveFile();
           if (activeFile !== null) {
-            const onChoose = (template: string) => {
-              this.frontMatterManager.writeFrontMatterTemplate(activeFile.path, template);
+            const onChoose = async (template: string) => {
+              await this.frontMatterManager.writeFrontMatterTemplate(activeFile.path, template);
+              new Notice("FrontMatter template has been set!", 2000);
             };
             new TemplatePickerModal(this.app, onChoose).open();
           }
@@ -146,7 +131,8 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const settings = new WorldBuildingPluginSettings();
+    this.settings = Object.assign({}, settings, await this.loadData());
   }
 
   async saveSettings() {
@@ -158,12 +144,15 @@ export default class WorldBuildingPlugin extends Plugin {
     const promises = [];
     promises.push(this.csvManager.load());
     promises.push(this.yamlManager.load());
+    promises.push(this.psdManager.load());
 
     await Promise.allSettled(promises);
 
-    // The psd files might require a lot of compute, and they have dependencies
-    await this.psdManager.load();
-    //await this.psdManager.processPSDs();
+    // The psd files require csv files for the map config,
+    // and the processing is intensive, so we will do it only if the user wants it.
+    if (this.settings.processMapsOnLoad) {
+      await this.psdManager.processPSDs(false);
+    }
   }
 
   async refreshAPIs() {
@@ -268,68 +257,5 @@ export default class WorldBuildingPlugin extends Plugin {
         sovereignEntityGeneratedStats(sovereignEntity, el);
       }
     });
-  }
-}
-
-class WorldBuildingSettingTab extends PluginSettingTab {
-  plugin: WorldBuildingPlugin;
-
-  constructor(app: App, plugin: WorldBuildingPlugin) {
-    super(app, plugin);
-    this.plugin = plugin;
-  }
-
-  display(): void {
-    const { containerEl } = this;
-
-    containerEl.empty();
-
-    new Setting(containerEl)
-      .setName("Settlement Data Override File Path")
-      .setDesc(
-        "This file overrides the internal settlement data. It is recommended to first export the default data to the root directory and then modify it."
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter the file name")
-          .setValue(this.plugin.settings.settlementTypeDataOverridePath)
-          .onChange(async (value) => {
-            this.plugin.settings.settlementTypeDataOverridePath = value;
-            await this.plugin.saveSettings();
-            await this.plugin.refreshAPIs();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Population Density Data File")
-      .setDesc(
-        "This file overrides the internal population density data. It is recommended to first export the default data to the root directory and then modify it."
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter the file name")
-          .setValue(this.plugin.settings.populationDensityDataOverridePath)
-          .onChange(async (value) => {
-            this.plugin.settings.populationDensityDataOverridePath = value;
-            await this.plugin.saveSettings();
-            await this.plugin.refreshAPIs();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Unit Conversion Data File")
-      .setDesc(
-        "This file overrides the internal unit conversion data. It is recommended to first export the default data to the root directory and then modify it."
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter the file name")
-          .setValue(this.plugin.settings.unitConversionDataOverridePath)
-          .onChange(async (value) => {
-            this.plugin.settings.unitConversionDataOverridePath = value;
-            await this.plugin.saveSettings();
-            await this.plugin.refreshAPIs();
-          })
-      );
   }
 }

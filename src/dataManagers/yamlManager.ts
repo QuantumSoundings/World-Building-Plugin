@@ -54,7 +54,7 @@ export class YAMLManager extends CacheManager<CacheType> {
   }
 
   override isFileManageable(file: TAbstractFile): boolean {
-    if (file.path.includes(".yaml") || file.path.includes(".yml")) {
+    if (file.path.endsWith(".yaml") || file.path.endsWith(".yml")) {
       return true;
     }
     return false;

@@ -15,9 +15,17 @@ export class FrontMatterManager {
     const file = this.pathToFile(filePath);
     let frontMatter;
     await this.plugin.app.fileManager.processFrontMatter(file, (data) => {
-      frontMatter = data;
+      frontMatter = JSON.parse(JSON.stringify(data));
     });
     return frontMatter;
+  }
+
+  // Warning this is a destructive operation. It will replace the entire front matter with the new object.
+  public async replaceFrontMatter(filePath: string, newFrontMatter: any) {
+    const file = this.pathToFile(filePath);
+    await this.plugin.app.fileManager.processFrontMatter(file, (data) => {
+      Object.assign(data, newFrontMatter);
+    });
   }
 
   public async addUpdateFrontMatterProperty(filePath: string, key: string, value: any) {

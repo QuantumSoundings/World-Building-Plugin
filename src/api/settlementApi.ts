@@ -1,8 +1,8 @@
 import { Type, plainToClass } from "class-transformer";
-import { CSVManager } from "src/dataManagers/csvManager";
 import { defaultSettlementData } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
 import { Utils, Logger } from "src/util";
+import { CSVUtils } from "src/util/csv";
 
 export class SettlementType {
   type: string;
@@ -37,7 +37,7 @@ export class SettlementAPI {
     if (overrideDataPath !== "") {
       const overrideDataResult = this.plugin.csvManager.getDataByFile(overrideDataPath);
       if (overrideDataResult.success === true) {
-        newData = CSVManager.csvToPojoWithIncludedHeaders(overrideDataResult.result);
+        newData = CSVUtils.csvToPojo(overrideDataResult.result, true);
       }
     }
 

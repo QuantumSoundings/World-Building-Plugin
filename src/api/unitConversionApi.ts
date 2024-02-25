@@ -33,10 +33,6 @@ export class UnitConversionAPI {
     let newData = JSON.parse(this.defaultDataString);
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.unitConversionDataOverridePath !== "") {
-      //const overrideDataResult = this.plugin.yamlManager.getDataByFile(overrideDataPath);
-      //if (overrideDataResult.success === true) {
-      //  newData = overrideDataResult.result;
-      //}
       const fm = await this.plugin.frontMatterManager.getFrontMatter(overrideDataPath);
       if (fm.hasOwnProperty("units")) {
         newData = fm["units"];
