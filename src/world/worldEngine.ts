@@ -36,13 +36,13 @@ export class WorldEngine {
     }
   }
 
-  public onFileModify(file: TAbstractFile) {
+  public async onFileModify(file: TAbstractFile) {
     // This will replace existing entries and add new compatible ones.
     this.loadFile(file);
   }
 
-  private loadFile(file: TAbstractFile) {
-    const frontMatter = this.plugin.frontMatterManager.getFrontMatter(file.path);
+  private async loadFile(file: TAbstractFile) {
+    const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
     if (frontMatter === null) return;
     if (!frontMatter.hasOwnProperty("wbMeta")) return;
     const wbMeta: WBMetaData = frontMatter["wbMeta"];

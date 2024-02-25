@@ -37,6 +37,7 @@ export class CSVView extends TextFileView {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   override async save(clear?: boolean): Promise<void> {
     if (this.tableComponent !== undefined) {
       this.tableComponent.requestSave();

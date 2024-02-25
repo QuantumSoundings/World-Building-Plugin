@@ -117,7 +117,7 @@ export default class WorldBuildingPlugin extends Plugin {
           const activeFile = this.app.workspace.getActiveFile();
           if (activeFile !== null) {
             const onChoose = (template: string) => {
-              this.yamlManager.writeFrontMatterTemplate(activeFile.path, template);
+              this.frontMatterManager.writeFrontMatterTemplate(activeFile.path, template);
             };
             new TemplatePickerModal(this.app, onChoose).open();
           }
@@ -163,7 +163,7 @@ export default class WorldBuildingPlugin extends Plugin {
 
     // The psd files might require a lot of compute, and they have dependencies
     await this.psdManager.load();
-    await this.psdManager.processPSDs();
+    //await this.psdManager.processPSDs();
   }
 
   async refreshAPIs() {

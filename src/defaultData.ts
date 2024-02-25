@@ -10,7 +10,9 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
   plugin.csvManager.writeFile(exportPath + "Default Settlement Types Data.csv", defaultSettlementData, {
     header: true,
   });
-  plugin.yamlManager.writeFile(exportPath + "Default Unit Conversion Data.md", { units: defaultUnitConversionData });
+  plugin.frontMatterManager.writeFile(exportPath + "Default Unit Conversion Data.md", {
+    units: defaultUnitConversionData,
+  });
 }
 
 export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = [
