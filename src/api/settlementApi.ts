@@ -1,6 +1,6 @@
 import { SettlementType } from "src/dataManagers/userOverrideData";
 import WorldBuildingPlugin from "src/main";
-import { Utils } from "src/util";
+import { FormatUtils } from "src/util/format";
 import { Logger } from "src/util/Logger";
 
 export class Settlement {
@@ -36,7 +36,7 @@ export class SettlementAPI {
   private generatePopulation(settlementData: SettlementType): number {
     switch (settlementData.distributionType) {
       case "gaussian":
-        return Utils.generateGaussianValue(settlementData.minPopulation, settlementData.maxPopulation, 1.0);
+        return FormatUtils.generateGaussianValue(settlementData.minPopulation, settlementData.maxPopulation, 1.0);
       default:
         return NaN;
     }
