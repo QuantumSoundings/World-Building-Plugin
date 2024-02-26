@@ -1,9 +1,30 @@
 import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
+import { TFile, Vault } from "obsidian";
 import { Logger } from "src/util";
 
 export class CSVUtils {
   // Static methods for helping with CSV parsing.
+
+  static async getCSVByPath(filePath: string, vault: Vault): Promise<string[][]> {
+    const file = vault.getAbstractFileByPath(filePath);
+    if (file === null) {
+      Logger.error(this, "File not found.");
+      return [];
+    }
+    const content = await vault.read(file as TFile);
+    return parse(content);
+  }
+
+  static async saveCSVByPath(filePath: string, content: unknown[], vault: Vault) {
+    const file = vault.getAbstractFileByPath(filePath);
+    if (file === null) {
+      vault.create(filePath, stringify(content));
+    } else {
+      await vault.modify(file as TFile, stringify(content));
+    }
+  }
+
   static csvArrayToStringArray(csvArray: unknown[][]): string[][] {
     const result: string[][] = [];
     for (let i = 0; i < csvArray.length; i++) {

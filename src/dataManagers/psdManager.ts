@@ -5,6 +5,7 @@ import { CacheManager } from "./cacheManager";
 import { Logger } from "src/util";
 import { Result } from "src/errors/result";
 import { BaseError } from "src/errors/baseError";
+import { CSVUtils } from "src/util/csv";
 
 class CountryData {
   name: string;
@@ -210,19 +211,16 @@ export class PSDManager extends CacheManager<CacheType> {
     return undefined;
   }
 
-  private updateCountriesUsingConfigData(mapData: MapData, fullPath: string, psd: Psd) {
+  private async updateCountriesUsingConfigData(mapData: MapData, fullPath: string, psd: Psd) {
     // Read in _MapConfig.csv if it exists
     const fileName = fullPath.split("/").pop();
     if (fileName === undefined) {
       return;
     }
 
-    const result = this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
-    if (result.success === false) {
-      return;
-    }
+    const data = await CSVUtils.getCSVByPath(fullPath.replace(fileName, "_MapConfig.csv"), this.plugin.app.vault); // this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
 
-    const mapConfig = result.result;
+    const mapConfig = CSVUtils.csvArrayToStringArray(data);
     mapConfig.shift();
     for (const mapConfigRow of mapConfig) {
       if (fullPath.includes(mapConfigRow[0])) {

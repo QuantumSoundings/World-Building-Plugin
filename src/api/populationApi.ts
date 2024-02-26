@@ -1,51 +1,17 @@
-import { Type, plainToClass } from "class-transformer";
-import { defaultPopulationDensityData } from "src/defaultData";
 import { BaseError } from "src/errors/baseError";
 import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
-import { CSVUtils } from "src/util/csv";
-
-export class PopulationDensity {
-  descriptor: string;
-  @Type(() => Number)
-  minPopulation: number;
-  @Type(() => Number)
-  maxPopulation: number;
-  areaUnit: string;
-}
 
 export class PopulationAPI {
   plugin: WorldBuildingPlugin;
-  defaultDataString: string;
-  data: PopulationDensity[];
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
-    this.defaultDataString = JSON.stringify(defaultPopulationDensityData);
-    this.data = [];
-  }
-
-  reloadData(overrideDataPath: string) {
-    let newData = JSON.parse(this.defaultDataString);
-    // If we are overriding the default data, load the new data from the manager.
-    if (overrideDataPath !== "") {
-      const overrideDataResult = this.plugin.csvManager.getDataByFile(overrideDataPath);
-      if (overrideDataResult.success === true) {
-        newData = CSVUtils.csvToPojo(overrideDataResult.result, true);
-      }
-    }
-
-    // We are ready to apply the new data. Clear the old and add the new.
-    this.data = [];
-    for (const newDataEntry of newData) {
-      const newDataClassInstance = plainToClass(PopulationDensity, newDataEntry);
-      this.data.push(newDataClassInstance);
-    }
   }
 
   getDescriptorForPopulation(populationDensity: number, areaUnit: string): Result<string> {
     const unitConversionAPI = this.plugin.getUnitConversionAPI();
-    for (const density of this.data) {
+    for (const density of this.plugin.userOverrideData.populationData) {
       let min = density.minPopulation;
       let max = density.maxPopulation;
       if (density.areaUnit !== areaUnit) {

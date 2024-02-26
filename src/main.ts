@@ -16,13 +16,16 @@ import { WorldEngine } from "./world/worldEngine";
 import { FrontMatterManager } from "./dataManagers/frontMatterManager";
 import { SovereignEntity } from "./world/sovereignEntity";
 import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings/pluginSettings";
+import { CSVUtils } from "./util/csv";
+import { UserOverrideData } from "./dataManagers/userOverrideData";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
   settingsTab: WorldBuildingSettingTab;
   adapter: FileSystemAdapter;
   // Data Managers
-  csvManager: CSVManager;
+  userOverrideData: UserOverrideData;
+  //csvManager: CSVManager;
   yamlManager: YAMLManager;
   psdManager: PSDManager;
   frontMatterManager: FrontMatterManager;
@@ -47,7 +50,8 @@ export default class WorldBuildingPlugin extends Plugin {
 
     // Initialize all the members of the plugin
     this.adapter = this.app.vault.adapter as FileSystemAdapter;
-    this.csvManager = new CSVManager(this);
+    this.userOverrideData = new UserOverrideData(this);
+    //this.csvManager = new CSVManager(this);
     this.yamlManager = new YAMLManager(this);
     this.psdManager = new PSDManager(this);
     this.frontMatterManager = new FrontMatterManager(this);
@@ -142,7 +146,8 @@ export default class WorldBuildingPlugin extends Plugin {
                   ["", "", "", "", ""],
                   ["", "", "", "", ""],
                 ];
-                this.csvManager.writeFile(file.path + "/" + newFileName, defaultContent);
+                await CSVUtils.saveCSVByPath(file.path + "/" + newFileName, defaultContent, this.app.vault);
+                //this.csvManager.writeFile(file.path + "/" + newFileName, defaultContent);
                 new Notice("Created new CSV file! " + newFileName, 2000);
               });
           });
@@ -173,7 +178,7 @@ export default class WorldBuildingPlugin extends Plugin {
   async indexVault() {
     // Do any loading operations that need awaits.
     const promises = [];
-    promises.push(this.csvManager.load());
+    //promises.push(this.csvManager.load());
     promises.push(this.yamlManager.load());
     promises.push(this.psdManager.load());
 
@@ -187,9 +192,10 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   async refreshAPIs() {
-    this.settlementAPI.reloadData(this.settings.settlementTypeDataOverridePath);
-    this.populationAPI.reloadData(this.settings.populationDensityDataOverridePath);
-    await this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
+    this.userOverrideData.reloadData();
+    //this.settlementAPI.reloadData(this.settings.settlementTypeDataOverridePath);
+    //this.populationAPI.reloadData(this.settings.populationDensityDataOverridePath);
+    //await this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
   }
 
   getSettlementAPI(): SettlementAPI {
@@ -210,18 +216,18 @@ export default class WorldBuildingPlugin extends Plugin {
 
   private registerEventHandlers() {
     const creationEvent = (file: TAbstractFile) => {
-      if (this.csvManager.isFileManageable(file)) {
+      /*if (this.csvManager.isFileManageable(file)) {
         this.csvManager.onFileCreation(file);
-      } else if (this.yamlManager.isFileManageable(file)) {
+      } else*/ if (this.yamlManager.isFileManageable(file)) {
         this.yamlManager.onFileCreation(file);
       } else if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileCreation(file);
       }
     };
     const deletionEvent = (file: TAbstractFile) => {
-      if (this.csvManager.isFileManageable(file)) {
+      /*if (this.csvManager.isFileManageable(file)) {
         this.csvManager.onFileDeletion(file);
-      } else if (this.yamlManager.isFileManageable(file)) {
+      } else*/ if (this.yamlManager.isFileManageable(file)) {
         this.yamlManager.onFileDeletion(file);
       } else if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileDeletion(file);
@@ -231,9 +237,9 @@ export default class WorldBuildingPlugin extends Plugin {
       }
     };
     const renameEvent = (file: TAbstractFile, oldPath: string) => {
-      if (this.csvManager.isFileManageable(file)) {
+      /*if (this.csvManager.isFileManageable(file)) {
         this.csvManager.onFileRename(file, oldPath);
-      } else if (this.yamlManager.isFileManageable(file)) {
+      } else*/ if (this.yamlManager.isFileManageable(file)) {
         this.yamlManager.onFileRename(file, oldPath);
       } else if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileRename(file, oldPath);
@@ -243,20 +249,18 @@ export default class WorldBuildingPlugin extends Plugin {
       }
     };
     const modifyEvent = async (file: TAbstractFile) => {
-      if (this.csvManager.isFileManageable(file)) {
+      /*if (this.csvManager.isFileManageable(file)) {
         await this.csvManager.onFileModify(file);
-      } else if (this.psdManager.isFileManageable(file)) {
+      } else*/ if (this.psdManager.isFileManageable(file)) {
         await this.psdManager.onFileModify(file);
       }
       // Refresh Internal Override Data if it has changed.
-      if (file.path === this.settings.settlementTypeDataOverridePath) {
-        this.settlementAPI.reloadData(this.settings.settlementTypeDataOverridePath);
-      }
-      if (file.path === this.settings.populationDensityDataOverridePath) {
-        this.populationAPI.reloadData(this.settings.populationDensityDataOverridePath);
-      }
-      if (file.path === this.settings.unitConversionDataOverridePath) {
-        this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
+      if (
+        file.path === this.settings.settlementTypeDataOverridePath ||
+        file.path === this.settings.populationDensityDataOverridePath ||
+        file.path === this.settings.unitConversionDataOverridePath
+      ) {
+        this.userOverrideData.reloadData();
       }
       if (file.path.endsWith(".md")) {
         this.worldEngine.onFileModify(file);
