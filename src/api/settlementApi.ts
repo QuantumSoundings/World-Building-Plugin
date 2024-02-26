@@ -1,6 +1,7 @@
 import { SettlementType } from "src/dataManagers/userOverrideData";
 import WorldBuildingPlugin from "src/main";
-import { Utils, Logger } from "src/util";
+import { Utils } from "src/util";
+import { Logger } from "src/util/Logger";
 
 export class Settlement {
   type: string;
@@ -16,7 +17,7 @@ export class SettlementAPI {
   }
 
   findSettlementDataByType(type: string): SettlementType | undefined {
-    return this.plugin.userOverrideData.settlementData.find((settlement) => settlement.type === type);
+    return this.plugin.userOverrideData.settlementTypeData.find((settlement) => settlement.type === type);
   }
 
   generateSettlement(type: string): Settlement | undefined {

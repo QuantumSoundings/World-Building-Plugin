@@ -2,7 +2,7 @@
 import { TextFileView, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { TableComponent } from "./tableComponent";
-import { Logger } from "src/util";
+import { Logger } from "src/util/Logger";
 
 export class CSVView extends TextFileView {
   plugin: WorldBuildingPlugin;

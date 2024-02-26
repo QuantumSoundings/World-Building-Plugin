@@ -1,4 +1,5 @@
-import { Logger, Utils } from "src/util";
+import { Utils } from "src/util";
+import { Logger } from "src/util/Logger";
 import { SovereignEntity } from "src/world/sovereignEntity";
 
 export function sovereignEntityGeneratedStats(sovereignEntity: SovereignEntity, el: HTMLElement): void {

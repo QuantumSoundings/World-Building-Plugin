@@ -1,6 +1,6 @@
 import WorldBuildingPlugin from "src/main";
 import { SovereignEntityFM, convertToSovereignEntityFM } from "src/frontmatter/sovereignEntityFM";
-import { Logger } from "src/util";
+import { Logger } from "src/util/Logger";
 
 export class SovereignEntity {
   plugin: WorldBuildingPlugin;

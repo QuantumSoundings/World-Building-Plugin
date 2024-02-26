@@ -39,8 +39,8 @@ export class Unit {
 export class UserOverrideData {
   plugin: WorldBuildingPlugin;
   unitData: Unit[] = [];
-  populationData: PopulationDensity[] = [];
-  settlementData: SettlementType[] = [];
+  populationDensityData: PopulationDensity[] = [];
+  settlementTypeData: SettlementType[] = [];
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
@@ -84,10 +84,10 @@ export class UserOverrideData {
     }
 
     // We are ready to apply the new data. Clear the old and add the new.
-    this.populationData = [];
+    this.populationDensityData = [];
     for (const newDataEntry of newData) {
       const newDataClassInstance = plainToClass(PopulationDensity, newDataEntry);
-      this.populationData.push(newDataClassInstance);
+      this.populationDensityData.push(newDataClassInstance);
     }
   }
 
@@ -103,10 +103,10 @@ export class UserOverrideData {
     }
 
     // We are ready to apply the new data. Clear the old and add the new.
-    this.settlementData = [];
+    this.settlementTypeData = [];
     for (const newDataEntry of newData) {
       const newDataClassInstance = plainToClass(SettlementType, newDataEntry);
-      this.settlementData.push(newDataClassInstance);
+      this.settlementTypeData.push(newDataClassInstance);
     }
   }
 }

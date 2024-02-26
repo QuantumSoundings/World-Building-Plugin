@@ -2,7 +2,7 @@ import { TAbstractFile, TFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import Psd, { Layer, NodeChild } from "@webtoon/psd";
 import { CacheManager } from "./cacheManager";
-import { Logger } from "src/util";
+import { Logger } from "src/util/Logger";
 import { Result } from "src/errors/result";
 import { BaseError } from "src/errors/baseError";
 import { CSVUtils } from "src/util/csv";

@@ -1,4 +1,4 @@
-import { Logger } from "src/util";
+import { Logger } from "src/util/Logger";
 
 type Jsonable =
   | string

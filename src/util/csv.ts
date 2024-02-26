@@ -1,7 +1,7 @@
 import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 import { TFile, Vault } from "obsidian";
-import { Logger } from "src/util";
+import { Logger } from "src/util/Logger";
 
 export class CSVUtils {
   // Static methods for helping with CSV parsing.

@@ -11,7 +11,7 @@ export class PopulationAPI {
 
   getDescriptorForPopulation(populationDensity: number, areaUnit: string): Result<string> {
     const unitConversionAPI = this.plugin.getUnitConversionAPI();
-    for (const density of this.plugin.userOverrideData.populationData) {
+    for (const density of this.plugin.userOverrideData.populationDensityData) {
       let min = density.minPopulation;
       let max = density.maxPopulation;
       if (density.areaUnit !== areaUnit) {

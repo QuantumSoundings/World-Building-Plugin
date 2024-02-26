@@ -2,7 +2,7 @@ import { TAbstractFile } from "obsidian";
 import { BaseError } from "src/errors/baseError";
 import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
-import { Logger } from "src/util";
+import { Logger } from "src/util/Logger";
 
 class CacheEntry<T> {
   file: TAbstractFile;

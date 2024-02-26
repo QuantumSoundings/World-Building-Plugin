@@ -6,7 +6,7 @@ import { UnitConversionAPI } from "./api/unitConversionApi";
 import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
-import { Logger } from "./util";
+import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
 import { sovereignEntityGeneratedStats } from "./postProcessors/sovereignEntityMDPP";
 import { exportDefaultData } from "./defaultData";

@@ -5,7 +5,7 @@ import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
 import { MarkdownRenderChild, Setting, TFile, ToggleComponent } from "obsidian";
 import WorldBuildingPlugin from "src/main";
-import { Logger } from "src/util";
+import { Logger } from "src/util/Logger";
 
 class TableState {
   // Settings
