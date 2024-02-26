@@ -218,7 +218,7 @@ export class PSDManager extends CacheManager<CacheType> {
       return;
     }
 
-    const data = await CSVUtils.getCSVByPath(fullPath.replace(fileName, "_MapConfig.csv"), this.plugin.app.vault); // this.plugin.csvManager.getDataByFile(fullPath.replace(fileName, "_MapConfig.csv"));
+    const data = await CSVUtils.getCSVByPath(fullPath.replace(fileName, "_MapConfig.csv"), this.plugin.app.vault);
 
     const mapConfig = CSVUtils.csvArrayToStringArray(data);
     mapConfig.shift();

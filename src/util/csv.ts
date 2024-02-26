@@ -16,12 +16,12 @@ export class CSVUtils {
     return parse(content);
   }
 
-  static async saveCSVByPath(filePath: string, content: unknown[], vault: Vault) {
+  static async saveCSVByPath(filePath: string, content: unknown[], vault: Vault, options: any = null) {
     const file = vault.getAbstractFileByPath(filePath);
     if (file === null) {
-      vault.create(filePath, stringify(content));
+      vault.create(filePath, stringify(content, options));
     } else {
-      await vault.modify(file as TFile, stringify(content));
+      await vault.modify(file as TFile, stringify(content, options));
     }
   }
 

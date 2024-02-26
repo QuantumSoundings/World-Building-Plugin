@@ -1,10 +1,8 @@
 import "reflect-metadata";
 import { FileSystemAdapter, Notice, Plugin, TAbstractFile, TFolder } from "obsidian";
-import { CSVManager } from "./dataManagers/csvManager";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";
 import { UnitConversionAPI } from "./api/unitConversionApi";
-import { YAMLManager } from "./dataManagers/yamlManager";
 import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
@@ -25,8 +23,6 @@ export default class WorldBuildingPlugin extends Plugin {
   adapter: FileSystemAdapter;
   // Data Managers
   userOverrideData: UserOverrideData;
-  //csvManager: CSVManager;
-  yamlManager: YAMLManager;
   psdManager: PSDManager;
   frontMatterManager: FrontMatterManager;
   // APIs provided to other plugins
@@ -51,8 +47,8 @@ export default class WorldBuildingPlugin extends Plugin {
     // Initialize all the members of the plugin
     this.adapter = this.app.vault.adapter as FileSystemAdapter;
     this.userOverrideData = new UserOverrideData(this);
-    //this.csvManager = new CSVManager(this);
-    this.yamlManager = new YAMLManager(this);
+    await this.userOverrideData.reloadData();
+
     this.psdManager = new PSDManager(this);
     this.frontMatterManager = new FrontMatterManager(this);
     this.worldEngine = new WorldEngine(this);
@@ -61,11 +57,13 @@ export default class WorldBuildingPlugin extends Plugin {
     this.populationAPI = new PopulationAPI(this);
     this.unitConversionAPI = new UnitConversionAPI(this);
 
-    // Load our caches.
-    await this.indexVault();
+    await this.psdManager.load();
 
-    // Now we can do things that make use of the data.
-    this.refreshAPIs();
+    // The psd files require csv files for the map config,
+    // and the processing is intensive, so we will do it only if the user wants it.
+    if (this.settings.processMapsOnLoad) {
+      await this.psdManager.processPSDs(false);
+    }
 
     // Load the world engine
     this.worldEngine.initialize();
@@ -76,7 +74,7 @@ export default class WorldBuildingPlugin extends Plugin {
       checkCallback: (checking: boolean) => {
         // Checking is true when the command is being registered, and false when it is being called.
         if (!checking) {
-          this.writeDefaultDataToDataDirectory();
+          exportDefaultData(this, this.settings.exportPath);
           new Notice("Default data has been saved to the root directory!", 2000);
         }
         return true;
@@ -147,7 +145,6 @@ export default class WorldBuildingPlugin extends Plugin {
                   ["", "", "", "", ""],
                 ];
                 await CSVUtils.saveCSVByPath(file.path + "/" + newFileName, defaultContent, this.app.vault);
-                //this.csvManager.writeFile(file.path + "/" + newFileName, defaultContent);
                 new Notice("Created new CSV file! " + newFileName, 2000);
               });
           });
@@ -175,29 +172,6 @@ export default class WorldBuildingPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  async indexVault() {
-    // Do any loading operations that need awaits.
-    const promises = [];
-    //promises.push(this.csvManager.load());
-    promises.push(this.yamlManager.load());
-    promises.push(this.psdManager.load());
-
-    await Promise.allSettled(promises);
-
-    // The psd files require csv files for the map config,
-    // and the processing is intensive, so we will do it only if the user wants it.
-    if (this.settings.processMapsOnLoad) {
-      await this.psdManager.processPSDs(false);
-    }
-  }
-
-  async refreshAPIs() {
-    this.userOverrideData.reloadData();
-    //this.settlementAPI.reloadData(this.settings.settlementTypeDataOverridePath);
-    //this.populationAPI.reloadData(this.settings.populationDensityDataOverridePath);
-    //await this.unitConversionAPI.reloadData(this.settings.unitConversionDataOverridePath);
-  }
-
   getSettlementAPI(): SettlementAPI {
     return this.settlementAPI;
   }
@@ -210,26 +184,14 @@ export default class WorldBuildingPlugin extends Plugin {
     return this.unitConversionAPI;
   }
 
-  writeDefaultDataToDataDirectory() {
-    exportDefaultData(this, this.settings.exportPath);
-  }
-
   private registerEventHandlers() {
     const creationEvent = (file: TAbstractFile) => {
-      /*if (this.csvManager.isFileManageable(file)) {
-        this.csvManager.onFileCreation(file);
-      } else*/ if (this.yamlManager.isFileManageable(file)) {
-        this.yamlManager.onFileCreation(file);
-      } else if (this.psdManager.isFileManageable(file)) {
+      if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileCreation(file);
       }
     };
     const deletionEvent = (file: TAbstractFile) => {
-      /*if (this.csvManager.isFileManageable(file)) {
-        this.csvManager.onFileDeletion(file);
-      } else*/ if (this.yamlManager.isFileManageable(file)) {
-        this.yamlManager.onFileDeletion(file);
-      } else if (this.psdManager.isFileManageable(file)) {
+      if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileDeletion(file);
       }
       if (file.path.endsWith(".md")) {
@@ -237,11 +199,7 @@ export default class WorldBuildingPlugin extends Plugin {
       }
     };
     const renameEvent = (file: TAbstractFile, oldPath: string) => {
-      /*if (this.csvManager.isFileManageable(file)) {
-        this.csvManager.onFileRename(file, oldPath);
-      } else*/ if (this.yamlManager.isFileManageable(file)) {
-        this.yamlManager.onFileRename(file, oldPath);
-      } else if (this.psdManager.isFileManageable(file)) {
+      if (this.psdManager.isFileManageable(file)) {
         this.psdManager.onFileRename(file, oldPath);
       }
       if (file.path.endsWith(".md")) {
@@ -249,9 +207,7 @@ export default class WorldBuildingPlugin extends Plugin {
       }
     };
     const modifyEvent = async (file: TAbstractFile) => {
-      /*if (this.csvManager.isFileManageable(file)) {
-        await this.csvManager.onFileModify(file);
-      } else*/ if (this.psdManager.isFileManageable(file)) {
+      if (this.psdManager.isFileManageable(file)) {
         await this.psdManager.onFileModify(file);
       }
       // Refresh Internal Override Data if it has changed.

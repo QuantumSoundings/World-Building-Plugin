@@ -49,7 +49,7 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.settlementTypeDataOverridePath = value;
             await this.plugin.saveSettings();
-            await this.plugin.refreshAPIs();
+            await this.plugin.userOverrideData.reloadData();
           })
       );
 
@@ -65,7 +65,7 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.populationDensityDataOverridePath = value;
             await this.plugin.saveSettings();
-            await this.plugin.refreshAPIs();
+            await this.plugin.userOverrideData.reloadData();
           })
       );
 
@@ -81,7 +81,7 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.unitConversionDataOverridePath = value;
             await this.plugin.saveSettings();
-            await this.plugin.refreshAPIs();
+            await this.plugin.userOverrideData.reloadData();
           })
       );
 

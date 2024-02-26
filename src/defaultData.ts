@@ -1,15 +1,26 @@
-import { PopulationDensity } from "./api/populationApi";
-import { SettlementType } from "./api/settlementApi";
-import { Unit } from "./api/unitConversionApi";
+import { PopulationDensity, SettlementType, Unit } from "./dataManagers/userOverrideData";
 import WorldBuildingPlugin from "./main";
+import { CSVUtils } from "./util/csv";
 
 export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: string = "") {
-  plugin.csvManager.writeFile(exportPath + "Default Population Density Data.csv", defaultPopulationDensityData, {
-    header: true,
-  });
-  plugin.csvManager.writeFile(exportPath + "Default Settlement Types Data.csv", defaultSettlementData, {
-    header: true,
-  });
+  CSVUtils.saveCSVByPath(
+    exportPath + "Default Population Density Data.csv",
+    defaultPopulationDensityData as unknown[],
+    plugin.app.vault,
+    {
+      header: true,
+    }
+  );
+
+  CSVUtils.saveCSVByPath(
+    exportPath + "Default Settlement Types Data.csv",
+    defaultSettlementData as unknown[],
+    plugin.app.vault,
+    {
+      header: true,
+    }
+  );
+
   plugin.frontMatterManager.writeFile(exportPath + "Default Unit Conversion Data.md", {
     units: defaultUnitConversionData,
   });
