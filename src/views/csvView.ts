@@ -19,7 +19,10 @@ export class CSVView extends TextFileView {
   override clear(): void {}
 
   override getViewData(): string {
-    return "";
+    if (this.tableComponent === undefined) {
+      return "";
+    }
+    return this.tableComponent.getViewData();
   }
   override setViewData(data: string, clear: boolean): void {
     // We are loading a new file, save the old table if it exists and create a new one.
@@ -33,14 +36,7 @@ export class CSVView extends TextFileView {
         this.tableComponent = new TableComponent(this.rootNode, this.plugin);
       }
 
-      this.tableComponent.loadDataFromSource(this.file.path);
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  override async save(clear?: boolean): Promise<void> {
-    if (this.tableComponent !== undefined) {
-      this.tableComponent.requestSave();
+      this.tableComponent.setViewData(data);
     }
   }
 

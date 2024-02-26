@@ -1,14 +1,15 @@
 /* eslint-disable no-debugger */
+import { parse } from "csv-parse/sync";
+import { stringify } from "csv-stringify/sync";
 import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
-import { ButtonComponent, MarkdownRenderChild, Setting, ToggleComponent } from "obsidian";
+import { MarkdownRenderChild, Setting, TFile, ToggleComponent } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util";
 
 class TableState {
   // Settings
   headersActive: boolean;
-  autoSave: boolean;
   // Operation state
   currentlyLoading: boolean;
 }
@@ -17,9 +18,7 @@ export class TableComponent extends MarkdownRenderChild {
   plugin: WorldBuildingPlugin;
 
   // Table Settings Objects
-  autoSaveToggle: ToggleComponent;
   headerToggle: ToggleComponent;
-  saveButton: ButtonComponent;
 
   // HTML Elements
   fileOptionsElement: HTMLElement;
@@ -40,21 +39,6 @@ export class TableComponent extends MarkdownRenderChild {
   fileSourcePath: string;
   unloaded: boolean;
 
-  // Callback functions to fix 'this' weirdness
-  onHandsonTableChange = (changes: Handsontable.CellChange[], source: Handsontable.ChangeSource): void => {
-    if (source === "loadData" || this.tableState.currentlyLoading) {
-      return; //don't save this change
-    }
-    if (this.tableState.autoSave) {
-      this.requestAutoSave();
-    }
-  };
-  requestAutoSave = (): void => {
-    if (this.tableState.autoSave) {
-      this.requestSave();
-    }
-  };
-
   // constructor
   constructor(parentElement: HTMLElement, plugin: WorldBuildingPlugin) {
     //Calling the parent constructor
@@ -62,9 +46,7 @@ export class TableComponent extends MarkdownRenderChild {
     this.plugin = plugin;
     this.tableState = new TableState();
     this.tableState.headersActive = true;
-    this.tableState.autoSave = false;
     this.tableState.currentlyLoading = false;
-    //this.fileSourcePath = fileSourcePath;
     this.unloaded = true;
 
     // Setup html elements
@@ -83,7 +65,6 @@ export class TableComponent extends MarkdownRenderChild {
 
     this.configureHandsonTable(handsonTableContainer);
     this.configureSettingComponents();
-    //this.loadDataFromSource(this.fileSourcePath);
   }
 
   private configureHandsonTable(parentElement: HTMLElement) {
@@ -93,14 +74,14 @@ export class TableComponent extends MarkdownRenderChild {
       data: this.rowData,
       colHeaders: this.headerData,
       // Other configuration options
-      afterChange: this.onHandsonTableChange,
-      afterColumnSort: this.requestAutoSave,
-      afterColumnMove: this.requestAutoSave,
-      afterRowMove: this.requestAutoSave,
-      afterCreateCol: this.requestAutoSave,
-      afterCreateRow: this.requestAutoSave,
-      afterRemoveCol: this.requestAutoSave,
-      afterRemoveRow: this.requestAutoSave,
+      //afterChange: this.onHandsonTableChange,
+      //afterColumnSort: this.requestAutoSave,
+      //afterColumnMove: this.requestAutoSave,
+      //afterRowMove: this.requestAutoSave,
+      //afterCreateCol: this.requestAutoSave,
+      //afterCreateRow: this.requestAutoSave,
+      //afterRemoveCol: this.requestAutoSave,
+      //afterRemoveRow: this.requestAutoSave,
       height: "auto",
       width: "auto",
       rowHeaders: true,
@@ -155,68 +136,52 @@ export class TableComponent extends MarkdownRenderChild {
         this.tableState.headersActive = toggleState;
       });
     });
+  }
 
-    //Creating a toggle to allow the toggle of the auto Save
-    new Setting(this.fileOptionsElement).setName("Auto Save").addToggle((toggle: ToggleComponent) => {
-      this.autoSaveToggle = toggle;
-      this.autoSaveToggle.setValue(this.tableState.autoSave);
-      this.autoSaveToggle.onChange((value) => {
-        this.tableState.autoSave = value;
-      });
-    });
-
-    //Creating a Save button
-    new Setting(this.fileOptionsElement).setName("Save").addButton((button: ButtonComponent) => {
-      this.saveButton = button;
-      this.saveButton.onClick(() => {
-        this.requestSave();
-      });
-    });
+  // These three functions control data load/save for embedded views.
+  public setSourcePath(filePath: string) {
+    this.fileSourcePath = filePath;
   }
 
   // Public functions to control the state of the table.
   override onload(): void {
     super.onload();
+    const file = this.plugin.app.vault.getAbstractFileByPath(this.fileSourcePath);
+    if (file === null) {
+      Logger.error(this, "File not found.");
+      return;
+    }
+    this.plugin.app.vault.read(file as TFile).then((data) => {
+      this.setViewData(data);
+    });
   }
 
   // Call this when you are about to destroy the component.
   override onunload(): void {
-    this.requestSave();
-    super.unload();
+    const file = this.plugin.app.vault.getAbstractFileByPath(this.fileSourcePath);
+    if (file === null) {
+      return super.onunload();
+    }
+    this.plugin.app.vault
+      .process(file as TFile, () => {
+        return this.getViewData();
+      })
+      .then(() => {
+        super.onunload();
+      });
   }
 
-  public requestSave() {
-    if (this.unloaded) {
-      return;
-    }
+  public getViewData(): string {
     const dataCopy = JSON.parse(JSON.stringify(this.rowData));
     if (this.tableState.headersActive) {
       dataCopy.unshift(this.headerData);
     }
-    const setResult = this.plugin.csvManager.setDataByFile(this.fileSourcePath, dataCopy);
-    if (setResult.success === false) {
-      return;
-    }
-    this.plugin.csvManager.saveDataByFile(this.fileSourcePath);
-    Logger.debug(this, "Saved CSV file " + this.fileSourcePath + ".");
+
+    return stringify(dataCopy);
   }
 
-  public loadDataFromSource(fileSourcePath: string) {
-    this.fileSourcePath = fileSourcePath;
-    Logger.debug(this, "Loading CSV file " + fileSourcePath + ".");
-    const fileDataResult = this.plugin.csvManager.getDataByFile(fileSourcePath);
-    if (fileDataResult.success === false) {
-      Logger.error(this, "File data was undefined.");
-      this.containerEl.createEl("h2", { text: "Failed to find CSV file to load." });
-      this.loadingBarElement.hide();
-      this.fileOptionsElement.hide();
-      this.tableContainerElement.hide();
-      this.unloaded = true;
-      return;
-    }
-
-    // Toggle says we have headers, split them out from the row data.
-    const fileData = fileDataResult.result;
+  public setViewData(data: string): void {
+    const fileData = parse(data);
     if (this.headerToggle.getValue()) {
       const parsedHeader = fileData.shift();
       if (parsedHeader !== undefined) {

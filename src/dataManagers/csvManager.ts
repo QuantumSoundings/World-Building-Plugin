@@ -1,4 +1,4 @@
-import { TAbstractFile } from "obsidian";
+import { TAbstractFile, TFile } from "obsidian";
 import WorldBuildingPlugin from "../main";
 import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
@@ -19,7 +19,13 @@ export class CSVManager extends CacheManager<CacheType> {
 
   override async readFile(fullPath: string): Promise<Result<CacheType>> {
     if (fullPath.endsWith(".csv")) {
-      const content = await this.plugin.adapter.read(fullPath);
+      const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+      if (file === null) {
+        Logger.error(this, "File not found.");
+        return { success: false, error: new BaseError("File not found.") };
+      }
+      const content = await this.plugin.app.vault.read(file as TFile);
+      //const content = await this.plugin.adapter.read(fullPath);
       const parsed = parse(content);
       const converted = CSVUtils.csvArrayToStringArray(parsed);
       return { success: true, result: converted };
@@ -33,7 +39,13 @@ export class CSVManager extends CacheManager<CacheType> {
     if (fullPath.endsWith(".csv")) {
       if (content instanceof Array) {
         const stringified = stringify(content, options);
-        await this.plugin.adapter.write(fullPath, stringified);
+        const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+        if (file === null) {
+          this.plugin.app.vault.create(fullPath, stringified);
+        } else {
+          await this.plugin.app.vault.modify(file as TFile, stringified);
+        }
+        //await this.plugin.adapter.write(fullPath, stringified);
         return { success: true, result: undefined };
       } else {
         Logger.error(this, "Invalid content type.");
@@ -49,5 +61,29 @@ export class CSVManager extends CacheManager<CacheType> {
       return true;
     }
     return false;
+  }
+
+  // Tests to see if I can remove the csv manager
+  public async getCsvData(fullPath: string): Promise<string[][]> {
+    const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+    if (file === null) {
+      Logger.error(this, "File not found.");
+      return [];
+    }
+    const content = await this.plugin.app.vault.cachedRead(file as TFile);
+
+    const parsed = parse(content);
+    const converted = CSVUtils.csvArrayToStringArray(parsed);
+    return converted;
+  }
+
+  public async saveCsvData(fullPath: string, data: unknown[]) {
+    const stringified = stringify(data);
+    const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+    if (file === null) {
+      await this.plugin.app.vault.create(fullPath, stringified);
+    } else {
+      await this.plugin.app.vault.modify(file as TFile, stringified);
+    }
   }
 }

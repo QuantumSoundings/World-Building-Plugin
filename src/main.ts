@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { FileSystemAdapter, Notice, Plugin, TAbstractFile } from "obsidian";
+import { FileSystemAdapter, Notice, Plugin, TAbstractFile, TFolder } from "obsidian";
 import { CSVManager } from "./dataManagers/csvManager";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";
@@ -118,6 +118,37 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerExtensions(["csv"], "csv");
     this.registerCodeBlockProcessor();
     this.registerEventHandlers();
+
+    this.registerEvent(
+      this.app.workspace.on("file-menu", (menu, file) => {
+        if (file instanceof TFolder) {
+          menu.addItem((item) => {
+            item
+              .setTitle("New CSV File")
+              .setIcon("file-plus")
+              .onClick(async () => {
+                const title = "Untitled";
+                const extension = ".csv";
+                let count = 1;
+                let newFileName = title + extension;
+                while (this.app.vault.getAbstractFileByPath(file.path + "/" + newFileName) !== null) {
+                  newFileName = title + ` (${count})` + extension;
+                  count++;
+                }
+                const defaultContent = [
+                  ["", "", "", "", ""],
+                  ["", "", "", "", ""],
+                  ["", "", "", "", ""],
+                  ["", "", "", "", ""],
+                  ["", "", "", "", ""],
+                ];
+                this.csvManager.writeFile(file.path + "/" + newFileName, defaultContent);
+                new Notice("Created new CSV file! " + newFileName, 2000);
+              });
+          });
+        }
+      })
+    );
 
     // Finished!
     Logger.debug(this, "WorldBuilding plugin loaded.");
@@ -243,7 +274,7 @@ export default class WorldBuildingPlugin extends Plugin {
       // Source should be the full path + file name + extension.
       source = source.trim();
       const tableComponent = new TableComponent(el, this);
-      tableComponent.loadDataFromSource(source);
+      tableComponent.setSourcePath(source);
       context.addChild(tableComponent);
     });
 
