@@ -15,7 +15,7 @@ const context = await esbuild.context({
     js: banner,
   },
   entryPoints: ["src/main.ts"],
-  loader: { ".yaml": "base64" },
+  loader: { ".yaml": "base64", ".csv": "base64" },
   bundle: true,
   external: [
     "obsidian",

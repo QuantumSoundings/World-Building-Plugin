@@ -1,0 +1,7 @@
+type,description,distributionType,minPopulation,maxPopulation
+Isolated,"Comprised of outlaws, traveling merchants, adventurers, isolated families, etc.",gaussian,1,20
+Village,A small self sufficient community of people.,gaussian,20,1000
+Town,A mid sized community of people.,gaussian,1000,5000
+City,A large community of people.,gaussian,5000,15000
+Big City,A very large community of people.,gaussian,15000,25000
+Metropolis,A massive community of people.,gaussian,25000,250000

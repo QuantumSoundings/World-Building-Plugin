@@ -1,0 +1,122 @@
+Occupation,Description,Category,Support Value
+Animal Trainer,Someone specialized in the training of domesticated and tamed animals.,Animal Husbandry,
+Stable Hand,Someone that tends to animals. General mounted varieties.,Animal Husbandry,
+Bookbinder,An artisan that creates books.,Artisan,3000
+Chef (Fine),A chef specialized in high quality cuisine for wealthy clients.,Artisan,1000
+Chef (Pastry),A chef specialized in sweet baked dishes.,Artisan,500
+Copyist,An artisan that copies books. Requires very fine penmanship.,Artisan,2000
+Dress Maker,An artisan specialized in the production of female clothing.,Artisan,
+Gardener,Someone specialized in the care and cultivation of gardens.,Artisan,
+Glazier,An artisan that creates and works with glass.,Artisan,
+Illuminators,"Someone specialized in lighting, candles, oil lamps, etc.",Artisan,3900
+Jeweler,A artisan specialized in creating and selling jewelry.,Artisan,400
+Map Maker,An artisan specialized in creating maps.,Artisan,
+Painter,An artisan that creates art with paint.,Artisan,1500
+Purse Maker,An artisan specialized in the production of purses and handbags.,Artisan,1100
+Sculptor,An artisan the sculpts using stone as a medium.,Artisan,2000
+Smith (Gold/Silver),An artisan specialized in working with precious metals.,Artisan,
+Sweet Maker,An artisan specialized in creating sweet foods.,Artisan,
+Toy Maker,An artisan specialized in creating toys for children.,Artisan,
+Wood Carver,An artisan that sculpts using wood as a medium.,Artisan,2400
+Archer,A combatant specialized in the Bow. Hunter when not at war.,Combat,
+Bodyguard,A combatant specialized in protecting people.,Combat,
+Bounty Hunter,A combatant specialized in tracking down criminals.,Combat,
+Gladiator,Someone who entertains with armed combat.,Combat,
+Soldier,A member of a military.,Combat,
+Weapons Instructor,An educator specializing in combat and weapon usage.,Combat,
+Apothecary,A craftsman that produces medicines.,Craftsman,
+Armorer,Someone specialized in the crafting of armor.,Craftsman,
+Blacksmith,"A craftsman that works with metal. Iron, copper, tin, etc.",Craftsman,1500
+Bleacher,A craftsman that works with bleach.,Craftsman,2100
+Brewer,A craftsman specialized in brewing alcohol.,Craftsman,
+Buckle Maker,A craftsman specialized in creating buckles of all kinds.,Craftsman,1400
+Butcher,Someone specialized in the disassembly of animals.,Craftsman,1100
+Carpenter,A craftsman specialized in woodworking.,Craftsman,550
+Cobbler/Shoemaker,A craftsman specialized in the production and repair of footwear.,Craftsman,150
+Cooper,A craftsman specialized in the production of barrels and buckets.,Craftsman,700
+Dyer,A craftsman that works with dyes.,Craftsman,
+Farrier,A craftsman specialized in the production of shoes for hoofed animals.,Craftsman,
+Fletcher,Someone specialized in the production of arrows.,Craftsman,
+Furrier,A craftsman that works with furs.,Craftsman,250
+Glove Maker,A craftsman specialized in making gloves.,Craftsman,2400
+Harness Maker,A craftsman specialized in the production of harnesses for animals.,Craftsman,2000
+Hatter,A craftsman specialized in the production of hats.,Craftsman,950
+Locksmith,A craftsman specialized in making and repairing locks.,Craftsman,1900
+Paper Maker,A craftsman that creates paper.,Craftsman,
+Plasterer,A craftsman that works with plaster,Craftsman,1400
+Potter,A craftsman that creates pottery.,Craftsman,
+Rope Maker,A craftsman specialized in the production of ropes.,Craftsman,1900
+Rug Maker,A craftsman specialized in the production of rugs.,Craftsman,2000
+Saddler,A craftsman specialized in the production of saddles for mounted animals.,Craftsman,1000
+Scabbard Maker,A craftsman specialized in the production of scabbards.,Craftsman,850
+Shipwright,A craftsman specialized in the production and repair of ships.,Craftsman,
+Stonemason,A craftsman specialized in working with stone.,Craftsman,500
+Tailor,A craftsman specialized in the create and repair of clothing.,Craftsman,250
+Tanner,A craftsman specialized in the production of leather.,Craftsman,2000
+Thatcher/Roofer,Makes thatched roofers,Craftsman,1800
+Weaver,"A craftsman specialized in the production of fabrics, and other woven goods.",Craftsman,600
+Wheelwright,A craftsman specialized in the production of wheels.,Craftsman,
+Assassin,"A combatant specialized in stealth, infiltration, and assassination.",Criminal,
+Pirate,A sailor that steals from other vessels at sea.,Criminal,
+Prisoner,A criminal with restricted freedom in the custody of the state.,Criminal,
+Slave,Someone with no freedom.,Criminal,
+Smuggler,A criminal that imports illegal goods or people.,Criminal,
+Spy,Someone posing as another to gain information from an organization.,Criminal,
+Thief,Someone that makes a living stealing from others.,Criminal,
+Bard/Minstrel,An entertainer that sings songs and tells tales.,Entertainer,
+Chariot Racer,A combatant and entertainer specialized in chariot races.,Entertainer,
+Jester,An entertainer who performs comical acts and jokes.,Entertainer,
+Musician,An individual who plays a musical instrument or sings.,Entertainer,
+Cheese Maker,Someone specialized in making cheese.,Food Production,
+Tax Collector,A government official that collects taxes.,Governmental,
+Advisor,"Provides insight. Eg. Royal, Military, Economic, etc.",Governmental,
+Dentist,Someone specialized in dental care. Very crude by modern standards.,Healthcare,
+Healer,A healthcare professional specialized in providing medical treatment.,Healthcare,1700
+Midwife,A healthcare professional specialized in assisting women during childbirth.,Healthcare,
+Nurse,A healthcare professional that provides general care to patients.,Healthcare,
+Surgeon,A healthcare professional specializing in surgery.,Healthcare,
+Wet Nurse,A servant that provides milk to newborn children.,Healthcare,
+Sailor,A journeyman specialized in the operations of a ship.,Journeyman,
+Detective,An investigator of crimes.,Law Enforcement,
+Guard (Local),A local law enforcement officer responsible for maintaining order and safety.,Law Enforcement,
+Alcohol Seller,A merchant specialized in alcohols.,Merchant,900
+Book Seller,A merchant specialized in selling books.,Merchant,6300
+Chandler,"A merchant specialized in household items such as soaps, oil, or paint",Merchant,700
+Cutlers,Someone who makes or sells cutlery,Merchant,2300
+Florist,A merchant specialized in the sale of flowers.,Merchant,
+Hay Seller,A merchant specialized in selling hay.,Merchant,2300
+Mercer,A merchant specialized in textiles.,Merchant,700
+Slave Trader,A merchant specialized in the sale of slaves.,Merchant,
+Spice Merchant,A merchant specialized in spices and seasonings,Merchant,1400
+Wood Seller,A merchant specialized in selling unprocessed timber.,Merchant,2400
+Adventurer,A member of the adventurers guild.,Miscellaneous,
+Inventor,"Someone who creates and develops new ideas, inventions, or technologies.",Miscellaneous,
+Mage,A practitioner of magic and spellcasting.,Miscellaneous,
+Diplomat,A foreign citizen with the authority to represent their home country in political matters.,Politics,
+Farmer,Someone who grows crops.,Producer,
+Logger,Someone who cuts down trees and prepares them for transport.,Producer,
+Miner,Someone who extracts valuable minerals or other geological materials from the earth.,Producer,
+Trapper,Traps animals,Producer,
+Baker,Someone specialized in the production of breads.,Production,800
+Fisherman,Someone specialized in the catching of aquatic creatures.,Production,1200
+Clergy,A member of a religious organization.,Religious,
+Professor,An educator specialized in higher learning.,Scholar,
+Tutor,An educator specializing in child.,Scholar,
+Theologian,One who studies religion.,Scholar,
+Scrivener,A scribe.,Scholar,
+Librarian,One who manages a library.,Scholar,
+Mathematician,One who studies mathematics.,Scholar,
+Dean,A senior administrator of a learning institution.,Scholar,
+Alchemist,One who studies chemicals and potion making with mana.,Scholar,
+Manalogist,One who studies mana and its applications.,Scholar,
+Crystaloger,One who studies the great crystal,Scholar,
+Scholar,A generic name for one who learns as a profession.,Scholar,
+Barber,Someone specialized in cutting hair.,Service,350
+Barkeeper,Generally the owner of the bar or inn,Service,400
+Carriage Driver,Someone specialized in driving and managing carriages.,Service,
+Innkeeper,The owner or manager of an inn.,Service,2000
+Maid,A female domestic servant specialized in housekeeping.,Service,
+Master of Ceremonies,An individual responsible for organizing and conducting formal events.,Service,
+Prostitute,Someone that provides sex for a price.,Service,
+Servant,Someone that provides generalized service to an employer. Housekeeping.,Service,250
+Undertaker/Mortician,Someone specialized in the handling and ceremonies of deceased people.,Service,

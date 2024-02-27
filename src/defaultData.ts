@@ -1,11 +1,182 @@
-import { PopulationDensity, SettlementType, Unit } from "./dataManagers/userOverrideData";
 import WorldBuildingPlugin from "./main";
+
+// CSV Classes that can be loaded easily
+export class PopulationDensity {
+  descriptor: string;
+  minPopulation: number;
+  maxPopulation: number;
+  areaUnit: string;
+
+  constructor(rowData: string[]) {
+    this.descriptor = rowData[0];
+    this.minPopulation = parseFloat(rowData[1]);
+    this.maxPopulation = parseFloat(rowData[2]);
+    this.areaUnit = rowData[3];
+  }
+}
+
+export class SettlementType {
+  type: string;
+  description: string;
+  distributionType: string;
+  minPopulation: number;
+  maxPopulation: number;
+
+  constructor(rowData: string[]) {
+    this.type = rowData[0];
+    this.description = rowData[1];
+    this.distributionType = rowData[2];
+    this.minPopulation = parseFloat(rowData[3]);
+    this.maxPopulation = parseFloat(rowData[4]);
+  }
+}
+
+export class Name {
+  name: string;
+  gender: string;
+  origin: string;
+  meanings: string[];
+  tags: string[];
+
+  constructor(dataRow: string[]) {
+    this.name = dataRow[1];
+    this.gender = dataRow[2];
+    this.origin = dataRow[3];
+    this.meanings = dataRow[4].split("|");
+    this.tags = dataRow[5].split("|");
+  }
+}
+
+export class Profession {
+  name: string;
+  description: string;
+  category: string;
+  supportValue: number;
+
+  constructor(dataRow: string[]) {
+    this.name = dataRow[0];
+    this.description = dataRow[1];
+    this.category = dataRow[2];
+    this.supportValue = parseFloat(dataRow[3]);
+  }
+}
+
+export class TravelMethod {
+  mode: string;
+  subMode: string;
+  terrainDifficulty: string;
+  encumbrance: string;
+  maxLoadLb: number;
+  maxLoadKg: number;
+  maxDistanceMi: number;
+  maxDistanceKm: number;
+
+  constructor(dataRow: string[]) {
+    this.mode = dataRow[0];
+    this.subMode = dataRow[1];
+    this.terrainDifficulty = dataRow[2];
+    this.encumbrance = dataRow[3];
+    this.maxLoadLb = parseFloat(dataRow[4]);
+    this.maxLoadKg = parseFloat(dataRow[5]);
+    this.maxDistanceMi = parseFloat(dataRow[6]);
+    this.maxDistanceKm = parseFloat(dataRow[7]);
+  }
+}
+
+export class ConversionFactor {
+  toUnit: string;
+  factor: number;
+
+  constructor(data: any) {
+    this.toUnit = data.toUnit;
+    this.factor = data.factor;
+  }
+}
+
+export class Unit {
+  name: string;
+  symbol: string;
+  conversionFactors: ConversionFactor[];
+
+  constructor(data: any) {
+    this.name = data.name;
+    this.symbol = data.symbol;
+    this.conversionFactors = data.conversionFactors.map((cf: any) => new ConversionFactor(cf));
+  }
+}
+
 import { CSVUtils } from "./util/csv";
+import firstNameDataBase64 from "../resources/Data/First Names.csv";
+import lastNameDataBase64 from "../resources/Data/Last Names.csv";
+import populationDensityDataBase64 from "../resources/Data/Population Densities.csv";
+import professionDataBase64 from "../resources/Data/Professions.csv";
+import settlementTypeDataBase64 from "../resources/Data/Settlement Types.csv";
+import travelMethodDataBase64 from "../resources/Data/Travel Methods.csv";
+
+// CSV Data Files
+export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.parseCSVString(atob(firstNameDataBase64)).map(
+  (row) => new Name(row)
+);
+
+export const defaultLastNameData: Readonly<Name[]> = CSVUtils.parseCSVString(atob(lastNameDataBase64)).map(
+  (row) => new Name(row)
+);
+
+export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = CSVUtils.parseCSVString(
+  atob(populationDensityDataBase64)
+).map((row) => new PopulationDensity(row));
+
+export const defaultProfessionData: Readonly<Profession[]> = CSVUtils.parseCSVString(atob(professionDataBase64)).map(
+  (row) => new Profession(row)
+);
+
+export const defaultSettlementData: Readonly<SettlementType[]> = CSVUtils.parseCSVString(
+  atob(settlementTypeDataBase64)
+).map((row) => new SettlementType(row));
+
+export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.parseCSVString(atob(travelMethodDataBase64)).map(
+  (row) => new TravelMethod(row)
+);
+
+import unitConversionDataBase64 from "../resources/Data/Unit Conversions.yaml";
+import { parse } from "yaml";
+
+// YAML Data Files
+export const defaultUnitConversionData: Readonly<Unit[]> = parse(atob(unitConversionDataBase64)).units.map(
+  (data: any) => new Unit(data)
+);
 
 export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: string = "") {
   CSVUtils.saveCSVByPath(
+    exportPath + "Default First Names Data.csv",
+    defaultFirstNameData as unknown[],
+    plugin.app.vault,
+    {
+      header: true,
+    }
+  );
+
+  CSVUtils.saveCSVByPath(
+    exportPath + "Default Last Names Data.csv",
+    defaultLastNameData as unknown[],
+    plugin.app.vault,
+    {
+      header: true,
+    }
+  );
+
+  CSVUtils.saveCSVByPath(
     exportPath + "Default Population Density Data.csv",
     defaultPopulationDensityData as unknown[],
+    plugin.app.vault,
+    {
+      header: true,
+    }
+  );
+
+  CSVUtils.saveCSVByPath(
+    exportPath + "Default Professions Data.csv",
+    defaultProfessionData as unknown[],
     plugin.app.vault,
     {
       header: true,
@@ -21,294 +192,16 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
     }
   );
 
+  CSVUtils.saveCSVByPath(
+    exportPath + "Default Travel Methods Data.csv",
+    defaultTravelMethods as unknown[],
+    plugin.app.vault,
+    {
+      header: true,
+    }
+  );
+
   plugin.frontMatterManager.writeFile(exportPath + "Default Unit Conversion Data.md", {
     units: defaultUnitConversionData,
   });
 }
-
-export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = [
-  { descriptor: "Uninhabited", minPopulation: 0, maxPopulation: 10, areaUnit: "mile^2" },
-  { descriptor: "Inhospitable", minPopulation: 10, maxPopulation: 20, areaUnit: "mile^2" },
-  { descriptor: "Arid", minPopulation: 20, maxPopulation: 40, areaUnit: "mile^2" },
-  { descriptor: "Adequate", minPopulation: 40, maxPopulation: 60, areaUnit: "mile^2" },
-  { descriptor: "Ample", minPopulation: 60, maxPopulation: 80, areaUnit: "mile^2" },
-  { descriptor: "Abundant", minPopulation: 80, maxPopulation: 100, areaUnit: "mile^2" },
-  { descriptor: "Fertile", minPopulation: 100, maxPopulation: 120, areaUnit: "mile^2" },
-  { descriptor: "Idyllic", minPopulation: 120, maxPopulation: 99999, areaUnit: "mile^2" },
-];
-
-export const defaultSettlementData: Readonly<SettlementType[]> = [
-  {
-    type: "Isolated",
-    description: "Comprised of outlaws, traveling merchants, adventurers, isolated families, etc.",
-    distributionType: "gaussian",
-    minPopulation: 1,
-    maxPopulation: 20,
-  },
-  {
-    type: "Village",
-    description: "A small self sufficient community of people.",
-    distributionType: "gaussian",
-    minPopulation: 20,
-    maxPopulation: 1000,
-  },
-  {
-    type: "Town",
-    description: "A mid sized community of people.",
-    distributionType: "gaussian",
-    minPopulation: 1000,
-    maxPopulation: 5000,
-  },
-  {
-    type: "City",
-    description: "A large community of people.",
-    distributionType: "gaussian",
-    minPopulation: 5000,
-    maxPopulation: 15000,
-  },
-  {
-    type: "Big City",
-    description: "A very large community of people.",
-    distributionType: "gaussian",
-    minPopulation: 15000,
-    maxPopulation: 25000,
-  },
-  {
-    type: "Metropolis",
-    description: "A massive community of people.",
-    distributionType: "gaussian",
-    minPopulation: 25000,
-    maxPopulation: 250000,
-  },
-];
-
-export const defaultUnitConversionData: Readonly<Unit[]> = [
-  {
-    name: "feet",
-    symbol: "ft",
-    conversionFactors: [
-      {
-        toUnit: "mile",
-        factor: 0.00018939393939394,
-      },
-      {
-        toUnit: "meter",
-        factor: 0.3048,
-      },
-      {
-        toUnit: "kilometer",
-        factor: 0.0003048,
-      },
-    ],
-  },
-  {
-    name: "mile",
-    symbol: "mi",
-    conversionFactors: [
-      {
-        toUnit: "feet",
-        factor: 5280,
-      },
-      {
-        toUnit: "meter",
-        factor: 1609.344,
-      },
-      {
-        toUnit: "kilometer",
-        factor: 1.609344,
-      },
-    ],
-  },
-  {
-    name: "meter",
-    symbol: "m",
-    conversionFactors: [
-      {
-        toUnit: "feet",
-        factor: 3.2808398950131,
-      },
-      {
-        toUnit: "mile",
-        factor: 62137119223733e-17,
-      },
-      {
-        toUnit: "kilometer",
-        factor: 1e-3,
-      },
-    ],
-  },
-  {
-    name: "kilometer",
-    symbol: "km",
-    conversionFactors: [
-      {
-        toUnit: "feet",
-        factor: 3280.8398950131,
-      },
-      {
-        toUnit: "mile",
-        factor: 0.62137119223733,
-      },
-      {
-        toUnit: "meter",
-        factor: 1e3,
-      },
-    ],
-  },
-  {
-    name: "feet^2",
-    symbol: "ft^2",
-    conversionFactors: [
-      {
-        toUnit: "mile^2",
-        factor: 35870064279654e-21,
-      },
-      {
-        toUnit: "meter^2",
-        factor: 0.09290304,
-      },
-      {
-        toUnit: "kilometer^2",
-        factor: 9290304e-14,
-      },
-      {
-        toUnit: "acre",
-        factor: 22956841138659e-18,
-      },
-      {
-        toUnit: "hectare",
-        factor: 9290304e-12,
-      },
-    ],
-  },
-  {
-    name: "mile^2",
-    symbol: "mi",
-    conversionFactors: [
-      {
-        toUnit: "feet^2",
-        factor: 27878399999612e-6,
-      },
-      {
-        toUnit: "meter^2",
-        factor: 25899881103e-4,
-      },
-      {
-        toUnit: "kilometer^2",
-        factor: 2.5899881103,
-      },
-      {
-        toUnit: "acre",
-        factor: 639.9999999911,
-      },
-      {
-        toUnit: "hectare",
-        factor: 258.99881103,
-      },
-    ],
-  },
-  {
-    name: "meter^2",
-    symbol: "m^2",
-    conversionFactors: [
-      {
-        toUnit: "feet^2",
-        factor: 10.76391041671,
-      },
-      {
-        toUnit: "mile^2",
-        factor: 38610215854781e-20,
-      },
-      {
-        toUnit: "kilometer^2",
-        factor: 1e-3,
-      },
-      {
-        toUnit: "acre",
-        factor: 24710538146717e-17,
-      },
-      {
-        toUnit: "hectare",
-        factor: 1e-4,
-      },
-    ],
-  },
-  {
-    name: "kilometer^2",
-    symbol: "km^2",
-    conversionFactors: [
-      {
-        toUnit: "feet^2",
-        factor: 1076391041671e-5,
-      },
-      {
-        toUnit: "mile^2",
-        factor: 0.38610215854781,
-      },
-      {
-        toUnit: "meter^2",
-        factor: 1e6,
-      },
-      {
-        toUnit: "acre",
-        factor: 247.10538146717,
-      },
-      {
-        toUnit: "hectare",
-        factor: 100,
-      },
-    ],
-  },
-  {
-    name: "acre",
-    symbol: "ac",
-    conversionFactors: [
-      {
-        toUnit: "feet^2",
-        factor: 43560,
-      },
-      {
-        toUnit: "mile^2",
-        factor: 0.0015625000000217,
-      },
-      {
-        toUnit: "meter^2",
-        factor: 4046.8564224,
-      },
-      {
-        toUnit: "kilometer^2",
-        factor: 0.0040468564224,
-      },
-      {
-        toUnit: "hectare",
-        factor: 0.40468564224,
-      },
-    ],
-  },
-  {
-    name: "hectare",
-    symbol: "ha",
-    conversionFactors: [
-      {
-        toUnit: "feet^2",
-        factor: 107639.1041671,
-      },
-      {
-        toUnit: "mile^2",
-        factor: 0.0038610215854781,
-      },
-      {
-        toUnit: "meter^2",
-        factor: 1e4,
-      },
-      {
-        toUnit: "kilometer^2",
-        factor: 0.01,
-      },
-      {
-        toUnit: "acre",
-        factor: 2.4710538146717,
-      },
-    ],
-  },
-];

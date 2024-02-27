@@ -1,0 +1,115 @@
+units:
+  - name: feet
+    symbol: ft
+    conversionFactors:
+      - toUnit: mile
+        factor: 0.00018939393939394
+      - toUnit: meter
+        factor: 0.3048
+      - toUnit: kilometer
+        factor: 0.0003048
+  - name: mile
+    symbol: mi
+    conversionFactors:
+      - toUnit: feet
+        factor: 5280
+      - toUnit: meter
+        factor: 1609.344
+      - toUnit: kilometer
+        factor: 1.609344
+  - name: meter
+    symbol: m
+    conversionFactors:
+      - toUnit: feet
+        factor: 3.2808398950131
+      - toUnit: mile
+        factor: 0.00062137119223733
+      - toUnit: kilometer
+        factor: 0.001
+  - name: kilometer
+    symbol: km
+    conversionFactors:
+      - toUnit: feet
+        factor: 3280.8398950131
+      - toUnit: mile
+        factor: 0.62137119223733
+      - toUnit: meter
+        factor: 1000
+  - name: feet^2
+    symbol: ft^2
+    conversionFactors:
+      - toUnit: mile^2
+        factor: 3.5870064279654e-8
+      - toUnit: meter^2
+        factor: 0.09290304
+      - toUnit: kilometer^2
+        factor: 9.290304e-8
+      - toUnit: acre
+        factor: 0.000022956841138659
+      - toUnit: hectare
+        factor: 0.000009290304
+  - name: mile^2
+    symbol: mi
+    conversionFactors:
+      - toUnit: feet^2
+        factor: 27878399.999612
+      - toUnit: meter^2
+        factor: 2589988.1103
+      - toUnit: kilometer^2
+        factor: 2.5899881103
+      - toUnit: acre
+        factor: 639.9999999911
+      - toUnit: hectare
+        factor: 258.99881103
+  - name: meter^2
+    symbol: m^2
+    conversionFactors:
+      - toUnit: feet^2
+        factor: 10.76391041671
+      - toUnit: mile^2
+        factor: 3.8610215854781e-7
+      - toUnit: kilometer^2
+        factor: 0.001
+      - toUnit: acre
+        factor: 0.00024710538146717
+      - toUnit: hectare
+        factor: 0.0001
+  - name: kilometer^2
+    symbol: km^2
+    conversionFactors:
+      - toUnit: feet^2
+        factor: 10763910.41671
+      - toUnit: mile^2
+        factor: 0.38610215854781
+      - toUnit: meter^2
+        factor: 1000000
+      - toUnit: acre
+        factor: 247.10538146717
+      - toUnit: hectare
+        factor: 100
+  - name: acre
+    symbol: ac
+    conversionFactors:
+      - toUnit: feet^2
+        factor: 43560
+      - toUnit: mile^2
+        factor: 0.0015625000000217
+      - toUnit: meter^2
+        factor: 4046.8564224
+      - toUnit: kilometer^2
+        factor: 0.0040468564224
+      - toUnit: hectare
+        factor: 0.40468564224
+  - name: hectare
+    symbol: ha
+    conversionFactors:
+      - toUnit: feet^2
+        factor: 107639.1041671
+      - toUnit: mile^2
+        factor: 0.0038610215854781
+      - toUnit: meter^2
+        factor: 10000
+      - toUnit: kilometer^2
+        factor: 0.01
+      - toUnit: acre
+        factor: 2.4710538146717

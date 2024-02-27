@@ -1,42 +1,28 @@
-import { Type, plainToClass } from "class-transformer";
-import { defaultPopulationDensityData, defaultSettlementData, defaultUnitConversionData } from "src/defaultData";
+import {
+  PopulationDensity,
+  SettlementType,
+  Unit,
+  defaultFirstNameData,
+  defaultLastNameData,
+  defaultPopulationDensityData,
+  defaultProfessionData,
+  defaultSettlementData,
+  defaultTravelMethods,
+  defaultUnitConversionData,
+} from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
 import { CSVUtils } from "src/util/csv";
 
-export class PopulationDensity {
-  descriptor: string;
-  @Type(() => Number)
-  minPopulation: number;
-  @Type(() => Number)
-  maxPopulation: number;
-  areaUnit: string;
-}
-
-export class SettlementType {
-  type: string;
-  description: string;
-  distributionType: string;
-  @Type(() => Number)
-  minPopulation: number;
-  @Type(() => Number)
-  maxPopulation: number;
-}
-
-export class ConversionFactor {
-  toUnit: string;
-  @Type(() => Number)
-  factor: number;
-}
-
-export class Unit {
-  name: string;
-  symbol: string;
-
-  @Type(() => ConversionFactor)
-  conversionFactors: ConversionFactor[];
-}
-
 export class UserOverrideData {
+  readonly defaultData = {
+    firstNameData: defaultFirstNameData,
+    lastNameData: defaultLastNameData,
+    populationDensityData: defaultPopulationDensityData,
+    professionData: defaultProfessionData,
+    settlementTypeData: defaultSettlementData,
+    travelMethods: defaultTravelMethods,
+  };
+
   plugin: WorldBuildingPlugin;
   unitData: Unit[] = [];
   populationDensityData: PopulationDensity[] = [];
@@ -64,58 +50,34 @@ export class UserOverrideData {
       }
     }
 
-    // We are ready to apply the new data. Clear the old and add the new.
-    this.convertData(this.unitData, newData, this.convertUnit);
+    this.unitData = newData.map((data: any) => new Unit(data));
   }
 
   private async loadPopulationDensityData() {
-    let newData = JSON.parse(JSON.stringify(defaultPopulationDensityData));
+    let newData: any = this.defaultData.populationDensityData;
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.populationDensityDataOverridePath !== "") {
       const overrideData = await CSVUtils.getCSVByPath(
         this.plugin.settings.populationDensityDataOverridePath,
         this.plugin.app.vault
       );
-      newData = CSVUtils.csvToPojo(overrideData, true);
+      newData = overrideData.length === 0 ? newData : CSVUtils.csvArrayToStringArray(overrideData);
     }
 
-    // We are ready to apply the new data. Clear the old and add the new.
-    this.populationDensityData = [];
-    this.convertData(this.populationDensityData, newData, this.convertPopulationDensity);
+    this.populationDensityData = newData.map((data: any) => new PopulationDensity(data));
   }
 
   private async loadSettlementTypeData() {
-    let newData = JSON.parse(JSON.stringify(defaultSettlementData));
+    let newData: any = this.defaultData.settlementTypeData;
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.settlementTypeDataOverridePath !== "") {
       const overrideData = await CSVUtils.getCSVByPath(
         this.plugin.settings.settlementTypeDataOverridePath,
         this.plugin.app.vault
       );
-      newData = CSVUtils.csvToPojo(overrideData, true);
+      newData = overrideData.length === 0 ? newData : CSVUtils.csvArrayToStringArray(overrideData);
     }
 
-    // We are ready to apply the new data. Clear the old and add the new.
-    this.settlementTypeData = [];
-    this.convertData(this.settlementTypeData, newData, this.convertSettlement);
-  }
-
-  private convertPopulationDensity(data: any): PopulationDensity {
-    return plainToClass(PopulationDensity, data);
-  }
-
-  private convertSettlement(data: any): SettlementType {
-    return plainToClass(SettlementType, data);
-  }
-
-  private convertUnit(data: any): Unit {
-    return plainToClass(Unit, data);
-  }
-
-  public convertData(data: any[], newData: any[], converter: (data: any) => any) {
-    for (const newDataEntry of newData) {
-      const newDataClassInstance = converter(newDataEntry);
-      data.push(newDataClassInstance);
-    }
+    this.settlementTypeData = newData.map((data: any) => new SettlementType(data));
   }
 }

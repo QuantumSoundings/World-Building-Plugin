@@ -1,0 +1,9 @@
+descriptor,minPopulation,maxPopulation,areaUnit
+Uninhabited,0,10,mile^2
+Inhospitable,10,20,mile^2
+Arid,20,40,mile^2
+Adequate,40,60,mile^2
+Ample,60,80,mile^2
+Abundant,80,100,mile^2
+Fertile,100,120,mile^2
+Idyllic,120,99999,mile^2
