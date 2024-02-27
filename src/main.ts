@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { FileSystemAdapter, Notice, Plugin, TAbstractFile, TFolder } from "obsidian";
+import { Notice, Plugin, TAbstractFile, TFolder } from "obsidian";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";
 import { UnitConversionAPI } from "./api/unitConversionApi";
@@ -67,13 +67,12 @@ export default class WorldBuildingPlugin extends Plugin {
     this.worldEngine.initialize();
 
     this.addCommand({
-      id: "wb-save-default-data-to-root",
-      name: "Save Default Data to Root Directory",
+      id: "wb-export-default-data",
+      name: "Export Default Data",
       checkCallback: (checking: boolean) => {
-        // Checking is true when the command is being registered, and false when it is being called.
         if (!checking) {
           exportDefaultData(this, this.settings.exportPath);
-          new Notice("Default data has been saved to the root directory!", 2000);
+          new Notice("Default data has been saved to the export path!", 2000);
         }
         return true;
       },
