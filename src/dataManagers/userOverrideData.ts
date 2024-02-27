@@ -65,11 +65,7 @@ export class UserOverrideData {
     }
 
     // We are ready to apply the new data. Clear the old and add the new.
-    this.unitData = [];
-    for (const newDataEntry of newData) {
-      const newDataClassInstance = plainToClass(Unit, newDataEntry);
-      this.unitData.push(newDataClassInstance);
-    }
+    this.convertData(this.unitData, newData, this.convertUnit);
   }
 
   private async loadPopulationDensityData() {
@@ -85,10 +81,7 @@ export class UserOverrideData {
 
     // We are ready to apply the new data. Clear the old and add the new.
     this.populationDensityData = [];
-    for (const newDataEntry of newData) {
-      const newDataClassInstance = plainToClass(PopulationDensity, newDataEntry);
-      this.populationDensityData.push(newDataClassInstance);
-    }
+    this.convertData(this.populationDensityData, newData, this.convertPopulationDensity);
   }
 
   private async loadSettlementTypeData() {
@@ -104,9 +97,25 @@ export class UserOverrideData {
 
     // We are ready to apply the new data. Clear the old and add the new.
     this.settlementTypeData = [];
+    this.convertData(this.settlementTypeData, newData, this.convertSettlement);
+  }
+
+  private convertPopulationDensity(data: any): PopulationDensity {
+    return plainToClass(PopulationDensity, data);
+  }
+
+  private convertSettlement(data: any): SettlementType {
+    return plainToClass(SettlementType, data);
+  }
+
+  private convertUnit(data: any): Unit {
+    return plainToClass(Unit, data);
+  }
+
+  public convertData(data: any[], newData: any[], converter: (data: any) => any) {
     for (const newDataEntry of newData) {
-      const newDataClassInstance = plainToClass(SettlementType, newDataEntry);
-      this.settlementTypeData.push(newDataClassInstance);
+      const newDataClassInstance = converter(newDataEntry);
+      data.push(newDataClassInstance);
     }
   }
 }

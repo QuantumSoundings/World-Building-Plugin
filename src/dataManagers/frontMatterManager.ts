@@ -1,5 +1,6 @@
 import { TFile } from "obsidian";
 import WorldBuildingPlugin from "src/main";
+import { Logger } from "src/util/Logger";
 import { YAMLUtils } from "src/util/frontMatter";
 import { stringify } from "yaml";
 
@@ -43,22 +44,37 @@ export class FrontMatterManager {
   }
 
   public async writeFrontMatterTemplate(fullPath: string, template: string) {
-    const fileContent = await this.plugin.adapter.read(fullPath);
+    const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+    if (file === null) {
+      Logger.error(this, `File not found: ${fullPath}`);
+      return;
+    }
+    const fileContent = await this.plugin.app.vault.read(file as TFile);
     const replacedContent = YAMLUtils.replaceFrontMatter(fileContent, template);
-    await this.plugin.adapter.write(fullPath, replacedContent);
+    await this.plugin.app.vault.modify(file as TFile, replacedContent);
   }
 
+  /**
+   * Writes content to a file at the specified path.
+   * If the file already exists, it replaces the front matter with the new content.
+   * If the file does not exist, it creates a new file with the specified content as the front matter.
+   * Only files with the ".md" extension are supported.
+   *
+   * @param fullPath - The full path of the file to write.
+   * @param content - The content to write to the file.
+   * @returns A Promise that resolves when the file has been written.
+   */
   public async writeFile(fullPath: string, content: unknown): Promise<void> {
     if (fullPath.endsWith(".md")) {
       const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
-      let newFileContent = "";
       if (file !== null) {
-        const currentFileContent = await this.plugin.adapter.read(fullPath);
-        newFileContent = YAMLUtils.replaceFrontMatter(currentFileContent, content);
+        const currentFileContent = await this.plugin.app.vault.read(file as TFile);
+        const newFileContent = YAMLUtils.replaceFrontMatter(currentFileContent, content);
+        await this.plugin.app.vault.modify(file as TFile, newFileContent);
       } else {
-        newFileContent = "---\n" + stringify(content) + "\n---\n";
+        const newFileContent = "---\n" + stringify(content) + "\n---\n";
+        await this.plugin.app.vault.create(fullPath, newFileContent);
       }
-      await this.plugin.adapter.write(fullPath, newFileContent);
     }
   }
 

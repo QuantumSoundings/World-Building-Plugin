@@ -20,7 +20,6 @@ import { UserOverrideData } from "./dataManagers/userOverrideData";
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
   settingsTab: WorldBuildingSettingTab;
-  adapter: FileSystemAdapter;
   // Data Managers
   userOverrideData: UserOverrideData;
   psdManager: PSDManager;
@@ -45,7 +44,6 @@ export default class WorldBuildingPlugin extends Plugin {
     this.addSettingTab(this.settingsTab);
 
     // Initialize all the members of the plugin
-    this.adapter = this.app.vault.adapter as FileSystemAdapter;
     this.userOverrideData = new UserOverrideData(this);
     await this.userOverrideData.reloadData();
 
@@ -57,7 +55,7 @@ export default class WorldBuildingPlugin extends Plugin {
     this.populationAPI = new PopulationAPI(this);
     this.unitConversionAPI = new UnitConversionAPI(this);
 
-    await this.psdManager.load();
+    await this.psdManager.init();
 
     // The psd files require csv files for the map config,
     // and the processing is intensive, so we will do it only if the user wants it.

@@ -46,8 +46,12 @@ export class PSDManager extends CacheManager<CacheType> {
 
   override async readFile(fullPath: string): Promise<Result<CacheType>> {
     if (fullPath.endsWith(".psd")) {
-      const binaryFile = await this.plugin.adapter.readBinary(fullPath);
-      const psd: Psd = Psd.parse(binaryFile);
+      const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+      if (file === null) {
+        return { success: false, error: new BaseError("File not found.") };
+      }
+      const binaryContent = await this.plugin.app.vault.readBinary(file as TFile);
+      const psd: Psd = Psd.parse(binaryContent);
       // Processing this maps is a different operation from loading them.
       const psdData = new PsdData();
       psdData.file = psd;
@@ -55,11 +59,6 @@ export class PSDManager extends CacheManager<CacheType> {
       return { success: true, result: psdData };
     }
     return { success: false, error: new BaseError("Invalid file extension.") };
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  override async writeFile(fullPath: string, content: PsdData, options: any = null): Promise<Result<void>> {
-    return { success: false, error: new BaseError("Not implemented.") };
   }
 
   override isFileManageable(file: TAbstractFile): boolean {

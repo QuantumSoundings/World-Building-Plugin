@@ -16,7 +16,7 @@ class CacheEntry<T> {
 }
 
 export interface CacheManagerInterface<DataType> {
-  load(): void;
+  init(): void;
 
   readFile(fullPath: string): Promise<Result<DataType>>;
   writeFile(fullPath: string, content: DataType | unknown, options: any): Promise<Result<void>>;
@@ -43,7 +43,7 @@ export class CacheManager<DataType> implements CacheManagerInterface<DataType> {
     this.fileCache = new Map<string, CacheEntry<DataType>>();
   }
 
-  public async load() {
+  public async init() {
     // Performs an initial load of the cache.
     // Future changes use the event listeners to keep the cache up to date.
     Logger.debug(this, "Loading all manageable files in vault.");
