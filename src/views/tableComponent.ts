@@ -24,6 +24,7 @@ export class TableComponent extends MarkdownRenderChild {
   fileOptionsElement: HTMLElement;
   loadingBarElement: HTMLElement;
   tableContainerElement: HTMLElement;
+  fileNotFoundElement: HTMLElement;
 
   // Members
   handsonTable: Handsontable;
@@ -50,6 +51,10 @@ export class TableComponent extends MarkdownRenderChild {
     this.unloaded = true;
 
     // Setup html elements
+    this.fileNotFoundElement = parentElement.createDiv();
+    this.fileNotFoundElement.setText("CSV file not found. Please double check path.");
+    this.fileNotFoundElement.hide();
+
     this.loadingBarElement = parentElement.createDiv();
     this.loadingBarElement.addClass("progress-bar");
     this.loadingBarElement.innerHTML =
@@ -149,6 +154,10 @@ export class TableComponent extends MarkdownRenderChild {
     const file = this.plugin.app.vault.getAbstractFileByPath(this.fileSourcePath);
     if (file === null) {
       Logger.error(this, "File not found.");
+      this.fileOptionsElement.hide();
+      this.loadingBarElement.hide();
+      this.tableContainerElement.hide();
+      this.fileNotFoundElement.show();
       return;
     }
     this.plugin.app.vault.read(file as TFile).then((data) => {
