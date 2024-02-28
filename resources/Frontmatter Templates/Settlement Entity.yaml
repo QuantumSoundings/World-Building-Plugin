@@ -1,6 +1,6 @@
 # Represents a settlement of people. A town, city, village, etc.
 
-name: Yuiel
+name: Settlement Name
 
 demographics:
   population: 0

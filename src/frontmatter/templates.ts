@@ -1,13 +1,13 @@
 // Yaml Imports
-import sovereignEntityTemplateBase64 from "./sovereignEntity.yaml";
-import settlementEntityTemplateBase64 from "./settlementEntity.yaml";
-import worldConfigTemplateBase64 from "./worldConfig.yaml";
+import sovereignEntityTemplateBase64 from "resources/Frontmatter Templates/Sovereign Entity.yaml";
+import settlementEntityTemplateBase64 from "resources/Frontmatter Templates/Settlement Entity.yaml";
+import worldConfigTemplateBase64 from "resources/Frontmatter Templates/World Entity.yaml";
 
 // Types
 export enum TemplateType {
   SovereignEntity = "Sovereign Entity Template",
   SettlementEntity = "Settlement Entity Template",
-  WorldConfig = "World Config Template",
+  WorldConfig = "World Entity Template",
 }
 
 // Constants

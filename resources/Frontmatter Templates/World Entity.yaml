@@ -1,3 +1,4 @@
+#For the purposes of this plugin, a world entity is a self contained system. Be it a planet or space habitat or something else.
 name: World Name
 # The geometry of the world, sphere for planets, cylinder for artificial habitats.
 # Important for map projects.

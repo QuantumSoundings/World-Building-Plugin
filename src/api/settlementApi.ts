@@ -1,4 +1,4 @@
-import { SettlementType } from "src/dataManagers/userOverrideData";
+import { SettlementType } from "src/defaultData";
 import WorldBuildingPlugin from "src/main";
 import { FormatUtils } from "src/util/format";
 import { Logger } from "src/util/Logger";
