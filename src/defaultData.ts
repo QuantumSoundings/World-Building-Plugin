@@ -7,11 +7,18 @@ export class PopulationDensity {
   maxPopulation: number;
   areaUnit: string;
 
-  constructor(rowData: string[]) {
-    this.descriptor = rowData[0];
-    this.minPopulation = parseFloat(rowData[1]);
-    this.maxPopulation = parseFloat(rowData[2]);
-    this.areaUnit = rowData[3];
+  constructor(data: string[] | PopulationDensity | null) {
+    if (data instanceof PopulationDensity) {
+      this.descriptor = data.descriptor;
+      this.minPopulation = data.minPopulation;
+      this.maxPopulation = data.maxPopulation;
+      this.areaUnit = data.areaUnit;
+    } else if (data instanceof Array) {
+      this.descriptor = data[0];
+      this.minPopulation = parseFloat(data[1]);
+      this.maxPopulation = parseFloat(data[2]);
+      this.areaUnit = data[3];
+    }
   }
 }
 
@@ -22,12 +29,20 @@ export class SettlementType {
   minPopulation: number;
   maxPopulation: number;
 
-  constructor(rowData: string[]) {
-    this.type = rowData[0];
-    this.description = rowData[1];
-    this.distributionType = rowData[2];
-    this.minPopulation = parseFloat(rowData[3]);
-    this.maxPopulation = parseFloat(rowData[4]);
+  constructor(data: string[] | SettlementType | null) {
+    if (data instanceof SettlementType) {
+      this.type = data.type;
+      this.description = data.description;
+      this.distributionType = data.distributionType;
+      this.minPopulation = data.minPopulation;
+      this.maxPopulation = data.maxPopulation;
+    } else if (data instanceof Array) {
+      this.type = data[0];
+      this.description = data[1];
+      this.distributionType = data[2];
+      this.minPopulation = parseFloat(data[3]);
+      this.maxPopulation = parseFloat(data[4]);
+    }
   }
 }
 
@@ -38,12 +53,20 @@ export class Name {
   meanings: string[];
   tags: string[];
 
-  constructor(dataRow: string[]) {
-    this.name = dataRow[1];
-    this.gender = dataRow[2];
-    this.origin = dataRow[3];
-    this.meanings = dataRow[4].split("|");
-    this.tags = dataRow[5].split("|");
+  constructor(data: string[] | Name | null) {
+    if (data instanceof Name) {
+      this.name = data.name;
+      this.gender = data.gender;
+      this.origin = data.origin;
+      this.meanings = data.meanings;
+      this.tags = data.tags;
+    } else if (data instanceof Array) {
+      this.name = data[1];
+      this.gender = data[2];
+      this.origin = data[3];
+      this.meanings = data[4].split("|");
+      this.tags = data[5].split("|");
+    }
   }
 }
 
@@ -53,11 +76,18 @@ export class Profession {
   category: string;
   supportValue: number;
 
-  constructor(dataRow: string[]) {
-    this.name = dataRow[0];
-    this.description = dataRow[1];
-    this.category = dataRow[2];
-    this.supportValue = parseFloat(dataRow[3]);
+  constructor(data: string[] | Profession | null) {
+    if (data instanceof Profession) {
+      this.name = data.name;
+      this.description = data.description;
+      this.category = data.category;
+      this.supportValue = data.supportValue;
+    } else if (data instanceof Array) {
+      this.name = data[0];
+      this.description = data[1];
+      this.category = data[2];
+      this.supportValue = parseFloat(data[3]);
+    }
   }
 }
 
@@ -71,15 +101,26 @@ export class TravelMethod {
   maxDistanceMi: number;
   maxDistanceKm: number;
 
-  constructor(dataRow: string[]) {
-    this.mode = dataRow[0];
-    this.subMode = dataRow[1];
-    this.terrainDifficulty = dataRow[2];
-    this.encumbrance = dataRow[3];
-    this.maxLoadLb = parseFloat(dataRow[4]);
-    this.maxLoadKg = parseFloat(dataRow[5]);
-    this.maxDistanceMi = parseFloat(dataRow[6]);
-    this.maxDistanceKm = parseFloat(dataRow[7]);
+  constructor(data: string[] | TravelMethod | null) {
+    if (data instanceof TravelMethod) {
+      this.mode = data.mode;
+      this.subMode = data.subMode;
+      this.terrainDifficulty = data.terrainDifficulty;
+      this.encumbrance = data.encumbrance;
+      this.maxLoadLb = data.maxLoadLb;
+      this.maxLoadKg = data.maxLoadKg;
+      this.maxDistanceMi = data.maxDistanceMi;
+      this.maxDistanceKm = data.maxDistanceKm;
+    } else if (data instanceof Array) {
+      this.mode = data[0];
+      this.subMode = data[1];
+      this.terrainDifficulty = data[2];
+      this.encumbrance = data[3];
+      this.maxLoadLb = parseFloat(data[4]);
+      this.maxLoadKg = parseFloat(data[5]);
+      this.maxDistanceMi = parseFloat(data[6]);
+      this.maxDistanceKm = parseFloat(data[7]);
+    }
   }
 }
 
@@ -87,9 +128,14 @@ export class ConversionFactor {
   toUnit: string;
   factor: number;
 
-  constructor(data: any) {
-    this.toUnit = data.toUnit;
-    this.factor = data.factor;
+  constructor(data: any | ConversionFactor | null) {
+    if (data instanceof ConversionFactor) {
+      this.toUnit = data.toUnit;
+      this.factor = data.factor;
+    } else {
+      this.toUnit = data.toUnit;
+      this.factor = data.factor;
+    }
   }
 }
 
@@ -98,10 +144,16 @@ export class Unit {
   symbol: string;
   conversionFactors: ConversionFactor[];
 
-  constructor(data: any) {
-    this.name = data.name;
-    this.symbol = data.symbol;
-    this.conversionFactors = data.conversionFactors.map((cf: any) => new ConversionFactor(cf));
+  constructor(data: any | Unit | null) {
+    if (data instanceof Unit) {
+      this.name = data.name;
+      this.symbol = data.symbol;
+      this.conversionFactors = data.conversionFactors;
+    } else if (data instanceof Object) {
+      this.name = data.name;
+      this.symbol = data.symbol;
+      this.conversionFactors = data.conversionFactors.map((cf: any) => new ConversionFactor(cf));
+    }
   }
 }
 
@@ -114,29 +166,31 @@ import settlementTypeDataBase64 from "../resources/Data/Settlement Types.csv";
 import travelMethodDataBase64 from "../resources/Data/Travel Methods.csv";
 
 // CSV Data Files
-export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.parseCSVStringNoHeaders(atob(firstNameDataBase64)).map(
+export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.csvParse(atob(firstNameDataBase64), true).map(
   (row) => new Name(row)
 );
 
-export const defaultLastNameData: Readonly<Name[]> = CSVUtils.parseCSVStringNoHeaders(atob(lastNameDataBase64)).map(
+export const defaultLastNameData: Readonly<Name[]> = CSVUtils.csvParse(atob(lastNameDataBase64), true).map(
   (row) => new Name(row)
 );
 
-export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = CSVUtils.parseCSVStringNoHeaders(
-  atob(populationDensityDataBase64)
+export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = CSVUtils.csvParse(
+  atob(populationDensityDataBase64),
+  true
 ).map((row) => new PopulationDensity(row));
 
-export const defaultProfessionData: Readonly<Profession[]> = CSVUtils.parseCSVStringNoHeaders(
-  atob(professionDataBase64)
-).map((row) => new Profession(row));
+export const defaultProfessionData: Readonly<Profession[]> = CSVUtils.csvParse(atob(professionDataBase64), true).map(
+  (row) => new Profession(row)
+);
 
-export const defaultSettlementData: Readonly<SettlementType[]> = CSVUtils.parseCSVStringNoHeaders(
-  atob(settlementTypeDataBase64)
+export const defaultSettlementData: Readonly<SettlementType[]> = CSVUtils.csvParse(
+  atob(settlementTypeDataBase64),
+  true
 ).map((row) => new SettlementType(row));
 
-export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.parseCSVStringNoHeaders(
-  atob(travelMethodDataBase64)
-).map((row) => new TravelMethod(row));
+export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.csvParse(atob(travelMethodDataBase64), true).map(
+  (row) => new TravelMethod(row)
+);
 
 import unitConversionDataBase64 from "../resources/Data/Unit Conversions.yaml";
 import { parse } from "yaml";
@@ -156,15 +210,15 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
 
   const path = aFile.path + "/";
 
-  CSVUtils.saveCSVByPath(path + "Default First Names Data.csv", defaultFirstNameData as unknown[], plugin.app.vault, {
+  CSVUtils.writeCSVByPath(path + "Default First Names Data.csv", defaultFirstNameData as unknown[], plugin.app.vault, {
     header: true,
   });
 
-  CSVUtils.saveCSVByPath(path + "Default Last Names Data.csv", defaultLastNameData as unknown[], plugin.app.vault, {
+  CSVUtils.writeCSVByPath(path + "Default Last Names Data.csv", defaultLastNameData as unknown[], plugin.app.vault, {
     header: true,
   });
 
-  CSVUtils.saveCSVByPath(
+  CSVUtils.writeCSVByPath(
     path + "Default Population Density Data.csv",
     defaultPopulationDensityData as unknown[],
     plugin.app.vault,
@@ -173,11 +227,11 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
     }
   );
 
-  CSVUtils.saveCSVByPath(path + "Default Professions Data.csv", defaultProfessionData as unknown[], plugin.app.vault, {
+  CSVUtils.writeCSVByPath(path + "Default Professions Data.csv", defaultProfessionData as unknown[], plugin.app.vault, {
     header: true,
   });
 
-  CSVUtils.saveCSVByPath(
+  CSVUtils.writeCSVByPath(
     path + "Default Settlement Types Data.csv",
     defaultSettlementData as unknown[],
     plugin.app.vault,
@@ -186,7 +240,7 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
     }
   );
 
-  CSVUtils.saveCSVByPath(
+  CSVUtils.writeCSVByPath(
     path + "Default Travel Methods Data.csv",
     defaultTravelMethods as unknown[],
     plugin.app.vault,

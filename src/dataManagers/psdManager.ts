@@ -217,10 +217,13 @@ export class PSDManager extends CacheManager<CacheType> {
       return;
     }
 
-    const data = await CSVUtils.getCSVByPath(fullPath.replace(fileName, "_MapConfig.csv"), this.plugin.app.vault);
+    const data = await CSVUtils.readCSVByPath(
+      fullPath.replace(fileName, "_MapConfig.csv"),
+      this.plugin.app.vault,
+      false
+    );
 
-    const mapConfig = CSVUtils.csvArrayToStringArray(data);
-    mapConfig.shift();
+    const mapConfig = data;
     for (const mapConfigRow of mapConfig) {
       if (fullPath.includes(mapConfigRow[0])) {
         mapData.unitHeight = parseInt(mapConfigRow[1]);

@@ -57,11 +57,12 @@ export class UserOverrideData {
     let newData: any = this.defaultData.populationDensityData;
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.populationDensityDataOverridePath !== "") {
-      const overrideData = await CSVUtils.getCSVByPath(
+      const overrideData = await CSVUtils.readCSVByPath(
         this.plugin.settings.populationDensityDataOverridePath,
-        this.plugin.app.vault
+        this.plugin.app.vault,
+        false
       );
-      newData = overrideData.length === 0 ? newData : CSVUtils.csvArrayToStringArray(overrideData);
+      newData = overrideData.length === 0 ? newData : overrideData;
     }
 
     this.populationDensityData = newData.map((data: any) => new PopulationDensity(data));
@@ -71,11 +72,13 @@ export class UserOverrideData {
     let newData: any = this.defaultData.settlementTypeData;
     // If we are overriding the default data, load the new data from the manager.
     if (this.plugin.settings.settlementTypeDataOverridePath !== "") {
-      const overrideData = await CSVUtils.getCSVByPath(
+      const overrideData = await CSVUtils.readCSVByPath(
         this.plugin.settings.settlementTypeDataOverridePath,
-        this.plugin.app.vault
+        this.plugin.app.vault,
+        false
       );
-      newData = overrideData.length === 0 ? newData : CSVUtils.csvArrayToStringArray(overrideData);
+      newData = overrideData.length === 0 ? newData : overrideData;
+      this.settlementTypeData = newData.map((data: any) => new SettlementType(data));
     }
 
     this.settlementTypeData = newData.map((data: any) => new SettlementType(data));

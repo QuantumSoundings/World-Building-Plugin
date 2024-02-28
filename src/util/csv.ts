@@ -6,26 +6,50 @@ import { Logger } from "src/util/Logger";
 export class CSVUtils {
   // Static methods for helping with CSV parsing.
 
-  static async getCSVByPath(filePath: string, vault: Vault): Promise<string[][]> {
+  public static async readCSVByPath(filePath: string, vault: Vault, removeHeaderRow: boolean): Promise<string[][]> {
     const file = vault.getAbstractFileByPath(filePath);
     if (file === null) {
       Logger.error(this, "File not found.");
       return [];
+    } else if (file instanceof TFile) {
+      const content = await vault.read(file as TFile);
+      const parsed = parse(content);
+      if (removeHeaderRow) {
+        parsed.shift();
+      }
+      const stringArray = this.csvArrayToStringArray(parsed);
+      return stringArray;
+    } else {
+      Logger.error(this, "Attempting to read CSV file, but it is a folder.");
+      return [];
     }
-    const content = await vault.read(file as TFile);
-    return parse(content);
   }
 
-  static async saveCSVByPath(filePath: string, content: unknown[], vault: Vault, options: any = null) {
+  public static async writeCSVByPath(filePath: string, content: unknown[], vault: Vault, options: any = null) {
     const file = vault.getAbstractFileByPath(filePath);
     if (file === null) {
       vault.create(filePath, stringify(content, options));
+    } else if (file instanceof TFile) {
+      await vault.modify(file, stringify(content, options));
     } else {
-      await vault.modify(file as TFile, stringify(content, options));
+      Logger.error(this, "Attempting to write CSV file, but path already exists and is a folder.");
     }
   }
 
-  static csvArrayToStringArray(csvArray: unknown[][]): string[][] {
+  public static csvStringify(content: unknown[], options: any = null) {
+    return stringify(content, options);
+  }
+
+  public static csvParse(content: string, removeHeaderRow: boolean, options: any = null): string[][] {
+    const parsed = parse(content, options);
+    if (removeHeaderRow) {
+      parsed.shift();
+    }
+    const converted = this.csvArrayToStringArray(parsed);
+    return converted;
+  }
+
+  private static csvArrayToStringArray(csvArray: unknown[][]): string[][] {
     const result: string[][] = [];
     for (let i = 0; i < csvArray.length; i++) {
       const row = csvArray[i];
@@ -38,31 +62,13 @@ export class CSVUtils {
     return result;
   }
 
-  static stringifyStringArray(content: string[][]): string {
-    const stringified = stringify(content);
-    return stringified;
-  }
-
-  static parseCSVString(content: string): string[][] {
-    const parsed = parse(content);
-    const converted = this.csvArrayToStringArray(parsed);
-    return converted;
-  }
-
-  static parseCSVStringNoHeaders(content: string): string[][] {
-    const parsed = parse(content);
-    parsed.shift();
-    const converted = this.csvArrayToStringArray(parsed);
-    return converted;
-  }
-
   /**
    * Converts a CSV content into a plain JavaScript object (POJO).
    * @param content - The CSV content as a 2D array of strings.
    * @param useInternalHeaders - Optional. The headers to use for the POJO. If set to true, the first row of the CSV content will be used as headers. If set to an array of strings, those strings will be used as headers. Defaults to true.
    * @returns The converted POJO.
    */
-  static csvToPojo(content: string[][], useInternalHeaders: string[] | true = true): unknown {
+  public static csvToPojo(content: string[][], useInternalHeaders: string[] | true = true): unknown {
     const pojo: any = [];
 
     let headers;
