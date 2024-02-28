@@ -114,32 +114,33 @@ import settlementTypeDataBase64 from "../resources/Data/Settlement Types.csv";
 import travelMethodDataBase64 from "../resources/Data/Travel Methods.csv";
 
 // CSV Data Files
-export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.parseCSVString(atob(firstNameDataBase64)).map(
+export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.parseCSVStringNoHeaders(atob(firstNameDataBase64)).map(
   (row) => new Name(row)
 );
 
-export const defaultLastNameData: Readonly<Name[]> = CSVUtils.parseCSVString(atob(lastNameDataBase64)).map(
+export const defaultLastNameData: Readonly<Name[]> = CSVUtils.parseCSVStringNoHeaders(atob(lastNameDataBase64)).map(
   (row) => new Name(row)
 );
 
-export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = CSVUtils.parseCSVString(
+export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = CSVUtils.parseCSVStringNoHeaders(
   atob(populationDensityDataBase64)
 ).map((row) => new PopulationDensity(row));
 
-export const defaultProfessionData: Readonly<Profession[]> = CSVUtils.parseCSVString(atob(professionDataBase64)).map(
-  (row) => new Profession(row)
-);
+export const defaultProfessionData: Readonly<Profession[]> = CSVUtils.parseCSVStringNoHeaders(
+  atob(professionDataBase64)
+).map((row) => new Profession(row));
 
-export const defaultSettlementData: Readonly<SettlementType[]> = CSVUtils.parseCSVString(
+export const defaultSettlementData: Readonly<SettlementType[]> = CSVUtils.parseCSVStringNoHeaders(
   atob(settlementTypeDataBase64)
 ).map((row) => new SettlementType(row));
 
-export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.parseCSVString(atob(travelMethodDataBase64)).map(
-  (row) => new TravelMethod(row)
-);
+export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.parseCSVStringNoHeaders(
+  atob(travelMethodDataBase64)
+).map((row) => new TravelMethod(row));
 
 import unitConversionDataBase64 from "../resources/Data/Unit Conversions.yaml";
 import { parse } from "yaml";
+import { Notice, TFile } from "obsidian";
 
 // YAML Data Files
 export const defaultUnitConversionData: Readonly<Unit[]> = parse(atob(unitConversionDataBase64)).units.map(
@@ -147,26 +148,24 @@ export const defaultUnitConversionData: Readonly<Unit[]> = parse(atob(unitConver
 );
 
 export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: string = "") {
-  CSVUtils.saveCSVByPath(
-    exportPath + "Default First Names Data.csv",
-    defaultFirstNameData as unknown[],
-    plugin.app.vault,
-    {
-      header: true,
-    }
-  );
+  const aFile = plugin.app.vault.getAbstractFileByPath(exportPath);
+  if (aFile === null || aFile instanceof TFile) {
+    new Notice("The export path is a file and not a folder. Please enter a valid folder path.");
+    return;
+  }
+
+  const path = aFile.path + "/";
+
+  CSVUtils.saveCSVByPath(path + "Default First Names Data.csv", defaultFirstNameData as unknown[], plugin.app.vault, {
+    header: true,
+  });
+
+  CSVUtils.saveCSVByPath(path + "Default Last Names Data.csv", defaultLastNameData as unknown[], plugin.app.vault, {
+    header: true,
+  });
 
   CSVUtils.saveCSVByPath(
-    exportPath + "Default Last Names Data.csv",
-    defaultLastNameData as unknown[],
-    plugin.app.vault,
-    {
-      header: true,
-    }
-  );
-
-  CSVUtils.saveCSVByPath(
-    exportPath + "Default Population Density Data.csv",
+    path + "Default Population Density Data.csv",
     defaultPopulationDensityData as unknown[],
     plugin.app.vault,
     {
@@ -174,17 +173,12 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
     }
   );
 
-  CSVUtils.saveCSVByPath(
-    exportPath + "Default Professions Data.csv",
-    defaultProfessionData as unknown[],
-    plugin.app.vault,
-    {
-      header: true,
-    }
-  );
+  CSVUtils.saveCSVByPath(path + "Default Professions Data.csv", defaultProfessionData as unknown[], plugin.app.vault, {
+    header: true,
+  });
 
   CSVUtils.saveCSVByPath(
-    exportPath + "Default Settlement Types Data.csv",
+    path + "Default Settlement Types Data.csv",
     defaultSettlementData as unknown[],
     plugin.app.vault,
     {
@@ -193,7 +187,7 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
   );
 
   CSVUtils.saveCSVByPath(
-    exportPath + "Default Travel Methods Data.csv",
+    path + "Default Travel Methods Data.csv",
     defaultTravelMethods as unknown[],
     plugin.app.vault,
     {
@@ -201,7 +195,7 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
     }
   );
 
-  plugin.frontMatterManager.writeFile(exportPath + "Default Unit Conversion Data.md", {
+  plugin.frontMatterManager.writeFile(path + "Default Unit Conversion Data.md", {
     units: defaultUnitConversionData,
   });
 }

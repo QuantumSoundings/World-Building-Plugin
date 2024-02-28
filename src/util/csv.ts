@@ -49,6 +49,13 @@ export class CSVUtils {
     return converted;
   }
 
+  static parseCSVStringNoHeaders(content: string): string[][] {
+    const parsed = parse(content);
+    parsed.shift();
+    const converted = this.csvArrayToStringArray(parsed);
+    return converted;
+  }
+
   /**
    * Converts a CSV content into a plain JavaScript object (POJO).
    * @param content - The CSV content as a 2D array of strings.

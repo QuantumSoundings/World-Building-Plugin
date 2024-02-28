@@ -18,6 +18,7 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
   plugin: WorldBuildingPlugin;
 
   // String Settings
+  exportPathSetting: Setting;
   settlementOverrideSetting: Setting;
   populationDensityOverrideSetting: Setting;
   unitConversionOverrideSetting: Setting;
@@ -36,6 +37,19 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
     const { containerEl } = this;
 
     containerEl.empty();
+
+    this.exportPathSetting = new Setting(containerEl)
+      .setName("Export Path")
+      .setDesc("Where the default data files will be exported.")
+      .addText((text) => {
+        text
+          .setPlaceholder("Enter the export path")
+          .setValue(this.plugin.settings.exportPath)
+          .onChange(async (value) => {
+            this.plugin.settings.exportPath = value;
+            await this.plugin.saveSettings();
+          });
+      });
 
     this.settlementOverrideSetting = new Setting(containerEl)
       .setName("Settlement Data Override File Path")
