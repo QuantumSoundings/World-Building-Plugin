@@ -1,6 +1,7 @@
 import WorldBuildingPlugin from "src/main";
 import { SovereignEntityFM, convertToSovereignEntityFM } from "src/frontmatter/sovereignEntityFM";
 import { Logger } from "src/util/Logger";
+import { UnitUtils } from "src/util/unit";
 
 export class SovereignEntity {
   plugin: WorldBuildingPlugin;
@@ -40,13 +41,11 @@ export class SovereignEntity {
     let landFertility = this.configuration.geography.landFertility;
     const landFertilityUnit = this.configuration.geography.landFertilityUnit;
 
-    const unitApi = this.plugin.getUnitConversionAPI();
-
     // Convert cultivatedLand and LandFertility to the same unit as size.
     if (cultivatedLandUnit === "Percent") {
       cultivatedLand = size * (cultivatedLand / 100);
     } else if (cultivatedLandUnit !== sizeUnit) {
-      const result = unitApi.convertUnit(cultivatedLand, cultivatedLandUnit, sizeUnit);
+      const result = UnitUtils.convertUnit(this.plugin, cultivatedLand, cultivatedLandUnit, sizeUnit);
       if (result.success === false) {
         return;
       }
@@ -54,7 +53,7 @@ export class SovereignEntity {
     }
 
     if (landFertilityUnit !== sizeUnit) {
-      const result = unitApi.convertUnit(landFertility, landFertilityUnit, sizeUnit);
+      const result = UnitUtils.convertUnit(this.plugin, landFertility, landFertilityUnit, sizeUnit);
       if (result.success === false) {
         return;
       }

@@ -1,36 +1,36 @@
-Mode,Submode,Terrain Type,Encumbrance,Maximum Load (lbs),Maximum Load (kg),Distance (miles/8h),Distance (km/8h)
-Personal,N/A,Normal,None,N/A,N/A,15.0,24.1
-Personal,N/A,Normal,Light,N/A,N/A,12.0,19.3
-Personal,N/A,Normal,Medium,N/A,N/A,10.0,16.1
-Personal,N/A,Normal,Heavy,N/A,N/A,7.0,11.3
-Personal,N/A,Normal,Severe,N/A,N/A,5.0,8.0
-Personal,N/A,Rugged,None,N/A,N/A,12.0,19.3
-Personal,N/A,Rugged,Light,N/A,N/A,12.0,19.3
-Personal,N/A,Rugged,Medium,N/A,N/A,9.0,14.5
-Personal,N/A,Rugged,Heavy,N/A,N/A,6.0,9.7
-Personal,N/A,Rugged,Severe,N/A,N/A,3.0,4.8
-Personal,N/A,Very Rugged,None,N/A,N/A,9.0,14.5
-Personal,N/A,Very Rugged,Light,N/A,N/A,6.0,9.7
-Personal,N/A,Very Rugged,Medium,N/A,N/A,4.0,6.4
-Personal,N/A,Very Rugged,Heavy,N/A,N/A,3.0,4.8
-Personal,N/A,Very Rugged,Severe,N/A,N/A,2.0,3.2
-Mounted,Donkey,Normal,None,250.0,113.4,12.0,19.3
-Mounted,Donkey,Normal,Maximum,250.0,113.4,6.0,9.7
-Mounted,Donkey,Rugged,None,250.0,113.4,9.0,14.5
-Mounted,Donkey,Rugged,Maximum,250.0,113.4,6.0,9.7
-Mounted,Donkey,Very Rugged,None,250.0,113.4,6.0,9.7
-Mounted,Donkey,Very Rugged,Maximum,250.0,113.4,3.0,4.8
-Mounted,Horse,Normal,None,650.0,294.8,18.0,29.0
-Mounted,Horse,Normal,Maximum,650.0,294.8,9.0,14.5
-Mounted,Horse,Rugged,None,650.0,294.8,9.0,14.5
-Mounted,Horse,Rugged,Maximum,650.0,294.8,6.0,9.7
-Mounted,Horse,Very Rugged,None,650.0,294.8,6.0,9.7
-Mounted,Horse,Very Rugged,Maximum,650.0,294.8,3.0,4.8
-Small Cart,Horse,Normal,Maximum,600.0,272.2,12.0,19.3
-Small Cart,Horse,Rugged,Maximum,600.0,272.2,5.0,8.0
-Medium Cart,Horse,Normal,Maximum,750.0,340.2,8.0,12.9
-Medium Cart,Horse,Rugged,Maximum,750.0,340.2,5.0,8.0
-Small Wagon,Horse,Normal,Maximum,850.0,385.6,10.0,16.1
-Small Wagon,Horse,Rugged,Maximum,850.0,385.6,6.0,9.7
-Large Wagon,Horse,Normal,Maximum,1350.0,612.4,12.0,19.3
-Large Wagon,Horse,Rugged,Maximum,1350.0,612.4,8.0,12.9
+Mode,Submode,Terrain Type,Encumbrance,Maximum Load,Weight Unit,Distance (unit/8h),Distance Unit
+Personal,N/A,Normal,None,N/A,lb,15.0,mile^2
+Personal,N/A,Normal,Light,N/A,lb,12.0,mile^2
+Personal,N/A,Normal,Medium,N/A,lb,10.0,mile^2
+Personal,N/A,Normal,Heavy,N/A,lb,7.0,mile^2
+Personal,N/A,Normal,Severe,N/A,lb,5.0,mile^2
+Personal,N/A,Rugged,None,N/A,lb,12.0,mile^2
+Personal,N/A,Rugged,Light,N/A,lb,12.0,mile^2
+Personal,N/A,Rugged,Medium,N/A,lb,9.0,mile^2
+Personal,N/A,Rugged,Heavy,N/A,lb,6.0,mile^2
+Personal,N/A,Rugged,Severe,N/A,lb,3.0,mile^2
+Personal,N/A,Very Rugged,None,N/A,lb,9.0,mile^2
+Personal,N/A,Very Rugged,Light,N/A,lb,6.0,mile^2
+Personal,N/A,Very Rugged,Medium,N/A,lb,4.0,mile^2
+Personal,N/A,Very Rugged,Heavy,N/A,lb,3.0,mile^2
+Personal,N/A,Very Rugged,Severe,N/A,lb,2.0,mile^2
+Mounted,Donkey,Normal,None,250.0,lb,12.0,mile^2
+Mounted,Donkey,Normal,Maximum,250.0,lb,6.0,mile^2
+Mounted,Donkey,Rugged,None,250.0,lb,9.0,mile^2
+Mounted,Donkey,Rugged,Maximum,250.0,lb,6.0,mile^2
+Mounted,Donkey,Very Rugged,None,250.0,lb,6.0,mile^2
+Mounted,Donkey,Very Rugged,Maximum,250.0,lb,3.0,mile^2
+Mounted,Horse,Normal,None,650.0,lb,18.0,mile^2
+Mounted,Horse,Normal,Maximum,650.0,lb,9.0,mile^2
+Mounted,Horse,Rugged,None,650.0,lb,9.0,mile^2
+Mounted,Horse,Rugged,Maximum,650.0,lb,6.0,mile^2
+Mounted,Horse,Very Rugged,None,650.0,lb,6.0,mile^2
+Mounted,Horse,Very Rugged,Maximum,650.0,lb,3.0,mile^2
+Small Cart,Horse,Normal,Maximum,600.0,lb,12.0,mile^2
+Small Cart,Horse,Rugged,Maximum,600.0,lb,5.0,mile^2
+Medium Cart,Horse,Normal,Maximum,750.0,lb,8.0,mile^2
+Medium Cart,Horse,Rugged,Maximum,750.0,lb,5.0,mile^2
+Small Wagon,Horse,Normal,Maximum,850.0,lb,10.0,mile^2
+Small Wagon,Horse,Rugged,Maximum,850.0,lb,6.0,mile^2
+Large Wagon,Horse,Normal,Maximum,1350.0,lb,12.0,mile^2
+Large Wagon,Horse,Rugged,Maximum,1350.0,l,8.0,mile^2

@@ -47,6 +47,7 @@ export class SettlementType {
 }
 
 export class Name {
+  unicodeName: string;
   name: string;
   gender: string;
   origin: string;
@@ -55,12 +56,14 @@ export class Name {
 
   constructor(data: string[] | Name | null) {
     if (data instanceof Name) {
+      this.unicodeName = data.unicodeName;
       this.name = data.name;
       this.gender = data.gender;
       this.origin = data.origin;
       this.meanings = data.meanings;
       this.tags = data.tags;
     } else if (data instanceof Array) {
+      this.unicodeName = data[0];
       this.name = data[1];
       this.gender = data[2];
       this.origin = data[3];
@@ -96,10 +99,10 @@ export class TravelMethod {
   subMode: string;
   terrainDifficulty: string;
   encumbrance: string;
-  maxLoadLb: number;
-  maxLoadKg: number;
-  maxDistanceMi: number;
-  maxDistanceKm: number;
+  maxLoad: number;
+  weightUnit: string;
+  maxDistance: number;
+  distanceUnit: string;
 
   constructor(data: string[] | TravelMethod | null) {
     if (data instanceof TravelMethod) {
@@ -107,19 +110,19 @@ export class TravelMethod {
       this.subMode = data.subMode;
       this.terrainDifficulty = data.terrainDifficulty;
       this.encumbrance = data.encumbrance;
-      this.maxLoadLb = data.maxLoadLb;
-      this.maxLoadKg = data.maxLoadKg;
-      this.maxDistanceMi = data.maxDistanceMi;
-      this.maxDistanceKm = data.maxDistanceKm;
+      this.maxLoad = data.maxLoad;
+      this.weightUnit = data.weightUnit;
+      this.maxDistance = data.maxDistance;
+      this.distanceUnit = data.distanceUnit;
     } else if (data instanceof Array) {
       this.mode = data[0];
       this.subMode = data[1];
       this.terrainDifficulty = data[2];
       this.encumbrance = data[3];
-      this.maxLoadLb = parseFloat(data[4]);
-      this.maxLoadKg = parseFloat(data[5]);
-      this.maxDistanceMi = parseFloat(data[6]);
-      this.maxDistanceKm = parseFloat(data[7]);
+      this.maxLoad = parseFloat(data[4]);
+      this.weightUnit = data[5];
+      this.maxDistance = parseFloat(data[6]);
+      this.distanceUnit = data[7];
     }
   }
 }

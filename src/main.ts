@@ -2,7 +2,6 @@ import "reflect-metadata";
 import { Notice, Plugin, TAbstractFile, TFolder } from "obsidian";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";
-import { UnitConversionAPI } from "./api/unitConversionApi";
 import { PSDManager } from "./dataManagers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
@@ -27,7 +26,6 @@ export default class WorldBuildingPlugin extends Plugin {
   // APIs provided to other plugins
   private settlementAPI: SettlementAPI;
   private populationAPI: PopulationAPI;
-  private unitConversionAPI: UnitConversionAPI;
 
   worldEngine: WorldEngine;
 
@@ -53,7 +51,6 @@ export default class WorldBuildingPlugin extends Plugin {
 
     this.settlementAPI = new SettlementAPI(this);
     this.populationAPI = new PopulationAPI(this);
-    this.unitConversionAPI = new UnitConversionAPI(this);
 
     await this.psdManager.init();
 
@@ -141,7 +138,7 @@ export default class WorldBuildingPlugin extends Plugin {
                   ["", "", "", "", ""],
                   ["", "", "", "", ""],
                 ];
-                await CSVUtils.saveCSVByPath(file.path + "/" + newFileName, defaultContent, this.app.vault);
+                await CSVUtils.writeCSVByPath(file.path + "/" + newFileName, defaultContent, this.app.vault);
                 new Notice("Created new CSV file! " + newFileName, 2000);
               });
           });
@@ -175,10 +172,6 @@ export default class WorldBuildingPlugin extends Plugin {
 
   getPopulationAPI(): PopulationAPI {
     return this.populationAPI;
-  }
-
-  getUnitConversionAPI(): UnitConversionAPI {
-    return this.unitConversionAPI;
   }
 
   private registerEventHandlers() {
