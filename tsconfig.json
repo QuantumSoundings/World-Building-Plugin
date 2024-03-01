@@ -12,8 +12,6 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "isolatedModules": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "strictNullChecks": true,
     "lib": ["DOM", "ES2018", "ES2022"]
   },

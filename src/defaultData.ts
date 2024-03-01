@@ -161,12 +161,12 @@ export class Unit {
 }
 
 import { CSVUtils } from "./util/csv";
-import firstNameDataBase64 from "../resources/Data/First Names.csv";
-import lastNameDataBase64 from "../resources/Data/Last Names.csv";
-import populationDensityDataBase64 from "../resources/Data/Population Densities.csv";
-import professionDataBase64 from "../resources/Data/Professions.csv";
-import settlementTypeDataBase64 from "../resources/Data/Settlement Types.csv";
-import travelMethodDataBase64 from "../resources/Data/Travel Methods.csv";
+import firstNameDataBase64 from "../resources/Datasets/First Names.csv";
+import lastNameDataBase64 from "../resources/Datasets/Last Names.csv";
+import populationDensityDataBase64 from "../resources/Datasets/Population Densities.csv";
+import professionDataBase64 from "../resources/Datasets/Professions.csv";
+import settlementTypeDataBase64 from "../resources/Datasets/Settlement Types.csv";
+import travelMethodDataBase64 from "../resources/Datasets/Travel Methods.csv";
 
 // CSV Data Files
 export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.csvParse(atob(firstNameDataBase64), true).map(
@@ -195,7 +195,7 @@ export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.csvParse(
   (row) => new TravelMethod(row)
 );
 
-import unitConversionDataBase64 from "../resources/Data/Unit Conversions.yaml";
+import unitConversionDataBase64 from "../resources/Datasets/Unit Conversions.yaml";
 import { parse } from "yaml";
 import { Notice, TFile } from "obsidian";
 
