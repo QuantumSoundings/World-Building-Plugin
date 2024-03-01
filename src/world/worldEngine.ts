@@ -1,6 +1,6 @@
 import WorldBuildingPlugin from "src/main";
 import { SovereignEntity } from "./sovereignEntity";
-import { WBMetaData } from "src/frontmatter/sharedFM";
+import { WBMetaData } from "src/frontmatter/sharedConfiguration";
 import { TAbstractFile } from "obsidian";
 import { SettlementEntity } from "./settlementEntity";
 

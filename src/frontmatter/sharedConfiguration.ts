@@ -1,9 +1,5 @@
-import { Type } from "class-transformer";
-
 export class Distribution {
   name: string;
-
-  @Type(() => Number)
   value: number;
 }
 

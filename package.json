@@ -24,13 +24,10 @@
   },
   "dependencies": {
     "@webtoon/psd": "^0.4.0",
-    "class-transformer": "^0.5.1",
     "csv-parse": "^5.5.3",
     "csv-stringify": "^6.4.5",
     "handsontable": "^14.0.0",
     "hyperformula": "^2.6.1",
-    "obsidian-dataview": "^0.5.64",
-    "reflect-metadata": "^0.2.1",
     "yaml": "^2.3.4"
   }
 }

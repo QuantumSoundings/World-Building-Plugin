@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import { Notice, Plugin, TAbstractFile, TFolder } from "obsidian";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";

@@ -33,4 +33,4 @@ Medium Cart,Horse,Rugged,Maximum,750.0,lb,5.0,mile^2
 Small Wagon,Horse,Normal,Maximum,850.0,lb,10.0,mile^2
 Small Wagon,Horse,Rugged,Maximum,850.0,lb,6.0,mile^2
 Large Wagon,Horse,Normal,Maximum,1350.0,lb,12.0,mile^2
-Large Wagon,Horse,Rugged,Maximum,1350.0,l,8.0,mile^2
+Large Wagon,Horse,Rugged,Maximum,1350.0,lb,8.0,mile^2

@@ -1,12 +1,12 @@
+import { SovereignEntityConfiguration } from "src/frontmatter/sovereignEntityConfiguration";
 import WorldBuildingPlugin from "src/main";
-import { SovereignEntityFM, convertToSovereignEntityFM } from "src/frontmatter/sovereignEntityFM";
 import { Logger } from "src/util/Logger";
 import { UnitUtils } from "src/util/unit";
 
 export class SovereignEntity {
   plugin: WorldBuildingPlugin;
   yamlProperties: any;
-  configuration: SovereignEntityFM; // FrontMatter or from external dataset
+  configuration: SovereignEntityConfiguration;
 
   // Derived Values
   population: number;
@@ -22,9 +22,9 @@ export class SovereignEntity {
       }
       const fmCopy = JSON.parse(JSON.stringify(frontMatter));
       fmCopy.geography.size = countryDataResult.result.unitArea;
-      this.configuration = convertToSovereignEntityFM(fmCopy);
+      this.configuration = new SovereignEntityConfiguration(fmCopy);
     } else {
-      this.configuration = convertToSovereignEntityFM(frontMatter);
+      this.configuration = new SovereignEntityConfiguration(frontMatter);
     }
 
     this.calculatePopulation();
