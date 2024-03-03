@@ -258,7 +258,7 @@ export class PSDManager extends CacheManager<CacheType> {
   }
 
   private async layerToComposite(layer: Layer): Promise<CompositeLayer> {
-    const composite = await layer.composite(false, false);
+    const composite = await layer.composite();
     const compositeLayer = new CompositeLayer();
     compositeLayer.layer = layer;
     compositeLayer.composite = composite;
@@ -275,7 +275,7 @@ export class PSDManager extends CacheManager<CacheType> {
     // Find the intersection of the two layers.
     // The intersection is the pixels that are not transparent in both layers.
     const layer1Pixels = layer1.composite;
-    const layer2Pixels = layer1.composite;
+    const layer2Pixels = layer2.composite;
 
     const selection1Up = layer1.layer.top;
     const selection1Left = layer1.layer.left;
