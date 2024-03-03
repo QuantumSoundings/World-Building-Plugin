@@ -9,7 +9,7 @@ type EntityType = SovereignEntity | SettlementEntity;
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
 
-  entities: Map<string, EntityType>;
+  private entities: Map<string, EntityType>;
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
@@ -37,8 +37,27 @@ export class WorldEngine {
   }
 
   public async onFileModify(file: TAbstractFile) {
-    // This will replace existing entries and add new compatible ones.
-    this.loadFile(file);
+    const entity = this.entities.get(file.path);
+    if (entity !== undefined) {
+      const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
+      if (frontMatter === null) return;
+      if (!frontMatter.hasOwnProperty("wbMeta")) return;
+      const wbMeta: WBMetaData = frontMatter["wbMeta"];
+      if (wbMeta.type === entity.configuration.wbMeta.type) {
+        entity.updateConfiguration(frontMatter);
+      } else {
+        // Entity type has changed, reload the file.
+        this.loadFile(file);
+      }
+    }
+  }
+
+  public getEntity(fullPath: string): EntityType | undefined {
+    const entity = this.entities.get(fullPath);
+    if (entity !== undefined && "update" in entity) {
+      entity.update();
+    }
+    return entity;
   }
 
   private async loadFile(file: TAbstractFile) {

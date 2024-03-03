@@ -5,28 +5,37 @@ import { UnitUtils } from "src/util/unit";
 
 export class SovereignEntity {
   plugin: WorldBuildingPlugin;
-  yamlProperties: any;
   configuration: SovereignEntityConfiguration;
 
-  // Derived Values
+  // Update Flags
+  updateUsingMap: boolean;
+
+  // Values calculated on update
   population: number;
 
-  constructor(plugin: WorldBuildingPlugin, frontMatter: any) {
+  constructor(plugin: WorldBuildingPlugin, initialFrontMatter: any) {
     this.plugin = plugin;
 
-    if (frontMatter.geography.size === "MAP") {
-      const countryDataResult = this.plugin.psdManager.findCountryData(frontMatter.name);
+    this.updateConfiguration(initialFrontMatter);
+  }
+
+  public updateConfiguration(newFrontMatter: any) {
+    this.updateUsingMap = newFrontMatter.geography.size === "MAP";
+    if (this.updateUsingMap) {
+      newFrontMatter.geography.size = 0;
+    }
+    this.configuration = new SovereignEntityConfiguration(newFrontMatter);
+  }
+
+  public update() {
+    if (this.updateUsingMap) {
+      const countryDataResult = this.plugin.psdManager.findCountryData(this.configuration.name);
       if (countryDataResult.success === false) {
         Logger.error(this, countryDataResult.error.message);
         return;
       }
-      const fmCopy = JSON.parse(JSON.stringify(frontMatter));
-      fmCopy.geography.size = countryDataResult.result.unitArea;
-      this.configuration = new SovereignEntityConfiguration(fmCopy);
-    } else {
-      this.configuration = new SovereignEntityConfiguration(frontMatter);
+      this.configuration.geography.size = countryDataResult.result.unitArea;
     }
-
     this.calculatePopulation();
   }
 

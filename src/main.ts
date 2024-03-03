@@ -51,13 +51,7 @@ export default class WorldBuildingPlugin extends Plugin {
     this.settlementAPI = new SettlementAPI(this);
     this.populationAPI = new PopulationAPI(this);
 
-    await this.psdManager.init();
-
-    // The psd files require csv files for the map config,
-    // and the processing is intensive, so we will do it only if the user wants it.
-    if (this.settings.processMapsOnLoad) {
-      await this.psdManager.processPSDs(false);
-    }
+    await this.psdManager.initialize();
 
     // Load the world engine
     this.worldEngine.initialize();
@@ -79,8 +73,7 @@ export default class WorldBuildingPlugin extends Plugin {
       name: "Process and Save Map Data to Markdown Files",
       checkCallback: (checking: boolean) => {
         if (!checking) {
-          this.psdManager.processPSDs(true).then(() => {
-            this.psdManager.writeAllProcessedMapData();
+          this.psdManager.reprocessAllMaps().then(() => {
             new Notice("Maps have been processed and saved!", 2000);
           });
         }
@@ -174,31 +167,17 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   private registerEventHandlers() {
-    const creationEvent = (file: TAbstractFile) => {
-      if (this.psdManager.isFileManageable(file)) {
-        this.psdManager.onFileCreation(file);
-      }
-    };
     const deletionEvent = (file: TAbstractFile) => {
-      if (this.psdManager.isFileManageable(file)) {
-        this.psdManager.onFileDeletion(file);
-      }
       if (file.path.endsWith(".md")) {
         this.worldEngine.onFileDeletion(file);
       }
     };
     const renameEvent = (file: TAbstractFile, oldPath: string) => {
-      if (this.psdManager.isFileManageable(file)) {
-        this.psdManager.onFileRename(file, oldPath);
-      }
       if (file.path.endsWith(".md")) {
         this.worldEngine.onFileRename(file, oldPath);
       }
     };
     const modifyEvent = async (file: TAbstractFile) => {
-      if (this.psdManager.isFileManageable(file)) {
-        await this.psdManager.onFileModify(file);
-      }
       // Refresh Internal Override Data if it has changed.
       if (
         file.path === this.settings.settlementTypeDataOverridePath ||
@@ -212,10 +191,11 @@ export default class WorldBuildingPlugin extends Plugin {
       }
     };
 
-    this.registerEvent(this.app.vault.on("create", creationEvent));
     this.registerEvent(this.app.vault.on("delete", deletionEvent));
     this.registerEvent(this.app.vault.on("rename", renameEvent));
     this.registerEvent(this.app.vault.on("modify", modifyEvent));
+
+    this.psdManager.registerEventCallbacks();
   }
 
   private registerCodeBlockProcessor() {
@@ -228,7 +208,7 @@ export default class WorldBuildingPlugin extends Plugin {
     });
 
     this.registerMarkdownCodeBlockProcessor("wb-se", (source, el, context) => {
-      const sovereignEntity = this.worldEngine.entities.get(context.sourcePath);
+      const sovereignEntity = this.worldEngine.getEntity(context.sourcePath);
       if (sovereignEntity === undefined) {
         Logger.error(this, "Could not find sovereign entity for " + context.sourcePath);
         return;
