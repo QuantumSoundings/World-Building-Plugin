@@ -19,37 +19,40 @@ export class WorldEngine {
   public initialize() {
     const files = this.plugin.app.vault.getMarkdownFiles();
     for (const file of files) {
-      this.loadFile(file);
+      this.createEntity(file);
     }
   }
 
-  public onFileDeletion(file: TAbstractFile) {
-    if (this.entities.has(file.path)) {
-      this.entities.delete(file.path);
-    }
-  }
-
-  public onFileRename(file: TAbstractFile, oldPath: string) {
-    if (this.entities.has(oldPath)) {
-      this.entities.set(file.path, this.entities.get(oldPath) as EntityType);
-      this.entities.delete(oldPath);
-    }
-  }
-
-  public async onFileModify(file: TAbstractFile) {
-    const entity = this.entities.get(file.path);
-    if (entity !== undefined) {
-      const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
-      if (frontMatter === null) return;
-      if (!frontMatter.hasOwnProperty("wbMeta")) return;
-      const wbMeta: WBMetaData = frontMatter["wbMeta"];
-      if (wbMeta.type === entity.configuration.wbMeta.type) {
-        entity.updateConfiguration(frontMatter);
-      } else {
-        // Entity type has changed, reload the file.
-        this.loadFile(file);
+  public registerEventCallbacks() {
+    const onFileDeletion = (file: TAbstractFile) => {
+      if (this.entities.has(file.path)) {
+        this.entities.delete(file.path);
       }
-    }
+    };
+    const onFileRename = (file: TAbstractFile, oldPath: string) => {
+      if (this.entities.has(oldPath)) {
+        this.entities.set(file.path, this.entities.get(oldPath) as EntityType);
+        this.entities.delete(oldPath);
+      }
+    };
+    const onFileModify = async (file: TAbstractFile) => {
+      const entity = this.entities.get(file.path);
+      if (entity !== undefined) {
+        const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
+        if (frontMatter === null) return;
+        if (!frontMatter.hasOwnProperty("wbMeta")) return;
+        const wbMeta: WBMetaData = frontMatter["wbMeta"];
+        if (wbMeta.type === entity.configuration.wbMeta.type) {
+          entity.updateConfiguration(frontMatter);
+        } else {
+          // Entity type has changed, reload the file.
+          this.createEntity(file);
+        }
+      }
+    };
+    this.plugin.registerEvent(this.plugin.app.vault.on("delete", onFileDeletion));
+    this.plugin.registerEvent(this.plugin.app.vault.on("rename", onFileRename));
+    this.plugin.registerEvent(this.plugin.app.vault.on("modify", onFileModify));
   }
 
   public getEntity(fullPath: string): EntityType | undefined {
@@ -60,7 +63,7 @@ export class WorldEngine {
     return entity;
   }
 
-  private async loadFile(file: TAbstractFile) {
+  private async createEntity(file: TAbstractFile) {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
     if (frontMatter === null) return;
     if (!frontMatter.hasOwnProperty("wbMeta")) return;

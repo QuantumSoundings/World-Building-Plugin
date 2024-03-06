@@ -1,3 +1,4 @@
+import { TAbstractFile } from "obsidian";
 import {
   PopulationDensity,
   SettlementType,
@@ -36,6 +37,21 @@ export class UserOverrideData {
     await this.loadUnitData();
     await this.loadPopulationDensityData();
     await this.loadSettlementTypeData();
+  }
+
+  public registerEventCallbacks() {
+    const modifyEvent = async (file: TAbstractFile) => {
+      // Refresh Internal Override Data if it has changed.
+      if (
+        file.path === this.plugin.settings.settlementTypeDataOverridePath ||
+        file.path === this.plugin.settings.populationDensityDataOverridePath ||
+        file.path === this.plugin.settings.unitConversionDataOverridePath
+      ) {
+        this.reloadData();
+      }
+    };
+
+    this.plugin.registerEvent(this.plugin.app.vault.on("modify", modifyEvent));
   }
 
   private async loadUnitData() {

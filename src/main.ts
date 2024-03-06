@@ -1,4 +1,4 @@
-import { Notice, Plugin, TAbstractFile, TFolder } from "obsidian";
+import { Notice, Plugin, TFolder } from "obsidian";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";
 import { PSDManager } from "./dataManagers/psdManager";
@@ -56,6 +56,44 @@ export default class WorldBuildingPlugin extends Plugin {
     // Load the world engine
     this.worldEngine.initialize();
 
+    // Register everything with obsidian
+    this.registerView("wb-csv", (leaf) => {
+      return new CSVView(leaf, this);
+    });
+    this.registerExtensions(["csv"], "wb-csv");
+    this.registerCommands();
+    this.registerCodeBlockProcessors();
+    this.registerEventHandlers();
+
+    // Finished!
+    Logger.debug(this, "WorldBuilding plugin loaded.");
+    // Dump the state of the plugin.
+    Logger.debug(this, this);
+  }
+
+  onunload() {
+    Logger.debug(this, "Unloading plugin: WorldBuilding");
+    super.unload();
+  }
+
+  async loadSettings() {
+    const settings = new WorldBuildingPluginSettings();
+    this.settings = Object.assign({}, settings, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
+
+  getSettlementAPI(): SettlementAPI {
+    return this.settlementAPI;
+  }
+
+  getPopulationAPI(): PopulationAPI {
+    return this.populationAPI;
+  }
+
+  private registerCommands() {
     this.addCommand({
       id: "wb-export-default-data",
       name: "Export Default Data",
@@ -98,14 +136,12 @@ export default class WorldBuildingPlugin extends Plugin {
         return true;
       },
     });
+  }
 
-    // Setup the csv viewer
-    this.registerView("csv", (leaf) => {
-      return new CSVView(leaf, this);
-    });
-    this.registerExtensions(["csv"], "csv");
-    this.registerCodeBlockProcessor();
-    this.registerEventHandlers();
+  private registerEventHandlers() {
+    this.userOverrideData.registerEventCallbacks();
+    this.psdManager.registerEventCallbacks();
+    this.worldEngine.registerEventCallbacks();
 
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
@@ -137,68 +173,9 @@ export default class WorldBuildingPlugin extends Plugin {
         }
       })
     );
-
-    // Finished!
-    Logger.debug(this, "WorldBuilding plugin loaded.");
-    // Dump the state of the plugin.
-    Logger.debug(this, this);
   }
 
-  onunload() {
-    Logger.debug(this, "Unloading plugin: WorldBuilding");
-    super.unload();
-  }
-
-  async loadSettings() {
-    const settings = new WorldBuildingPluginSettings();
-    this.settings = Object.assign({}, settings, await this.loadData());
-  }
-
-  async saveSettings() {
-    await this.saveData(this.settings);
-  }
-
-  getSettlementAPI(): SettlementAPI {
-    return this.settlementAPI;
-  }
-
-  getPopulationAPI(): PopulationAPI {
-    return this.populationAPI;
-  }
-
-  private registerEventHandlers() {
-    const deletionEvent = (file: TAbstractFile) => {
-      if (file.path.endsWith(".md")) {
-        this.worldEngine.onFileDeletion(file);
-      }
-    };
-    const renameEvent = (file: TAbstractFile, oldPath: string) => {
-      if (file.path.endsWith(".md")) {
-        this.worldEngine.onFileRename(file, oldPath);
-      }
-    };
-    const modifyEvent = async (file: TAbstractFile) => {
-      // Refresh Internal Override Data if it has changed.
-      if (
-        file.path === this.settings.settlementTypeDataOverridePath ||
-        file.path === this.settings.populationDensityDataOverridePath ||
-        file.path === this.settings.unitConversionDataOverridePath
-      ) {
-        this.userOverrideData.reloadData();
-      }
-      if (file.path.endsWith(".md")) {
-        this.worldEngine.onFileModify(file);
-      }
-    };
-
-    this.registerEvent(this.app.vault.on("delete", deletionEvent));
-    this.registerEvent(this.app.vault.on("rename", renameEvent));
-    this.registerEvent(this.app.vault.on("modify", modifyEvent));
-
-    this.psdManager.registerEventCallbacks();
-  }
-
-  private registerCodeBlockProcessor() {
+  private registerCodeBlockProcessors() {
     this.registerMarkdownCodeBlockProcessor("wb-csv", (source, el, context) => {
       // Source should be the full path + file name + extension.
       source = source.trim();
