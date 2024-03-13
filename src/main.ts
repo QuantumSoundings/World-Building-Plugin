@@ -66,7 +66,7 @@ export default class WorldBuildingPlugin extends Plugin {
     });
     this.addRibbonIcons();
     this.createWorldEngineView();
-    this.registerExtensions(["csv"], "wb-csv");
+    this.registerExtensions(["csv"], CSV_VIEW);
     this.registerCommands();
     this.registerCodeBlockProcessors();
     this.registerEventHandlers();
