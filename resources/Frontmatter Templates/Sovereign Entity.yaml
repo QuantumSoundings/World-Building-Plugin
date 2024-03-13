@@ -3,7 +3,7 @@
 name: EntityName
 
 geography:
-  size: 0
+  size: 1.0
   sizeUnit: mile^2
   # Average land fertility. How many people can be supported per square unit of land.
   # Affected by technology, climate, and other factors.
@@ -11,7 +11,7 @@ geography:
   landFertility: 180.0
   landFertilityUnit: mile^2
   # How much of the controlled land is lived on.
-  cultivatedLand: 0.0
+  cultivatedLand: 1.0
   cultivatedLandUnit: Percent # Percent or Unit
 
   generation:
@@ -22,15 +22,15 @@ geography:
   # How the types of territories are distributed and organized. Good to get a rough idea of scale.
   territories:
     - type: Province # User defined type.
-      value: 0
+      value: 1.0
       # None is special and means it is directly under the entity.
       # Otherwise, it should be the type of the parent territory.
       parentTerritory: None
 
   # How the settlements are distributed. List of settlement types and their portion of the population.
   settlements:
-    - name: Type # defined internally or overridden by settlement_types dataset setting.
-      value: 0.0
+    - name: Isolated # defined internally or overridden by settlement_types dataset setting.
+      value: 1.0
 
 # The population demographics of the entity.
 demographics:
@@ -49,11 +49,11 @@ culture:
 # Validation check that total percentage should equal 100.
 species:
   - name: Human
-    value: 0.0
+    value: 1.0
 
 languages:
   - name: Central
-    value: 0.0
+    value: 1.0
 
 staticDatasets:
   # A dataset for all the named territories. A named territory includes a static name, type, population, and size.

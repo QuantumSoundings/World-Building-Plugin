@@ -4,6 +4,8 @@ import WorldBuildingPlugin from "src/main";
 import { TableComponent } from "./tableComponent";
 import { Logger } from "src/util/Logger";
 
+export const CSV_VIEW = "csv-view";
+
 export class CSVView extends TextFileView {
   plugin: WorldBuildingPlugin;
   tableComponent: TableComponent | undefined;
@@ -53,7 +55,7 @@ export class CSVView extends TextFileView {
     return extension == "csv";
   }
   public getViewType() {
-    return "csv";
+    return CSV_VIEW;
   }
   public getIcon() {
     return "document-csv";

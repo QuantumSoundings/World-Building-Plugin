@@ -46,7 +46,7 @@ export class FormatUtils {
   }
 
   static markdownTableToHtml(rootElement: HTMLElement, table: string) {
-    const rows = table.split("\n");
+    const rows = table.trim().split("\n");
     const headerRow = rows.shift();
     if (headerRow === undefined) {
       return;

@@ -1,8 +1,8 @@
-import { Notice, Plugin, TFolder } from "obsidian";
+import { MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
 import { SettlementAPI } from "./api/settlementApi";
 import { PopulationAPI } from "./api/populationApi";
 import { PSDManager } from "./dataManagers/psdManager";
-import { CSVView } from "./views/csvView";
+import { CSVView, CSV_VIEW } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
@@ -14,6 +14,7 @@ import { SovereignEntity } from "./world/sovereignEntity";
 import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings/pluginSettings";
 import { CSVUtils } from "./util/csv";
 import { UserOverrideData } from "./dataManagers/userOverrideData";
+import { WORLD_ENGINE_VIEW, WorldEngineView } from "./views/worldEngineView";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -27,6 +28,7 @@ export default class WorldBuildingPlugin extends Plugin {
   private populationAPI: PopulationAPI;
 
   worldEngine: WorldEngine;
+  showWorldEngine: boolean;
 
   async onload() {
     super.onload();
@@ -57,8 +59,15 @@ export default class WorldBuildingPlugin extends Plugin {
     this.worldEngine.initialize();
 
     // Register everything with obsidian
-    this.registerView("wb-csv", (leaf) => {
+    this.registerView(CSV_VIEW, (leaf) => {
       return new CSVView(leaf, this);
+    });
+    this.registerView(WORLD_ENGINE_VIEW, (leaf) => {
+      return new WorldEngineView(leaf, this);
+    });
+    this.showWorldEngine = false;
+    this.addRibbonIcon("dice", "Show World Engine", () => {
+      this.showWorldEngine = !this.showWorldEngine;
     });
     this.registerExtensions(["csv"], "wb-csv");
     this.registerCommands();
@@ -83,6 +92,29 @@ export default class WorldBuildingPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  async updateViews() {
+    const worldEngineLeaves = this.app.workspace.getLeavesOfType(WORLD_ENGINE_VIEW);
+    let worldEngineLeaf: WorkspaceLeaf | null = null;
+    if (worldEngineLeaves.length > 0) {
+      // A leaf with our view already exists, use that
+      worldEngineLeaf = worldEngineLeaves[0];
+    } else {
+      // Our view could not be found in the workspace, create a new leaf
+      // in the right sidebar for it
+      worldEngineLeaf = this.app.workspace.getRightLeaf(false);
+      await worldEngineLeaf.setViewState({ type: WORLD_ENGINE_VIEW, active: false });
+    }
+    const currentFile = this.app.workspace.getActiveFile();
+    if (currentFile !== null) {
+      await (worldEngineLeaf.view as WorldEngineView).updateView(currentFile.path);
+      // "Reveal" the leaf in case it is in a collapsed sidebar
+      // Only reveal if the leaf has updated.
+      if (this.showWorldEngine) {
+        this.app.workspace.revealLeaf(worldEngineLeaf);
+      }
+    }
   }
 
   getSettlementAPI(): SettlementAPI {
@@ -143,6 +175,22 @@ export default class WorldBuildingPlugin extends Plugin {
     this.psdManager.registerEventCallbacks();
     this.worldEngine.registerEventCallbacks();
 
+    this.app.workspace.on("active-leaf-change", (leaf) => {
+      if (leaf === null || leaf.view.getViewType() === WORLD_ENGINE_VIEW) {
+        return;
+      }
+      if (leaf.view instanceof MarkdownView) {
+        const mdView = leaf.view as MarkdownView;
+        const file = mdView.file;
+        if (file !== null) {
+          const entity = this.worldEngine.getEntity(file.path);
+          if (entity !== undefined) {
+            this.updateViews();
+          }
+        }
+      }
+    });
+
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
         if (file instanceof TFolder) {
@@ -171,6 +219,19 @@ export default class WorldBuildingPlugin extends Plugin {
               });
           });
         }
+      })
+    );
+
+    this.registerEvent(
+      this.app.workspace.on("file-menu", (menu, file) => {
+        menu.addItem((item) => {
+          item
+            .setTitle("Copy Path")
+            .setIcon("file-plus")
+            .onClick(async () => {
+              navigator.clipboard.writeText(file.path);
+            });
+        });
       })
     );
   }
