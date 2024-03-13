@@ -1,8 +1,7 @@
-import { TFile } from "obsidian";
+import { TFile, stringifyYaml } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { YAMLUtils } from "src/util/frontMatter";
-import { stringify } from "yaml";
 
 // This class will be responsible for managing the front matter of the markdown files
 // It will not maintain a cache. Everything will be done through the processFrontMatter method.
@@ -72,7 +71,7 @@ export class FrontMatterManager {
         const newFileContent = YAMLUtils.replaceFrontMatter(currentFileContent, content);
         await this.plugin.app.vault.modify(file as TFile, newFileContent);
       } else {
-        const newFileContent = "---\n" + stringify(content) + "\n---\n";
+        const newFileContent = "---\n" + stringifyYaml(content) + "\n---\n";
         await this.plugin.app.vault.create(fullPath, newFileContent);
       }
     }

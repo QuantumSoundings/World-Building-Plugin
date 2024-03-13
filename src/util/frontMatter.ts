@@ -1,5 +1,6 @@
+import { TFile, parseYaml, stringifyYaml } from "obsidian";
+import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
-import { stringify } from "yaml";
 
 class FrontMatterParsedInfo {
   frontMatterFound: boolean;
@@ -9,6 +10,20 @@ class FrontMatterParsedInfo {
 }
 
 export class YAMLUtils {
+  static async validYaml(plugin: WorldBuildingPlugin, fullPath: string): Promise<boolean> {
+    try {
+      const file = plugin.app.vault.getAbstractFileByPath(fullPath);
+      const content = await plugin.app.vault.read(file as TFile);
+      const parsed = YAMLUtils.parseMarkdownFile(content);
+      if (parsed !== undefined) {
+        parseYaml(parsed.frontMatter);
+      }
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
   static parseMarkdownFile(content: string): FrontMatterParsedInfo | undefined {
     const parseResults = new FrontMatterParsedInfo();
     parseResults.frontMatterFound = false;
@@ -77,7 +92,7 @@ export class YAMLUtils {
     if (typeof newFrontMatter === "string") {
       newFMString = newFrontMatter;
     } else {
-      newFMString = stringify(newFrontMatter);
+      newFMString = stringifyYaml(newFrontMatter);
     }
 
     // If we have no frontmatter add it easily

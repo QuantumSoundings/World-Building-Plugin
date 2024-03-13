@@ -196,11 +196,10 @@ export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.csvParse(
 );
 
 import unitConversionDataBase64 from "../resources/Datasets/Unit Conversions.yaml";
-import { parse } from "yaml";
-import { Notice, TFile } from "obsidian";
+import { Notice, TFile, parseYaml } from "obsidian";
 
 // YAML Data Files
-export const defaultUnitConversionData: Readonly<Unit[]> = parse(atob(unitConversionDataBase64)).units.map(
+export const defaultUnitConversionData: Readonly<Unit[]> = parseYaml(atob(unitConversionDataBase64)).units.map(
   (data: any) => new Unit(data)
 );
 
