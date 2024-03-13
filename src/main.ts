@@ -28,7 +28,6 @@ export default class WorldBuildingPlugin extends Plugin {
   private populationAPI: PopulationAPI;
 
   worldEngine: WorldEngine;
-  showWorldEngine: boolean;
 
   async onload() {
     super.onload();
@@ -65,10 +64,8 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerView(WORLD_ENGINE_VIEW, (leaf) => {
       return new WorldEngineView(leaf, this);
     });
-    this.showWorldEngine = false;
-    this.addRibbonIcon("dice", "Show World Engine", () => {
-      this.showWorldEngine = !this.showWorldEngine;
-    });
+    this.addRibbonIcons();
+    this.createWorldEngineView();
     this.registerExtensions(["csv"], "wb-csv");
     this.registerCommands();
     this.registerCodeBlockProcessors();
@@ -94,26 +91,33 @@ export default class WorldBuildingPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  async updateViews() {
-    const worldEngineLeaves = this.app.workspace.getLeavesOfType(WORLD_ENGINE_VIEW);
-    let worldEngineLeaf: WorkspaceLeaf | null = null;
-    if (worldEngineLeaves.length > 0) {
-      // A leaf with our view already exists, use that
-      worldEngineLeaf = worldEngineLeaves[0];
+  async createWorldEngineView() {
+    let worldEngineView = this.getWorldEngineView();
+
+    if (worldEngineView === undefined) {
+      // View not found, create one on the right sidebar
+      worldEngineView = this.app.workspace.getRightLeaf(false);
+      await worldEngineView.setViewState({ type: WORLD_ENGINE_VIEW, active: false });
     } else {
-      // Our view could not be found in the workspace, create a new leaf
-      // in the right sidebar for it
-      worldEngineLeaf = this.app.workspace.getRightLeaf(false);
-      await worldEngineLeaf.setViewState({ type: WORLD_ENGINE_VIEW, active: false });
+      // View found, its possible this is a hot reload.
+      Logger.warn(this, "World Engine view already exists, this is possibly a hot reload.");
     }
-    const currentFile = this.app.workspace.getActiveFile();
-    if (currentFile !== null) {
-      await (worldEngineLeaf.view as WorldEngineView).updateView(currentFile.path);
-      // "Reveal" the leaf in case it is in a collapsed sidebar
-      // Only reveal if the leaf has updated.
-      if (this.showWorldEngine) {
-        this.app.workspace.revealLeaf(worldEngineLeaf);
+  }
+
+  private getWorldEngineView() {
+    const worldEngineLeaves = this.app.workspace.getLeavesOfType(WORLD_ENGINE_VIEW);
+    if (worldEngineLeaves.length > 1) {
+      Logger.warn(this, "Multiple world engine views found, something has gone wrong and requires investigation.");
+      // We somehow ended up with multiple views. Delete all but the first one.
+      for (let i = 1; i < worldEngineLeaves.length; i++) {
+        worldEngineLeaves[i].detach();
       }
+
+      return worldEngineLeaves[0];
+    } else if (worldEngineLeaves.length === 1) {
+      return worldEngineLeaves[0];
+    } else {
+      return undefined;
     }
   }
 
@@ -123,6 +127,30 @@ export default class WorldBuildingPlugin extends Plugin {
 
   getPopulationAPI(): PopulationAPI {
     return this.populationAPI;
+  }
+
+  private addRibbonIcons() {
+    this.addRibbonIcon("globe", "Show World Engine", () => {
+      const worldEngineLeaf = this.getWorldEngineView();
+      if (worldEngineLeaf === undefined) {
+        Logger.error(this, "World Engine view not found, cannot show view.");
+        return;
+      }
+      this.app.workspace.revealLeaf(worldEngineLeaf);
+    });
+    this.addRibbonIcon("snowflake", "Toggle World Engine (Running/Paused)", () => {
+      const worldEngineLeaf = this.getWorldEngineView();
+      if (worldEngineLeaf === undefined) {
+        Logger.error(this, "World Engine view not found, cannot show view.");
+        return;
+      }
+      const worldEngineView = worldEngineLeaf.view as WorldEngineView;
+      if (worldEngineView.paused) {
+        worldEngineView.setRunning();
+      } else {
+        worldEngineView.setPaused();
+      }
+    });
   }
 
   private registerCommands() {
@@ -175,8 +203,8 @@ export default class WorldBuildingPlugin extends Plugin {
     this.psdManager.registerEventCallbacks();
     this.worldEngine.registerEventCallbacks();
 
-    this.app.workspace.on("active-leaf-change", (leaf) => {
-      if (leaf === null || leaf.view.getViewType() === WORLD_ENGINE_VIEW) {
+    this.app.workspace.on("active-leaf-change", async (leaf) => {
+      if (leaf === null) {
         return;
       }
       if (leaf.view instanceof MarkdownView) {
@@ -185,7 +213,12 @@ export default class WorldBuildingPlugin extends Plugin {
         if (file !== null) {
           const entity = this.worldEngine.getEntity(file.path);
           if (entity !== undefined) {
-            this.updateViews();
+            const worldEngineLeaf = this.getWorldEngineView();
+            if (worldEngineLeaf === undefined) {
+              Logger.error(this, "World Engine view not found, cannot update views.");
+              return;
+            }
+            await (worldEngineLeaf.view as WorldEngineView).displayEntity(entity);
           }
         }
       }

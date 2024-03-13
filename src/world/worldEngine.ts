@@ -4,16 +4,16 @@ import { WBMetaData } from "src/frontmatter/sharedConfiguration";
 import { TAbstractFile } from "obsidian";
 import { SettlementEntity } from "./settlementEntity";
 
-type EntityType = SovereignEntity | SettlementEntity;
+export type WorldEngineEntity = SovereignEntity | SettlementEntity;
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
 
-  private entities: Map<string, EntityType>;
+  private entities: Map<string, WorldEngineEntity>;
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
-    this.entities = new Map<string, EntityType>();
+    this.entities = new Map<string, WorldEngineEntity>();
   }
 
   public initialize() {
@@ -31,7 +31,7 @@ export class WorldEngine {
     };
     const onFileRename = (file: TAbstractFile, oldPath: string) => {
       if (this.entities.has(oldPath)) {
-        this.entities.set(file.path, this.entities.get(oldPath) as EntityType);
+        this.entities.set(file.path, this.entities.get(oldPath) as WorldEngineEntity);
         this.entities.delete(oldPath);
       }
     };
@@ -55,7 +55,7 @@ export class WorldEngine {
     this.plugin.registerEvent(this.plugin.app.vault.on("modify", onFileModify));
   }
 
-  public getEntity(fullPath: string): EntityType | undefined {
+  public getEntity(fullPath: string): WorldEngineEntity | undefined {
     const entity = this.entities.get(fullPath);
     if (entity !== undefined && "update" in entity) {
       entity.update();
