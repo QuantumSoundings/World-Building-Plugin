@@ -38,16 +38,10 @@ export class WorldEngine {
       }
     };
     const onFileModify = async (file: TAbstractFile) => {
-      // Doing it this way so obsidian doesn't try and process broken yaml.
-      if (!(await YAMLUtils.validYaml(this.plugin, file.path))) {
-        Logger.debug(this, "File " + file.path + " is not valid YAML. User is likely still typing.");
-        return;
-      }
-      Logger.debug(this, "File " + file.path + " is valid YAML. Processing.");
       const entity = this.entities.get(file.path);
       if (entity !== undefined) {
-        const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
-        if (frontMatter === null) return;
+        const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(file.path);
+        if (frontMatter === undefined) return;
         if (!frontMatter.hasOwnProperty("wbMeta")) return;
         const wbMeta: WBMetaData = frontMatter["wbMeta"];
         if (wbMeta.type === entity.configuration.wbMeta.type) {

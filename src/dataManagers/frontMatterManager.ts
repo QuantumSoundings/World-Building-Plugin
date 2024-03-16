@@ -1,4 +1,4 @@
-import { TFile, stringifyYaml } from "obsidian";
+import { TFile, TFolder, parseYaml, stringifyYaml } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { YAMLUtils } from "src/util/frontMatter";
@@ -9,6 +9,25 @@ export class FrontMatterManager {
   plugin: WorldBuildingPlugin;
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
+  }
+
+  public async getFrontMatterReadOnly(filePath: string): Promise<any> {
+    const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
+    if (file === null || file instanceof TFolder) {
+      Logger.error(this, `File not found: ${filePath}`);
+      return {};
+    }
+    const content = await this.plugin.app.vault.read(file as TFile);
+    const parsed = YAMLUtils.parseMarkdownFile(content);
+    if (parsed !== undefined) {
+      try {
+        const frontMatter = parseYaml(parsed.frontMatter);
+        return frontMatter;
+      } catch (e) {
+        Logger.error(this, `Error parsing front matter: ${filePath}`);
+        return undefined;
+      }
+    }
   }
 
   public async getFrontMatter(filePath: string): Promise<any> {
