@@ -2,9 +2,11 @@ import { SovereignEntityConfiguration } from "src/frontmatter/sovereignEntityCon
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { UnitUtils } from "src/util/unit";
+import { BaseEntity } from "./worldEngine";
 
-export class SovereignEntity {
+export class SovereignEntity implements BaseEntity {
   plugin: WorldBuildingPlugin;
+  filePath: string;
   configuration: SovereignEntityConfiguration;
 
   // Update Flags
@@ -25,6 +27,7 @@ export class SovereignEntity {
       newFrontMatter.geography.size = 0;
     }
     this.configuration = new SovereignEntityConfiguration(newFrontMatter);
+    this.update();
   }
 
   public update() {

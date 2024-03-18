@@ -1,10 +1,12 @@
 import WorldBuildingPlugin from "src/main";
 import { SovereignEntity } from "./sovereignEntity";
-import { WBMetaData } from "src/frontmatter/sharedConfiguration";
 import { TAbstractFile } from "obsidian";
 import { SettlementEntity } from "./settlementEntity";
-import { YAMLUtils } from "src/util/frontMatter";
-import { Logger } from "src/util/Logger";
+
+export interface BaseEntity {
+  plugin: WorldBuildingPlugin;
+  filePath: string;
+}
 
 export type WorldEngineEntity = SovereignEntity | SettlementEntity;
 
@@ -41,14 +43,24 @@ export class WorldEngine {
       const entity = this.entities.get(file.path);
       if (entity !== undefined) {
         const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(file.path);
-        if (frontMatter === undefined) return;
-        if (!frontMatter.hasOwnProperty("wbMeta")) return;
-        const wbMeta: WBMetaData = frontMatter["wbMeta"];
-        if (wbMeta.type === entity.configuration.wbMeta.type) {
+        if (!this.isValidEntity(frontMatter)) return;
+
+        const worldEngineView = this.plugin.getWorldEngineView();
+        const entityMatches = worldEngineView !== undefined && worldEngineView.getCurrentEntity() === entity;
+        if (frontMatter["wbMeta"].type === entity.configuration.wbMeta.type) {
           entity.updateConfiguration(frontMatter);
+          if (entityMatches) {
+            worldEngineView.displayEntity(entity);
+          }
         } else {
           // Entity type has changed, reload the file.
-          this.createEntity(file);
+          await this.createEntity(file);
+          const newEntity = this.entities.get(file.path);
+          if (newEntity !== undefined) {
+            if (entityMatches) {
+              worldEngineView.displayEntity(newEntity);
+            }
+          }
         }
       }
     };
@@ -65,15 +77,20 @@ export class WorldEngine {
     return entity;
   }
 
+  private isValidEntity(frontMatter: any): boolean {
+    if (frontMatter === null || frontMatter === undefined) return false;
+    if (!frontMatter.hasOwnProperty("wbMeta")) return false;
+    return true;
+  }
+
   private async createEntity(file: TAbstractFile) {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
-    if (frontMatter === null) return;
-    if (!frontMatter.hasOwnProperty("wbMeta")) return;
-    const wbMeta: WBMetaData = frontMatter["wbMeta"];
+    if (!this.isValidEntity(frontMatter)) return;
 
-    switch (wbMeta.type) {
+    switch (frontMatter["wbMeta"].type) {
       case "sovereignEntity": {
         const entity = new SovereignEntity(this.plugin, frontMatter);
+        entity.filePath = file.path;
         this.entities.set(file.path, entity);
         break;
       }

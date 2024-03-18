@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { sovereignEntityGeneratedStats } from "src/postProcessors/sovereignEntityMDPP";
 import { SovereignEntity } from "src/world/sovereignEntity";
@@ -16,12 +16,19 @@ export class WorldEngineView extends ItemView {
   plugin: WorldBuildingPlugin;
 
   viewContainerElement: HTMLElement;
-  titleElement: HTMLElement;
-  statusElement: HTMLElement;
-  entityShownElement: HTMLElement;
-  entityContainerElement: HTMLElement;
+
+  headerContainerEl: HTMLElement;
+  titleEl: HTMLElement;
+  statusEl: HTMLElement;
+  entityTitleEl: HTMLElement;
+  entityLinkEl: HTMLElement;
+
+  contentContainerEl: HTMLElement;
 
   paused: boolean;
+
+  // Entity
+  currentEntity: WorldEngineEntity | undefined;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorldBuildingPlugin) {
     super(leaf);
@@ -30,11 +37,26 @@ export class WorldEngineView extends ItemView {
     this.paused = false;
     const container = this.containerEl.children[1];
     container.empty();
+    // Overall container for the view.
     this.viewContainerElement = container.createEl("div");
-    this.titleElement = this.viewContainerElement.createEl("h1", { text: "World Engine" });
-    this.statusElement = this.viewContainerElement.createEl("h2", { text: RUNNING });
-    this.entityShownElement = this.viewContainerElement.createEl("h2", { text: NO_ENTITY });
-    this.entityContainerElement = this.viewContainerElement.createEl("div");
+    this.viewContainerElement.setCssProps({ "webkit-user-select": "text", "user-select": "text" });
+    // Header container.
+    this.headerContainerEl = this.viewContainerElement.createEl("div");
+    this.titleEl = this.headerContainerEl.createEl("h1", { text: "World Engine" });
+    this.statusEl = this.headerContainerEl.createEl("h2", { text: RUNNING });
+    this.entityTitleEl = this.headerContainerEl.createEl("h2", { text: NO_ENTITY });
+    this.entityLinkEl = this.addAction("globe", "Open Entity Note", (event: MouseEvent) => {
+      if (this.currentEntity === undefined) return;
+      const file = this.plugin.app.vault.getAbstractFileByPath(this.currentEntity.filePath);
+      if (file !== null && file instanceof TFile) {
+        const middleLeaf = this.plugin.app.workspace.getLeaf(true);
+        middleLeaf.openFile(file, { active: true, state: { mode: "source" } });
+      }
+    });
+    this.headerContainerEl.appendChild(this.entityLinkEl);
+
+    // Content container.
+    this.contentContainerEl = this.viewContainerElement.createEl("div");
   }
 
   public override getViewType() {
@@ -57,19 +79,25 @@ export class WorldEngineView extends ItemView {
       // View is paused.
       return;
     }
-    this.entityContainerElement.empty();
+    this.contentContainerEl.empty();
+
     if (entity instanceof SovereignEntity) {
-      this.entityShownElement.setText(ENTITY + entity.configuration.name);
-      sovereignEntityGeneratedStats(entity, this.entityContainerElement);
+      this.entityTitleEl.setText(ENTITY + entity.configuration.name);
+      sovereignEntityGeneratedStats(entity, this.contentContainerEl);
+      this.currentEntity = entity;
     }
   }
 
+  public getCurrentEntity() {
+    return this.currentEntity;
+  }
+
   public setPaused() {
-    this.statusElement.setText(PAUSED);
+    this.statusEl.setText(PAUSED);
     this.paused = true;
   }
   public setRunning() {
-    this.statusElement.setText(RUNNING);
+    this.statusEl.setText(RUNNING);
     this.paused = false;
   }
 }

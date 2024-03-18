@@ -65,7 +65,7 @@ export default class WorldBuildingPlugin extends Plugin {
       return new WorldEngineView(leaf, this);
     });
     this.addRibbonIcons();
-    this.createWorldEngineView();
+    this.createWorldEngineLeaf();
     this.registerExtensions(["csv"], CSV_VIEW);
     this.registerCommands();
     this.registerCodeBlockProcessors();
@@ -91,8 +91,8 @@ export default class WorldBuildingPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  async createWorldEngineView() {
-    let worldEngineView = this.getWorldEngineView();
+  private async createWorldEngineLeaf() {
+    let worldEngineView = this.getWorldEngineLeaf();
 
     if (worldEngineView === undefined) {
       // View not found, create one on the right sidebar
@@ -104,7 +104,7 @@ export default class WorldBuildingPlugin extends Plugin {
     }
   }
 
-  private getWorldEngineView() {
+  private getWorldEngineLeaf(): WorkspaceLeaf | undefined {
     const worldEngineLeaves = this.app.workspace.getLeavesOfType(WORLD_ENGINE_VIEW);
     if (worldEngineLeaves.length > 1) {
       Logger.warn(this, "Multiple world engine views found, something has gone wrong and requires investigation.");
@@ -121,6 +121,14 @@ export default class WorldBuildingPlugin extends Plugin {
     }
   }
 
+  public getWorldEngineView(): WorldEngineView | undefined {
+    const worldEngineLeaf = this.getWorldEngineLeaf();
+    if (worldEngineLeaf === undefined) {
+      return undefined;
+    }
+    return worldEngineLeaf.view as WorldEngineView;
+  }
+
   getSettlementAPI(): SettlementAPI {
     return this.settlementAPI;
   }
@@ -130,21 +138,25 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   private addRibbonIcons() {
-    this.addRibbonIcon("globe", "Show World Engine", () => {
-      const worldEngineLeaf = this.getWorldEngineView();
+    this.addRibbonIcon("globe", "Show World Engine", async () => {
+      let worldEngineLeaf = this.getWorldEngineLeaf();
       if (worldEngineLeaf === undefined) {
-        Logger.error(this, "World Engine view not found, cannot show view.");
-        return;
+        Logger.warn(this, "World Engine view not found, creating a new one...");
+        await this.createWorldEngineLeaf();
+        worldEngineLeaf = this.getWorldEngineLeaf();
+        if (worldEngineLeaf === undefined) {
+          Logger.error(this, "Failed to create World Engine view, cannot show view.");
+          return;
+        }
       }
       this.app.workspace.revealLeaf(worldEngineLeaf);
     });
     this.addRibbonIcon("snowflake", "Toggle World Engine (Running/Paused)", () => {
-      const worldEngineLeaf = this.getWorldEngineView();
-      if (worldEngineLeaf === undefined) {
+      const worldEngineView = this.getWorldEngineView();
+      if (worldEngineView === undefined) {
         Logger.error(this, "World Engine view not found, cannot show view.");
         return;
       }
-      const worldEngineView = worldEngineLeaf.view as WorldEngineView;
       if (worldEngineView.paused) {
         worldEngineView.setRunning();
       } else {
@@ -213,12 +225,12 @@ export default class WorldBuildingPlugin extends Plugin {
         if (file !== null) {
           const entity = this.worldEngine.getEntity(file.path);
           if (entity !== undefined) {
-            const worldEngineLeaf = this.getWorldEngineView();
-            if (worldEngineLeaf === undefined) {
+            const worldEngineView = this.getWorldEngineView();
+            if (worldEngineView === undefined) {
               Logger.error(this, "World Engine view not found, cannot update views.");
               return;
             }
-            await (worldEngineLeaf.view as WorldEngineView).displayEntity(entity);
+            await worldEngineView.displayEntity(entity);
           }
         }
       }
