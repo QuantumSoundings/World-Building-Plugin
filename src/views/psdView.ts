@@ -1,5 +1,4 @@
-import Psd from "@webtoon/psd";
-import { ButtonComponent, FileView, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
+import { FileView, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 
@@ -16,8 +15,7 @@ export class PSDView extends FileView {
   contentContainerEl: HTMLElement;
   canvasElement: HTMLCanvasElement;
   canvasContext: CanvasRenderingContext2D | null;
-  imageData: ImageData;
-  image: CanvasImageSource;
+  image: ImageBitmap;
 
   currentScale: number;
 
@@ -95,14 +93,11 @@ export class PSDView extends FileView {
   }
 
   public override async onLoadFile(file: TFile): Promise<void> {
-    const binaryContent = await this.plugin.app.vault.readBinary(file);
-    const psdFile = Psd.parse(binaryContent);
-
-    const compositeBuffer = await psdFile.composite();
-    this.imageData = new ImageData(compositeBuffer, psdFile.width, psdFile.height);
-    this.image = await createImageBitmap(this.imageData);
-
-    this.updateCanvas();
+    const image = this.plugin.psdManager.getImage(file.path);
+    if (image !== null) {
+      this.image = image;
+      this.updateCanvas();
+    }
   }
 
   private updateCanvas() {
@@ -110,8 +105,8 @@ export class PSDView extends FileView {
       // Clear old data
       this.canvasContext.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
       // Rescale our canvas and context
-      this.canvasElement.width = this.currentScale * this.imageData.width;
-      this.canvasElement.height = this.currentScale * this.imageData.height;
+      this.canvasElement.width = this.currentScale * this.image.width;
+      this.canvasElement.height = this.currentScale * this.image.height;
       this.canvasContext.scale(this.currentScale, this.currentScale);
       // Redraw our data
       this.canvasContext.drawImage(this.image, 0, 0);

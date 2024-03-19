@@ -44,6 +44,7 @@ class MapConfig {
 class CacheEntry {
   file: TAbstractFile;
   psd: Psd;
+  image: ImageBitmap | null;
 
   processedFile: TAbstractFile | null;
   processedData: MapData;
@@ -165,6 +166,14 @@ export class PSDManager {
     return { success: false, error: new BaseError("Country not found.") };
   }
 
+  public getImage(fullPath: string) {
+    const entry = this.psdMap.get(fullPath);
+    if (entry === undefined) {
+      return null;
+    }
+    return entry.image;
+  }
+
   public async reprocessAllMaps() {
     Logger.debug(this, "Reprocessing found PSD files.");
     for (const [, entry] of this.psdMap) {
@@ -235,6 +244,10 @@ export class PSDManager {
     if (force || needsRecalculation) {
       await this.processLayerData(entry);
     }
+
+    const compositeBuffer = await entry.psd.composite();
+    const imageData = new ImageData(compositeBuffer, entry.psd.width, entry.psd.height);
+    entry.image = await createImageBitmap(imageData);
 
     this.updateEntryConfig(entry);
 
