@@ -78,21 +78,12 @@ export class PSDView extends FileView {
     return PSD_VIEW;
   }
 
-  public override getDisplayText() {
-    if (this.file !== null) {
-      return this.file.name;
-    }
-    return "Unknown file";
-  }
-
-  public override async onOpen() {}
-  public override async onClose() {}
-
   public override getIcon(): string {
     return "file-image";
   }
 
   public override async onLoadFile(file: TFile): Promise<void> {
+    super.onLoadFile(file);
     const image = this.plugin.psdManager.getImage(file.path);
     if (image !== null) {
       this.image = image;
