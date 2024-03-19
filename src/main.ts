@@ -15,6 +15,7 @@ import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings
 import { CSVUtils } from "./util/csv";
 import { UserOverrideData } from "./dataManagers/userOverrideData";
 import { WORLD_ENGINE_VIEW, WorldEngineView } from "./views/worldEngineView";
+import { PSDView, PSD_VIEW } from "./views/psdView";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -64,9 +65,13 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerView(WORLD_ENGINE_VIEW, (leaf) => {
       return new WorldEngineView(leaf, this);
     });
+    this.registerView(PSD_VIEW, (leaf) => {
+      return new PSDView(leaf, this);
+    });
     this.addRibbonIcons();
     this.createWorldEngineLeaf();
     this.registerExtensions(["csv"], CSV_VIEW);
+    this.registerExtensions(["psd"], PSD_VIEW);
     this.registerCommands();
     this.registerCodeBlockProcessors();
     this.registerEventHandlers();
