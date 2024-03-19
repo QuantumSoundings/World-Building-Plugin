@@ -4,6 +4,11 @@ import { Logger } from "src/util/Logger";
 
 export const PSD_VIEW = "psd-view";
 const ZOOM_STEP = 0.05;
+
+type PersistState = {
+  zoom: number;
+};
+
 export class PSDView extends FileView {
   plugin: WorldBuildingPlugin;
 
@@ -18,6 +23,7 @@ export class PSDView extends FileView {
   image: ImageBitmap;
 
   currentScale: number;
+  loadingFile: boolean;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorldBuildingPlugin) {
     super(leaf);
@@ -38,6 +44,7 @@ export class PSDView extends FileView {
       Logger.warn(this, "Failed to get 2d context for canvas");
     }
 
+    this.loadingFile = false;
     this.currentScale = 1;
 
     this.zoomSetting = new Setting(this.controlsContainerElement).setName("Zoom Level: 1.0").addSlider((slider) => {
@@ -45,6 +52,9 @@ export class PSDView extends FileView {
       this.zoomSlider.setLimits(0.05, 2, ZOOM_STEP);
       this.zoomSlider.setValue(this.currentScale);
       this.zoomSlider.onChange((value) => {
+        if (this.loadingFile) {
+          return;
+        }
         this.zoomSetting.setName(`Zoom Level: ${value}`);
         this.currentScale = value;
         this.updateCanvas();
@@ -53,6 +63,9 @@ export class PSDView extends FileView {
 
     // When we detect a scroll event with control help, update our scale and the canvas.
     this.contentContainerEl.addEventListener("wheel", (event) => {
+      if (this.loadingFile) {
+        return;
+      }
       if (event.ctrlKey) {
         event.preventDefault();
         if (event.deltaY < 0) {
@@ -84,11 +97,28 @@ export class PSDView extends FileView {
 
   public override async onLoadFile(file: TFile): Promise<void> {
     super.onLoadFile(file);
+    this.loadingFile = true;
+    const storageItem = localStorage.getItem(file.path);
+    if (storageItem !== null) {
+      const storage: PersistState = JSON.parse(storageItem);
+      this.currentScale = storage.zoom;
+      this.zoomSlider.setValue(this.currentScale);
+      this.zoomSetting.setName(`Zoom Level: ${this.currentScale}`);
+    }
     const image = this.plugin.psdManager.getImage(file.path);
     if (image !== null) {
       this.image = image;
       this.updateCanvas();
     }
+    this.loadingFile = false;
+  }
+
+  public override async onUnloadFile(file: TFile): Promise<void> {
+    const storage: PersistState = {
+      zoom: this.currentScale,
+    };
+    localStorage.setItem(file.path, JSON.stringify(storage));
+    super.onUnloadFile(file);
   }
 
   private updateCanvas() {
