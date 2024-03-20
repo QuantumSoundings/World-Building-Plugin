@@ -3,7 +3,8 @@ import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 
 export const PSD_VIEW = "psd-view";
-const ZOOM_STEP = 0.05;
+const ZOOM_STEP_CTRL = 5;
+const ZOOM_STEP_SHIFT_CTRL = 1;
 
 type PersistState = {
   zoom: number;
@@ -45,45 +46,64 @@ export class PSDView extends FileView {
     }
 
     this.loadingFile = false;
-    this.currentScale = 1;
+    this.currentScale = 100;
 
-    this.zoomSetting = new Setting(this.controlsContainerElement).setName("Zoom Level: 1.0").addSlider((slider) => {
-      this.zoomSlider = slider;
-      this.zoomSlider.setLimits(0.05, 2, ZOOM_STEP);
-      this.zoomSlider.setValue(this.currentScale);
-      this.zoomSlider.onChange((value) => {
-        if (this.loadingFile) {
-          return;
-        }
-        this.zoomSetting.setName(`Zoom Level: ${value}`);
-        this.currentScale = value;
-        this.updateCanvas();
+    this.zoomSetting = new Setting(this.controlsContainerElement)
+      .setName(`Zoom Level: ${this.currentScale}%`)
+      .addSlider((slider) => {
+        this.zoomSlider = slider;
+        this.zoomSlider.setLimits(1, 200, ZOOM_STEP_CTRL);
+        this.zoomSlider.setValue(this.currentScale);
+        this.zoomSlider.onChange((value) => {
+          if (this.loadingFile) {
+            return;
+          }
+          this.currentScale = value;
+          this.zoomSetting.setName(`Zoom Level: ${this.currentScale}%`);
+          this.updateCanvas();
+        });
       });
-    });
 
     // When we detect a scroll event with control help, update our scale and the canvas.
     this.contentContainerEl.addEventListener("wheel", (event) => {
       if (this.loadingFile) {
         return;
       }
-      if (event.ctrlKey) {
-        event.preventDefault();
+      if (event.shiftKey && event.ctrlKey) {
         if (event.deltaY < 0) {
-          if (this.currentScale < 2) {
-            this.currentScale += ZOOM_STEP;
-            this.updateCanvas();
-            this.zoomSlider.setValue(this.currentScale);
-            this.zoomSetting.setName(`Zoom Level: ${this.currentScale}`);
+          if (this.currentScale < 200) {
+            this.currentScale += ZOOM_STEP_SHIFT_CTRL;
+          } else {
+            this.currentScale = 200;
           }
         } else {
-          if (this.currentScale > 0.05) {
-            this.currentScale -= ZOOM_STEP;
-            this.updateCanvas();
-            this.zoomSlider.setValue(this.currentScale);
-            this.zoomSetting.setName(`Zoom Level: ${this.currentScale}`);
+          if (this.currentScale > 5) {
+            this.currentScale -= ZOOM_STEP_SHIFT_CTRL;
+          } else {
+            this.currentScale = 1;
           }
         }
+      } else if (event.ctrlKey) {
+        event.preventDefault();
+        if (event.deltaY < 0) {
+          if (this.currentScale < 200) {
+            this.currentScale += ZOOM_STEP_CTRL;
+          } else {
+            this.currentScale = 200;
+          }
+        } else {
+          if (this.currentScale > 5) {
+            this.currentScale -= ZOOM_STEP_CTRL;
+          } else {
+            this.currentScale = 1;
+          }
+        }
+      } else {
+        return;
       }
+
+      this.updateZoomSlider();
+      this.updateCanvas();
     });
   }
 
@@ -101,9 +121,12 @@ export class PSDView extends FileView {
     const storageItem = localStorage.getItem(file.path);
     if (storageItem !== null) {
       const storage: PersistState = JSON.parse(storageItem);
+      if (storage.zoom < 1) {
+        storage.zoom *= 100;
+        storage.zoom = Math.round(storage.zoom);
+      }
       this.currentScale = storage.zoom;
-      this.zoomSlider.setValue(this.currentScale);
-      this.zoomSetting.setName(`Zoom Level: ${this.currentScale}`);
+      this.updateZoomSlider();
     }
     const image = this.plugin.psdManager.getImage(file.path);
     if (image !== null) {
@@ -121,20 +144,26 @@ export class PSDView extends FileView {
     super.onUnloadFile(file);
   }
 
+  public override canAcceptExtension(extension: string): boolean {
+    return extension === "psd";
+  }
+
   private updateCanvas() {
     if (this.canvasContext !== null) {
+      const scale = this.currentScale / 100;
       // Clear old data
       this.canvasContext.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
       // Rescale our canvas and context
-      this.canvasElement.width = this.currentScale * this.image.width;
-      this.canvasElement.height = this.currentScale * this.image.height;
-      this.canvasContext.scale(this.currentScale, this.currentScale);
+      this.canvasElement.width = scale * this.image.width;
+      this.canvasElement.height = scale * this.image.height;
+      this.canvasContext.scale(scale, scale);
       // Redraw our data
       this.canvasContext.drawImage(this.image, 0, 0);
     }
   }
 
-  public override canAcceptExtension(extension: string): boolean {
-    return extension === "psd";
+  private updateZoomSlider() {
+    this.zoomSlider.setValue(this.currentScale);
+    this.zoomSetting.setName(`Zoom Level: ${this.currentScale}%`);
   }
 }
