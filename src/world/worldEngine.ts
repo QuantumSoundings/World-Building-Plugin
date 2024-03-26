@@ -40,11 +40,12 @@ export class WorldEngine {
       }
     };
     const onFileModify = async (file: TAbstractFile) => {
+      const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(file.path);
+      const validEntity = this.isValidEntity(frontMatter);
+      if (!validEntity) return;
+
       const entity = this.entities.get(file.path);
       if (entity !== undefined) {
-        const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(file.path);
-        if (!this.isValidEntity(frontMatter)) return;
-
         const worldEngineView = this.plugin.getWorldEngineView();
         const entityMatches = worldEngineView !== undefined && worldEngineView.getCurrentEntity() === entity;
         if (frontMatter["wbMeta"].type === entity.configuration.wbMeta.type) {
@@ -62,6 +63,8 @@ export class WorldEngine {
             }
           }
         }
+      } else {
+        await this.createEntity(file);
       }
     };
     this.plugin.registerEvent(this.plugin.app.vault.on("delete", onFileDeletion));
