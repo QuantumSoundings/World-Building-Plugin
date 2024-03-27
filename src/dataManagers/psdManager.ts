@@ -239,6 +239,8 @@ export class PSDManager {
         // Need to recalculate the map data, as it is newer than the processed map.
         needsRecalculation = true;
       }
+    } else {
+      needsRecalculation = true;
     }
 
     if (force || needsRecalculation) {
@@ -255,45 +257,14 @@ export class PSDManager {
   }
 
   private async processLayerData(entry: CacheEntry) {
-    let baseCompositeLayer: CompositeLayer = new CompositeLayer();
-    const politicalCompositeLayers: CompositeLayer[] = [];
-
-    // Get the needed composite layers from the PSD.
-    for (const node of entry.psd.children) {
-      if (node.type === "Group") {
-        switch (node.name) {
-          case "Topography": {
-            const baseLayer = PSDUtils.getBaseLayer(node);
-            if (baseLayer !== undefined) {
-              baseCompositeLayer = await PSDUtils.layerToCompositeLayer(baseLayer);
-            } else {
-              Logger.warn(this, "No base layer found.");
-              return;
-            }
-            break;
-          }
-          case "Political": {
-            const politicalLayers = PSDUtils.getPoliticalLayers(node);
-            if (politicalLayers.length === 0) {
-              Logger.warn(this, "No political layers found.");
-              return;
-            }
-            for (const politicalLayer of politicalLayers) {
-              const compositeLayer = await PSDUtils.layerToCompositeLayer(politicalLayer);
-              politicalCompositeLayers.push(compositeLayer);
-            }
-            break;
-          }
-        }
-      }
-    }
+    const groupedLayers = await PSDUtils.getGroupedLayers(entry.psd);
 
     entry.processedData.countryData = [];
-    for (const politicalLayer of politicalCompositeLayers) {
+    for (const politicalLayer of groupedLayers.politicalLayers) {
       const countryData = new CountryData();
       countryData.name = politicalLayer.layer.name;
       countryData.rawPixelCount = await PSDUtils.findLayerIntersection(
-        baseCompositeLayer,
+        groupedLayers.baseLayer,
         politicalLayer,
         entry.psd.width,
         entry.psd.height
@@ -301,6 +272,10 @@ export class PSDManager {
       countryData.percentOfTotalMapArea = countryData.rawPixelCount / entry.processedData.pixelTotal;
       entry.processedData.countryData.push(countryData);
     }
+    const sortBySize = (a: CountryData, b: CountryData) => {
+      return b.rawPixelCount - a.rawPixelCount;
+    };
+    entry.processedData.countryData.sort(sortBySize);
   }
 
   private async writeProcessedMapData(entry: CacheEntry) {

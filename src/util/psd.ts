@@ -1,10 +1,21 @@
-import { Layer, NodeChild } from "@webtoon/psd";
+import Psd, { Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
 
 export class CompositeLayer {
   layer: Layer;
   composite: Uint8ClampedArray;
 }
+
+export class GroupedLayers {
+  baseLayer: CompositeLayer;
+  politicalLayers: CompositeLayer[] = [];
+  pointsOfInterestLayers: CompositeLayer[] = [];
+}
+
+const BASE_LAYER_NAME = "Base";
+const TOPOGRAPHY_GROUP_NAME = "Topography";
+const POLITICAL_GROUP_NAME = "Political";
+const POINTS_OF_INTEREST_GROUP_NAME = "Points of Interest";
 
 export class PSDUtils {
   public static async layerToCompositeLayer(layer: Layer): Promise<CompositeLayer> {
@@ -15,37 +26,20 @@ export class PSDUtils {
     return compositeLayer;
   }
 
-  // Pass in the topography group then get the base layer.
-  public static getBaseLayer(topographyGroupNode: NodeChild): Layer | undefined {
-    if (topographyGroupNode.children === undefined) {
-      Logger.warn(this, "Topography group node has no children.");
-      return undefined;
-    }
-
-    for (const node of topographyGroupNode.children) {
-      if (node.type === "Layer" && node.name === "Base") {
-        return node as Layer;
+  public static async getGroupedLayers(psd: Psd) {
+    const groupedLayers = new GroupedLayers();
+    for (const layer of psd.layers) {
+      if (layer.name === BASE_LAYER_NAME && layer.parent.name === TOPOGRAPHY_GROUP_NAME) {
+        groupedLayers.baseLayer = await this.layerToCompositeLayer(layer);
+      } else if (layer.parent.name === POLITICAL_GROUP_NAME) {
+        const compositeLayer = await this.layerToCompositeLayer(layer);
+        groupedLayers.politicalLayers.push(compositeLayer);
+      } else if (layer.parent.name === POINTS_OF_INTEREST_GROUP_NAME) {
+        const compositeLayer = await this.layerToCompositeLayer(layer);
+        groupedLayers.pointsOfInterestLayers.push(compositeLayer);
       }
     }
-
-    Logger.warn(this, "Topography group node has no base layer.");
-    return undefined;
-  }
-
-  // Pass in the political group then get the political layers.
-  public static getPoliticalLayers(politicalGroupNode: NodeChild): Layer[] {
-    if (politicalGroupNode.children === undefined) {
-      Logger.warn(this, "Political group node has no children.");
-      return [];
-    }
-
-    const politicalLayers: Layer[] = [];
-    for (const node of politicalGroupNode.children) {
-      if (node.type === "Layer") {
-        politicalLayers.push(node as Layer);
-      }
-    }
-    return politicalLayers;
+    return groupedLayers;
   }
 
   // Not quite perfect. But good enough for now.
