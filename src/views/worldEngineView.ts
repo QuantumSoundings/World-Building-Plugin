@@ -84,6 +84,8 @@ export class WorldEngineView extends ItemView {
     if (entity instanceof SovereignEntity) {
       this.entityTitleEl.setText(ENTITY + entity.configuration.name);
       sovereignEntityGeneratedStats(entity, this.contentContainerEl);
+      const spacer = this.contentContainerEl.createEl("div");
+      spacer.setCssStyles({ marginBottom: "25px" });
       this.currentEntity = entity;
     }
   }

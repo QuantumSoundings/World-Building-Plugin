@@ -1,5 +1,15 @@
 import WorldBuildingPlugin from "./main";
 
+/**
+ * Adding New Datasets.
+ * 1. Create a new class for the dataset entries.
+ * 2. Add a new import statement for the dataset file.
+ * 3. Add a new constant for the dataset.
+ * 4. Add a line to save the default data.
+ * 5. Make this data available in the UserOverrideData.
+ * 6. Use the data!
+ */
+
 // CSV Classes that can be loaded easily
 export class PopulationDensity {
   descriptor: string;
@@ -127,6 +137,20 @@ export class TravelMethod {
   }
 }
 
+export class TalentRank {
+  rank: string;
+  perMillionPeople: number;
+  constructor(data: string[] | TalentRank | null) {
+    if (data instanceof TalentRank) {
+      this.rank = data.rank;
+      this.perMillionPeople = data.perMillionPeople;
+    } else if (data instanceof Array) {
+      this.rank = data[0];
+      this.perMillionPeople = parseFloat(data[1]);
+    }
+  }
+}
+
 export class ConversionFactor {
   toUnit: string;
   factor: number;
@@ -167,6 +191,7 @@ import populationDensityDataBase64 from "../resources/Datasets/Population Densit
 import professionDataBase64 from "../resources/Datasets/Professions.csv";
 import settlementTypeDataBase64 from "../resources/Datasets/Settlement Types.csv";
 import travelMethodDataBase64 from "../resources/Datasets/Travel Methods.csv";
+import talentDataBase64 from "../resources/Datasets/Talent Ranks.csv";
 
 // CSV Data Files
 export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.csvParse(atob(firstNameDataBase64), true).map(
@@ -193,6 +218,10 @@ export const defaultSettlementData: Readonly<SettlementType[]> = CSVUtils.csvPar
 
 export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.csvParse(atob(travelMethodDataBase64), true).map(
   (row) => new TravelMethod(row)
+);
+
+export const defaultTalentRanks: Readonly<TalentRank[]> = CSVUtils.csvParse(atob(talentDataBase64), true).map(
+  (row) => new TalentRank(row)
 );
 
 import unitConversionDataBase64 from "../resources/Datasets/Unit Conversions.yaml";
@@ -250,6 +279,10 @@ export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: strin
       header: true,
     }
   );
+
+  CSVUtils.writeCSVByPath(path + "Default Talent Ranks Data.csv", defaultTalentRanks as unknown[], plugin.app.vault, {
+    header: true,
+  });
 
   plugin.frontMatterManager.writeFile(path + "Default Unit Conversion Data.md", {
     units: defaultUnitConversionData,

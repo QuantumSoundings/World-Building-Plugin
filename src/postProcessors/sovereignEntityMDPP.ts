@@ -18,6 +18,8 @@ export function sovereignEntityGeneratedStats(sovereignEntity: SovereignEntity, 
   FormatUtils.markdownTableToHtml(el, generateSpeciesTable(sovereignEntity));
   el.createEl("h3", { text: "Languages" });
   FormatUtils.markdownTableToHtml(el, generateLanguageTable(sovereignEntity));
+  el.createEl("h2", { text: "Talent Ranks" });
+  FormatUtils.markdownTableToHtml(el, generateTalentRankTable(sovereignEntity));
 }
 
 function generateOverviewTable(sovereignEntity: SovereignEntity) {
@@ -172,4 +174,29 @@ function generateSettlementTable(sovereignEntity: SovereignEntity) {
   }
 
   return settlementTable;
+}
+
+const EXTERNAL_MANA_TAlENT = 0.25;
+const INTERNAL_MANA_TAlENT = 0.75;
+const BLESSING = 0.2718;
+
+function generateTalentRankTable(sovereignEntity: SovereignEntity) {
+  let talentTable = FormatUtils.formatRow([
+    "Rank",
+    "External Mana (Magic)",
+    "Internal Mana (Aura)",
+    "Blessing (Divine)",
+  ]);
+  talentTable += FormatUtils.formatRow(["---", "---", "---", "---"]);
+  for (const talentRank of sovereignEntity.plugin.userOverrideData.defaultData.talentRanks) {
+    const individuals = talentRank.perMillionPeople * (sovereignEntity.population / 1_000_000);
+
+    const externalManaUsers = individuals * EXTERNAL_MANA_TAlENT;
+    const internalManaUsers = individuals * INTERNAL_MANA_TAlENT;
+    const blessingUsers = individuals * BLESSING;
+
+    talentTable += FormatUtils.formatRow([talentRank.rank, externalManaUsers, internalManaUsers, blessingUsers]);
+  }
+
+  return talentTable;
 }

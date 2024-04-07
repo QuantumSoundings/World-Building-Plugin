@@ -8,6 +8,7 @@ import {
   defaultPopulationDensityData,
   defaultProfessionData,
   defaultSettlementData,
+  defaultTalentRanks,
   defaultTravelMethods,
   defaultUnitConversionData,
 } from "src/defaultData";
@@ -22,6 +23,8 @@ export class UserOverrideData {
     professionData: defaultProfessionData,
     settlementTypeData: defaultSettlementData,
     travelMethods: defaultTravelMethods,
+    talentRanks: defaultTalentRanks,
+    unitConversions: defaultUnitConversionData,
   };
 
   plugin: WorldBuildingPlugin;
