@@ -2,9 +2,18 @@ import WorldBuildingPlugin from "src/main";
 import { SovereignEntity } from "./sovereignEntity";
 import { TAbstractFile } from "obsidian";
 import { SettlementEntity } from "./settlementEntity";
+import { Logger } from "src/util/Logger";
 
 export interface BaseEntity {
   plugin: WorldBuildingPlugin;
+  filePath: string;
+}
+
+export interface MapEntity {
+  xPos: number;
+  yPos: number;
+  type: string;
+  name: string;
   filePath: string;
 }
 
@@ -80,6 +89,25 @@ export class WorldEngine {
     return entity;
   }
 
+  public getEntitiesForMap(mapName: string): MapEntity[] {
+    const output: MapEntity[] = [];
+    for (const entity of this.entities.values()) {
+      if ("map" in entity.configuration) {
+        const mapInfo = entity.configuration.map;
+        if (mapInfo.name === mapName) {
+          output.push({
+            xPos: mapInfo.xPos,
+            yPos: mapInfo.yPos,
+            type: entity.configuration.wbMeta.type,
+            filePath: entity.filePath,
+            name: entity.configuration.name,
+          });
+        }
+      }
+    }
+    return output;
+  }
+
   private isValidEntity(frontMatter: any): boolean {
     if (frontMatter === null || frontMatter === undefined) return false;
     if (!frontMatter.hasOwnProperty("wbMeta")) return false;
@@ -90,16 +118,24 @@ export class WorldEngine {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
     if (!this.isValidEntity(frontMatter)) return;
 
+    let entity: WorldEngineEntity;
     switch (frontMatter["wbMeta"].type) {
       case "sovereignEntity": {
-        const entity = new SovereignEntity(this.plugin, frontMatter);
-        entity.filePath = file.path;
-        this.entities.set(file.path, entity);
+        entity = new SovereignEntity(this.plugin, frontMatter);
+
         break;
       }
       case "settlementEntity": {
+        entity = new SettlementEntity(this.plugin, frontMatter);
         break;
       }
+      default: {
+        Logger.error(this, "Unknown entity type: " + frontMatter["wbMeta"].type);
+        return;
+      }
     }
+
+    entity.filePath = file.path;
+    this.entities.set(file.path, entity);
   }
 }

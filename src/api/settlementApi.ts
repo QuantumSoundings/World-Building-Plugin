@@ -3,12 +3,6 @@ import WorldBuildingPlugin from "src/main";
 import { FormatUtils } from "src/util/format";
 import { Logger } from "src/util/Logger";
 
-export class Settlement {
-  type: string;
-  name: string;
-  population: number;
-}
-
 export class SettlementAPI {
   plugin: WorldBuildingPlugin;
 
@@ -20,23 +14,23 @@ export class SettlementAPI {
     return this.plugin.userOverrideData.settlementTypeData.find((settlement) => settlement.type === type);
   }
 
-  generateSettlement(type: string): Settlement | undefined {
-    const settlementData = this.findSettlementDataByType(type);
+  generateSettlementPopulation(settlementType: string, populationScale: number): number | undefined {
+    const settlementData = this.findSettlementDataByType(settlementType);
     if (settlementData === undefined) {
-      Logger.error(this, "Could not find settlement data for type: " + type);
-      return undefined;
+      Logger.error(this, "Could not find settlement data for type: " + settlementType);
+      return 0;
     }
-    const settlement = new Settlement();
-    settlement.type = settlementData.type;
-    //settlement.name = this.generateName(settlementData);
-    settlement.population = this.generatePopulation(settlementData);
-    return settlement;
+    return this.generatePopulation(settlementData, populationScale);
   }
 
-  private generatePopulation(settlementData: SettlementType): number {
+  private generatePopulation(settlementData: SettlementType, populationScale: number): number {
     switch (settlementData.distributionType) {
       case "gaussian":
-        return FormatUtils.generateGaussianValue(settlementData.minPopulation, settlementData.maxPopulation, 1.0);
+        return FormatUtils.generateGaussianValue(
+          settlementData.minPopulation,
+          settlementData.maxPopulation,
+          populationScale
+        );
       default:
         return NaN;
     }

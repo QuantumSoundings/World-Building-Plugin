@@ -1,8 +1,10 @@
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
-import { sovereignEntityGeneratedStats } from "src/postProcessors/sovereignEntityMDPP";
 import { SovereignEntity } from "src/world/sovereignEntity";
 import { WorldEngineEntity } from "src/world/worldEngine";
+import { generateSovereignEntityView } from "./generators/sovereignEntityView";
+import { SettlementEntity } from "src/world/settlementEntity";
+import { generateSettlementEntityView } from "./generators/settlementEntityView";
 
 export const WORLD_ENGINE_VIEW = "world-engine-view";
 
@@ -35,6 +37,7 @@ export class WorldEngineView extends ItemView {
     this.plugin = plugin;
     this.navigation = true;
     this.paused = false;
+
     const container = this.containerEl.children[1];
     container.empty();
     // Overall container for the view.
@@ -45,7 +48,7 @@ export class WorldEngineView extends ItemView {
     this.titleEl = this.headerContainerEl.createEl("h1", { text: "World Engine" });
     this.statusEl = this.headerContainerEl.createEl("h2", { text: RUNNING });
     this.entityTitleEl = this.headerContainerEl.createEl("h2", { text: NO_ENTITY });
-    this.entityLinkEl = this.addAction("globe", "Open Entity Note", (event: MouseEvent) => {
+    this.entityLinkEl = this.addAction("globe", "Open Entity Note", () => {
       if (this.currentEntity === undefined) return;
       const file = this.plugin.app.vault.getAbstractFileByPath(this.currentEntity.filePath);
       if (file !== null && file instanceof TFile) {
@@ -80,14 +83,17 @@ export class WorldEngineView extends ItemView {
       return;
     }
     this.contentContainerEl.empty();
+    this.entityTitleEl.setText(ENTITY + entity.configuration.name);
 
     if (entity instanceof SovereignEntity) {
-      this.entityTitleEl.setText(ENTITY + entity.configuration.name);
-      sovereignEntityGeneratedStats(entity, this.contentContainerEl);
-      const spacer = this.contentContainerEl.createEl("div");
-      spacer.setCssStyles({ marginBottom: "25px" });
-      this.currentEntity = entity;
+      generateSovereignEntityView(entity, this.contentContainerEl);
+    } else if (entity instanceof SettlementEntity) {
+      generateSettlementEntityView(entity, this.contentContainerEl);
     }
+
+    this.currentEntity = entity;
+    const spacer = this.contentContainerEl.createEl("div");
+    spacer.setCssStyles({ marginBottom: "25px" });
   }
 
   public getCurrentEntity() {

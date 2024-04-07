@@ -1,19 +1,35 @@
 # Represents a settlement of people. A town, city, village, etc.
-
 name: Settlement Name
 
 demographics:
-  population: 0
-  # Used to override the
-  overrides:
-    culturalOrigin: English
+  # Should be a type defined in you settlement types dataset.
+  settlementType: Town
+  # A number between 0 and 1 representing where the settlement falls in the distribution of the settlement type.
+  # 0.5 is the average size for that settlement type.
+  populationScale: 0.5
 
-politics:
+map:
+  # Map name and extension. Should match the MapConfig name.
+  name:
+  # The position of the settlement on the map.
+  xPos: 0
+  yPos: 0
+
+# How this entity connects with others.
+relations:
+  # Should be a entity type supported by the world engine. Normally a settlement will be a child of a territory or a sovereign entity directly.
+  parentEntity: Sovereign Entity Name
+  # Can be a person or organization.
   rulingParty: Mayor
-  parentTerritory: None
-  parentSovereignEntity: None
+
+# Some things should be inherited from parent entities and some things can be overridden.
+overrides:
+  # Override the default culture settings.
+  culture:
+    firstNameOrigin: English
+    lastNameOrigin: English
 
 wbMeta:
-  type: settlement
+  type: settlementEntity
   version: 0.0.1
   id: GEN

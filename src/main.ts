@@ -6,7 +6,6 @@ import { CSVView, CSV_VIEW } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
-import { sovereignEntityGeneratedStats } from "./postProcessors/sovereignEntityMDPP";
 import { exportDefaultData } from "./defaultData";
 import { WorldEngine } from "./world/worldEngine";
 import { FrontMatterManager } from "./dataManagers/frontMatterManager";
@@ -16,6 +15,7 @@ import { CSVUtils } from "./util/csv";
 import { UserOverrideData } from "./dataManagers/userOverrideData";
 import { WORLD_ENGINE_VIEW, WorldEngineView } from "./views/worldEngineView";
 import { PSDView, PSD_VIEW } from "./views/psdView";
+import { generateSovereignEntityView } from "./views/generators/sovereignEntityView";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -302,7 +302,7 @@ export default class WorldBuildingPlugin extends Plugin {
         return;
       }
       if (sovereignEntity instanceof SovereignEntity) {
-        sovereignEntityGeneratedStats(sovereignEntity, el);
+        generateSovereignEntityView(sovereignEntity, el);
       }
     });
   }

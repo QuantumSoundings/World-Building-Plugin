@@ -2,7 +2,7 @@ import { FormatUtils } from "src/util/format";
 import { Logger } from "src/util/Logger";
 import { SovereignEntity } from "src/world/sovereignEntity";
 
-export function sovereignEntityGeneratedStats(sovereignEntity: SovereignEntity, el: HTMLElement): void {
+export function generateSovereignEntityView(sovereignEntity: SovereignEntity, el: HTMLElement): void {
   el.createEl("h1", { text: "Generated Statistics" });
   el.createEl("h2", { text: "Overview" });
   FormatUtils.markdownTableToHtml(el, generateOverviewTable(sovereignEntity));
