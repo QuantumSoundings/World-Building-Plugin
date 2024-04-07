@@ -14,12 +14,6 @@ export class Datasets {
   settlements: string;
 }
 
-export class MapInfo {
-  name: string;
-  xPos: number;
-  yPos: number;
-}
-
 export interface BaseConfiguration {
   name: string;
 }

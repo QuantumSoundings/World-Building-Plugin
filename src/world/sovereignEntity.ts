@@ -5,6 +5,7 @@ import { UnitUtils } from "src/util/unit";
 import { BaseEntity } from "./worldEngine";
 
 export class SovereignEntity implements BaseEntity {
+  name: string;
   plugin: WorldBuildingPlugin;
   filePath: string;
   configuration: SovereignEntityConfiguration;

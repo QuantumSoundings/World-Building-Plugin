@@ -1,5 +1,5 @@
 import { Logger } from "src/util/Logger";
-import { BaseConfiguration, MapInfo, WBMetaData } from "./sharedConfiguration";
+import { BaseConfiguration, WBMetaData } from "./sharedConfiguration";
 
 export class SettlementEntityConfiguration implements BaseConfiguration {
   name: string;
@@ -9,7 +9,11 @@ export class SettlementEntityConfiguration implements BaseConfiguration {
     populationScale: number;
   };
 
-  map: MapInfo;
+  map: {
+    name: string;
+    relX: number;
+    relY: number;
+  };
 
   relations: {
     parentEntity: string;
@@ -46,7 +50,11 @@ export class SettlementEntityConfiguration implements BaseConfiguration {
           settlementType: fm.demographics.settlementType,
           populationScale: fm.demographics.populationScale,
         };
-        this.map = fm.map;
+        this.map = {
+          name: fm.map.name,
+          relX: fm.map.relX,
+          relY: fm.map.relY,
+        };
         this.relations = {
           parentEntity: fm.relations.parentEntity,
           rulingParty: fm.relations.rulingParty,

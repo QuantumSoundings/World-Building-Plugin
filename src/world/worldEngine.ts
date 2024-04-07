@@ -5,17 +5,21 @@ import { SettlementEntity } from "./settlementEntity";
 import { Logger } from "src/util/Logger";
 
 export interface BaseEntity {
+  name: string;
   plugin: WorldBuildingPlugin;
   filePath: string;
 }
 
 export interface MapEntity {
-  xPos: number;
-  yPos: number;
-  type: string;
-  name: string;
-  filePath: string;
+  map: {
+    name: string;
+    relX: number;
+    relY: number;
+    type: string;
+  };
 }
+
+export type MappableEntity = BaseEntity & MapEntity;
 
 export type WorldEngineEntity = SovereignEntity | SettlementEntity;
 
@@ -89,19 +93,12 @@ export class WorldEngine {
     return entity;
   }
 
-  public getEntitiesForMap(mapName: string): MapEntity[] {
-    const output: MapEntity[] = [];
+  public getEntitiesForMap(mapName: string): MappableEntity[] {
+    const output: MappableEntity[] = [];
     for (const entity of this.entities.values()) {
-      if ("map" in entity.configuration) {
-        const mapInfo = entity.configuration.map;
-        if (mapInfo.name === mapName) {
-          output.push({
-            xPos: mapInfo.xPos,
-            yPos: mapInfo.yPos,
-            type: entity.configuration.wbMeta.type,
-            filePath: entity.filePath,
-            name: entity.configuration.name,
-          });
+      if ("map" in entity) {
+        if (entity.map.name === mapName) {
+          output.push(entity);
         }
       }
     }

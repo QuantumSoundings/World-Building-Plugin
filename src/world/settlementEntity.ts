@@ -1,11 +1,18 @@
 import WorldBuildingPlugin from "src/main";
-import { BaseEntity } from "./worldEngine";
+import { MappableEntity } from "./worldEngine";
 import { SettlementEntityConfiguration } from "src/frontmatter/settlementEntityConfiguration";
 import { Logger } from "src/util/Logger";
 
-export class SettlementEntity implements BaseEntity {
+export class SettlementEntity implements MappableEntity {
+  name: string;
   plugin: WorldBuildingPlugin;
   filePath: string;
+  map: {
+    name: string;
+    relX: number;
+    relY: number;
+    type: string;
+  };
   configuration: SettlementEntityConfiguration;
 
   // Values calculated on update
@@ -18,7 +25,13 @@ export class SettlementEntity implements BaseEntity {
 
   public updateConfiguration(newFrontMatter: any) {
     this.configuration = new SettlementEntityConfiguration(newFrontMatter);
-
+    this.name = this.configuration.name;
+    this.map = {
+      name: this.configuration.map.name,
+      relX: this.configuration.map.relX,
+      relY: this.configuration.map.relY,
+      type: this.configuration.demographics.settlementType,
+    };
     const settlementPopulation = this.plugin
       .getSettlementAPI()
       .generateSettlementPopulation(
