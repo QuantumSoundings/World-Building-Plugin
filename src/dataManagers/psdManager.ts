@@ -21,6 +21,7 @@ class MapData {
   pixelTotal: number;
 
   countryData: CountryData[];
+  pointsOfInterest: PointOfInterest[];
 
   // Config Based Data
   configData: {
@@ -39,6 +40,14 @@ class MapConfig {
   unitWidth: number;
   unit: string;
   geometry: string;
+}
+
+export class PointOfInterest {
+  relX: number;
+  relY: number;
+  name: string;
+  type: string;
+  filePath: string;
 }
 
 class CacheEntry {
@@ -174,6 +183,14 @@ export class PSDManager {
     return entry.image;
   }
 
+  public getPointsOfInterest(fullPath: string) {
+    const entry = this.psdMap.get(fullPath);
+    if (entry === undefined) {
+      return undefined;
+    }
+    return entry.processedData.pointsOfInterest;
+  }
+
   public async reprocessAllMaps() {
     Logger.debug(this, "Reprocessing found PSD files.");
     for (const [, entry] of this.psdMap) {
@@ -258,6 +275,7 @@ export class PSDManager {
 
   private async processLayerData(entry: CacheEntry) {
     const groupedLayers = await PSDUtils.getGroupedLayers(entry.psd);
+    entry.processedData.pointsOfInterest = groupedLayers.pointsOfInterest;
 
     entry.processedData.countryData = [];
     for (const politicalLayer of groupedLayers.politicalLayers) {

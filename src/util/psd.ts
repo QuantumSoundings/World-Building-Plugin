@@ -1,5 +1,7 @@
 import Psd, { Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
+import { getIcon } from "obsidian";
+import { PointOfInterest } from "src/dataManagers/psdManager";
 
 export class CompositeLayer {
   layer: Layer;
@@ -9,7 +11,7 @@ export class CompositeLayer {
 export class GroupedLayers {
   baseLayer: CompositeLayer;
   politicalLayers: CompositeLayer[] = [];
-  pointsOfInterestLayers: CompositeLayer[] = [];
+  pointsOfInterest: PointOfInterest[] = [];
 }
 
 const BASE_LAYER_NAME = "Base";
@@ -35,8 +37,11 @@ export class PSDUtils {
         const compositeLayer = await this.layerToCompositeLayer(layer);
         groupedLayers.politicalLayers.push(compositeLayer);
       } else if (layer.parent.name === POINTS_OF_INTEREST_GROUP_NAME) {
-        const compositeLayer = await this.layerToCompositeLayer(layer);
-        groupedLayers.pointsOfInterestLayers.push(compositeLayer);
+        const poi = new PointOfInterest();
+        poi.relX = ((layer.left + (layer.left + layer.width)) / 2 / psd.width) * 100;
+        poi.relY = ((layer.top + (layer.top + layer.height)) / 2 / psd.height) * 100;
+        poi.name = layer.name;
+        groupedLayers.pointsOfInterest.push(poi);
       }
     }
     return groupedLayers;
@@ -104,5 +109,20 @@ export class PSDUtils {
     }
 
     return intersectionPixelCount;
+  }
+
+  public static iconToImage(icon: string, iconSize: number): HTMLImageElement {
+    const iconElement = getIcon(icon);
+    if (iconElement === null) {
+      Logger.error(this, `Failed to get icon: ${icon}`);
+      return new Image();
+    }
+    iconElement.setAttribute("width", `${iconSize}px`);
+    iconElement.setAttribute("height", `${iconSize}px`);
+    const xml = new XMLSerializer().serializeToString(iconElement);
+    const data = `data:image/svg+xml;base64,${btoa(xml)}`;
+    const img = new Image();
+    img.setAttribute("src", data);
+    return img;
   }
 }

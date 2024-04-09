@@ -1,6 +1,8 @@
-import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf, getIcon } from "obsidian";
+import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
+import { PointOfInterest } from "src/dataManagers/psdManager";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
+import { PSDUtils } from "src/util/psd";
 
 export const PSD_VIEW = "psd-view";
 const ZOOM_STEP_CTRL = 5;
@@ -12,25 +14,23 @@ type PersistState = {
   zoom: number;
 };
 
-interface PointOfInterest {
-  relX: number;
-  relY: number;
-  name: string;
-  type: string;
-  filePath: string;
-}
-
 export class PSDView extends FileView {
   plugin: WorldBuildingPlugin;
 
+  // View Container
   viewContainerElement: HTMLElement;
+
+  // Header
+  headerContainerElement: HTMLElement;
   controlsContainerElement: HTMLElement;
   pointOfInterestElement: HTMLElement;
-  zoomSlider: SliderComponent;
-  zoomSetting: Setting;
 
+  // Canvas
   contentContainerEl: HTMLElement;
   canvasElement: HTMLCanvasElement;
+
+  zoomSlider: SliderComponent;
+  zoomSetting: Setting;
   canvasContext: CanvasRenderingContext2D | null;
   image: ImageBitmap;
   pointsOfInterest: PointOfInterest[] = [];
@@ -50,13 +50,24 @@ export class PSDView extends FileView {
     // Overall container for the view.
     this.viewContainerElement = container.createEl("div");
     this.viewContainerElement.setCssProps({ "webkit-user-select": "text", "user-select": "text" });
-    this.controlsContainerElement = this.viewContainerElement.createEl("div");
-    this.pointOfInterestElement = this.viewContainerElement.createEl("h2", {
+    this.viewContainerElement.setCssStyles({
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "100%",
+      overflow: "clip",
+    });
+
+    this.headerContainerElement = this.viewContainerElement.createEl("div");
+    this.controlsContainerElement = this.headerContainerElement.createEl("div");
+    this.controlsContainerElement.setCssStyles({ maxWidth: "100%" });
+    this.pointOfInterestElement = this.headerContainerElement.createEl("h2", {
       text: `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.name : "None"}`,
     });
+    this.pointOfInterestElement.setCssStyles({ maxWidth: "100%" });
 
     // Content container.
     this.contentContainerEl = this.viewContainerElement.createEl("div");
+    this.contentContainerEl.setCssStyles({ maxWidth: "100%", maxHeight: "100%", overflow: "scroll" });
     this.canvasElement = this.contentContainerEl.createEl("canvas");
     this.canvasContext = this.canvasElement.getContext("2d");
     if (this.canvasContext === null) {
@@ -108,16 +119,16 @@ export class PSDView extends FileView {
       this.currentScale = storage.zoom;
       this.updateZoomSlider();
     }
-
-    // Mark any points of interest
-    this.addMapEntities();
-
-    // Load our image from the PSD manager
+    // Grab data from the psdManager
+    const psdPOIs = this.plugin.psdManager.getPointsOfInterest(file.path);
     const image = this.plugin.psdManager.getImage(file.path);
     if (image !== null) {
       this.image = image;
       this.iconSize = this.image.height / 100;
     }
+
+    // Mark any points of interest
+    this.addMapEntities(psdPOIs === undefined ? [] : psdPOIs);
 
     // Scale our icons
     this.scaleIcons();
@@ -154,20 +165,26 @@ export class PSDView extends FileView {
       for (const poi of this.pointsOfInterest) {
         const absX = this.image.width * (poi.relX / 100);
         const absY = this.image.height * (poi.relY / 100);
-        const image = this.icons.get(CITY_ICON);
-        if (image !== undefined) {
-          this.canvasContext.drawImage(image, absX - 50, absY - 50);
+        const iconImage = this.icons.get(CITY_ICON);
+        if (iconImage !== undefined) {
+          const iconOffset = this.iconSize / 2;
+          this.canvasContext.drawImage(iconImage, absX - iconOffset, absY - iconOffset);
         }
       }
     }
   }
 
-  private addMapEntities() {
+  private addMapEntities(psdPOIs: PointOfInterest[]) {
     if (this.file === null) {
       return;
     }
-    const entities = this.plugin.worldEngine.getEntitiesForMap(this.file.name);
-    for (const entity of entities) {
+    this.pointsOfInterest = [];
+    if (psdPOIs !== undefined && psdPOIs.length > 0) {
+      this.pointsOfInterest.push(...psdPOIs);
+    }
+
+    const wePOIs = this.plugin.worldEngine.getEntitiesForMap(this.file.name);
+    for (const entity of wePOIs) {
       this.pointsOfInterest.push({
         relX: entity.map.relX,
         relY: entity.map.relY,
@@ -179,7 +196,7 @@ export class PSDView extends FileView {
   }
 
   private scaleIcons() {
-    this.icons.set(CITY_ICON, this.iconToImage(CITY_ICON));
+    this.icons.set(CITY_ICON, PSDUtils.iconToImage(CITY_ICON, this.iconSize));
   }
 
   private updateZoomSlider() {
@@ -196,29 +213,16 @@ export class PSDView extends FileView {
 
   private hasCollision(relX: number, relY: number, poi: PointOfInterest) {
     const distance = Math.sqrt((relX - poi.relX) ** 2 + (relY - poi.relY) ** 2);
-    return distance <= this.iconSize / 2;
+    // Distance is with 1/200 of the image size
+    //Logger.info(this, `XPos: ${relX}, YPos: ${relY}, Distance: ${distance}`);
+    return distance <= 0.5;
   }
 
-  private toRelativePosition(xPos: number, yPos: number) {
+  private toRelativePosition(absX: number, absY: number) {
     const rect = this.canvasElement.getBoundingClientRect();
-    const relX = (xPos - rect.left) / this.currentScale;
-    const relY = (yPos - rect.top) / this.currentScale;
+    const relX = (absX - rect.left) / this.currentScale;
+    const relY = (absY - rect.top) / this.currentScale;
     return { relX, relY };
-  }
-
-  private iconToImage(icon: string): HTMLImageElement {
-    const iconElement = getIcon(icon);
-    if (iconElement === null) {
-      Logger.error(this, `Failed to get icon: ${icon}`);
-      return new Image();
-    }
-    iconElement.setAttribute("width", `${this.iconSize}px`);
-    iconElement.setAttribute("height", `${this.iconSize}px`);
-    const xml = new XMLSerializer().serializeToString(iconElement);
-    const data = `data:image/svg+xml;base64,${btoa(xml)}`;
-    const img = new Image();
-    img.setAttribute("src", data);
-    return img;
   }
 
   private onWheelUpdate(event: WheelEvent) {
