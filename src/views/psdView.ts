@@ -14,6 +14,10 @@ type PersistState = {
   zoom: number;
 };
 
+/**
+ * Relative Positions are stored as percentages of the image size. In the range [0, 1]
+ */
+
 export class PSDView extends FileView {
   plugin: WorldBuildingPlugin;
 
@@ -112,10 +116,6 @@ export class PSDView extends FileView {
     const storageItem = localStorage.getItem(file.path);
     if (storageItem !== null) {
       const storage: PersistState = JSON.parse(storageItem);
-      if (storage.zoom < 1) {
-        storage.zoom *= 100;
-        storage.zoom = Math.round(storage.zoom);
-      }
       this.currentScale = storage.zoom;
       this.updateZoomSlider();
     }
@@ -163,8 +163,8 @@ export class PSDView extends FileView {
 
       // Draw points of interest
       for (const poi of this.pointsOfInterest) {
-        const absX = this.image.width * (poi.relX / 100);
-        const absY = this.image.height * (poi.relY / 100);
+        const absX = this.image.width * poi.relX;
+        const absY = this.image.height * poi.relY;
         const iconImage = this.icons.get(CITY_ICON);
         if (iconImage !== undefined) {
           const iconOffset = this.iconSize / 2;
@@ -215,13 +215,13 @@ export class PSDView extends FileView {
     const distance = Math.sqrt((relX - poi.relX) ** 2 + (relY - poi.relY) ** 2);
     // Distance is with 1/200 of the image size
     //Logger.info(this, `XPos: ${relX}, YPos: ${relY}, Distance: ${distance}`);
-    return distance <= 0.5;
+    return distance <= 0.005;
   }
 
   private toRelativePosition(absX: number, absY: number) {
     const rect = this.canvasElement.getBoundingClientRect();
-    const relX = (absX - rect.left) / this.currentScale;
-    const relY = (absY - rect.top) / this.currentScale;
+    const relX = (absX - rect.left) / rect.width;
+    const relY = (absY - rect.top) / rect.height;
     return { relX, relY };
   }
 

@@ -38,8 +38,8 @@ export class PSDUtils {
         groupedLayers.politicalLayers.push(compositeLayer);
       } else if (layer.parent.name === POINTS_OF_INTEREST_GROUP_NAME) {
         const poi = new PointOfInterest();
-        poi.relX = ((layer.left + (layer.left + layer.width)) / 2 / psd.width) * 100;
-        poi.relY = ((layer.top + (layer.top + layer.height)) / 2 / psd.height) * 100;
+        poi.relX = (layer.left + layer.width / 2) / psd.width;
+        poi.relY = (layer.top + layer.height / 2) / psd.height;
         poi.name = layer.name;
         groupedLayers.pointsOfInterest.push(poi);
       }
