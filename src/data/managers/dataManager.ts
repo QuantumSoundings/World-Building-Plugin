@@ -11,11 +11,12 @@ import {
   defaultTalentRanks,
   defaultTravelMethods,
   defaultUnitConversionData,
-} from "src/defaultData";
+} from "src/data/defaultData";
 import WorldBuildingPlugin from "src/main";
 import { CSVUtils } from "src/util/csv";
+import { DataUtils } from "../dataUtils";
 
-export class UserOverrideData {
+export class DataManager {
   readonly defaultData = {
     firstNameData: defaultFirstNameData,
     lastNameData: defaultLastNameData,
@@ -40,6 +41,7 @@ export class UserOverrideData {
     await this.loadUnitData();
     await this.loadPopulationDensityData();
     await this.loadSettlementTypeData();
+    DataUtils.setPlugin(this.plugin);
   }
 
   public registerEventCallbacks() {

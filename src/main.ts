@@ -1,18 +1,16 @@
 import { MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
-import { SettlementAPI } from "./api/settlementApi";
-import { PopulationAPI } from "./api/populationApi";
-import { PSDManager } from "./dataManagers/psdManager";
+import { PSDManager } from "./data/managers/psdManager";
 import { CSVView, CSV_VIEW } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
-import { exportDefaultData } from "./defaultData";
+import { exportDefaultData } from "./data/defaultData";
 import { WorldEngine } from "./world/worldEngine";
-import { FrontMatterManager } from "./dataManagers/frontMatterManager";
+import { FrontMatterManager } from "./data/managers/frontMatterManager";
 import { SovereignEntity } from "./world/sovereignEntity";
 import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings/pluginSettings";
 import { CSVUtils } from "./util/csv";
-import { UserOverrideData } from "./dataManagers/userOverrideData";
+import { DataManager } from "./data/managers/dataManager";
 import { WORLD_ENGINE_VIEW, WorldEngineView } from "./views/worldEngineView";
 import { PSDView, PSD_VIEW } from "./views/psdView";
 import { generateSovereignEntityView } from "./views/generators/sovereignEntityView";
@@ -21,12 +19,9 @@ export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
   settingsTab: WorldBuildingSettingTab;
   // Data Managers
-  userOverrideData: UserOverrideData;
+  dataManager: DataManager;
   psdManager: PSDManager;
   frontMatterManager: FrontMatterManager;
-  // APIs provided to other plugins
-  private settlementAPI: SettlementAPI;
-  private populationAPI: PopulationAPI;
 
   worldEngine: WorldEngine;
 
@@ -43,15 +38,12 @@ export default class WorldBuildingPlugin extends Plugin {
     this.addSettingTab(this.settingsTab);
 
     // Initialize all the members of the plugin
-    this.userOverrideData = new UserOverrideData(this);
-    await this.userOverrideData.reloadData();
+    this.dataManager = new DataManager(this);
+    await this.dataManager.reloadData();
 
     this.psdManager = new PSDManager(this);
     this.frontMatterManager = new FrontMatterManager(this);
     this.worldEngine = new WorldEngine(this);
-
-    this.settlementAPI = new SettlementAPI(this);
-    this.populationAPI = new PopulationAPI(this);
 
     await this.psdManager.initialize();
 
@@ -134,14 +126,6 @@ export default class WorldBuildingPlugin extends Plugin {
     return worldEngineLeaf.view as WorldEngineView;
   }
 
-  getSettlementAPI(): SettlementAPI {
-    return this.settlementAPI;
-  }
-
-  getPopulationAPI(): PopulationAPI {
-    return this.populationAPI;
-  }
-
   private addRibbonIcons() {
     this.addRibbonIcon("globe", "Show World Engine", async () => {
       let worldEngineLeaf = this.getWorldEngineLeaf();
@@ -216,7 +200,7 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   private registerEventHandlers() {
-    this.userOverrideData.registerEventCallbacks();
+    this.dataManager.registerEventCallbacks();
     this.psdManager.registerEventCallbacks();
     this.worldEngine.registerEventCallbacks();
 

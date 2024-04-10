@@ -1,8 +1,8 @@
 import { SovereignEntityConfiguration } from "src/frontmatter/sovereignEntityConfiguration";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
-import { UnitUtils } from "src/util/unit";
 import { BaseEntity } from "./worldEngine";
+import { DataUtils } from "src/data/dataUtils";
 
 export class SovereignEntity implements BaseEntity {
   name: string;
@@ -58,7 +58,7 @@ export class SovereignEntity implements BaseEntity {
     if (cultivatedLandUnit === "Percent") {
       cultivatedLand = size * (cultivatedLand / 100);
     } else if (cultivatedLandUnit !== sizeUnit) {
-      const result = UnitUtils.convertUnit(this.plugin, cultivatedLand, cultivatedLandUnit, sizeUnit);
+      const result = DataUtils.convertUnit(cultivatedLand, cultivatedLandUnit, sizeUnit);
       if (result.success === false) {
         return;
       }
@@ -66,7 +66,7 @@ export class SovereignEntity implements BaseEntity {
     }
 
     if (landFertilityUnit !== sizeUnit) {
-      const result = UnitUtils.convertUnit(this.plugin, landFertility, landFertilityUnit, sizeUnit);
+      const result = DataUtils.convertUnit(landFertility, landFertilityUnit, sizeUnit);
       if (result.success === false) {
         return;
       }

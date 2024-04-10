@@ -1,4 +1,4 @@
-import WorldBuildingPlugin from "./main";
+import WorldBuildingPlugin from "../main";
 
 /**
  * Adding New Datasets.
@@ -184,14 +184,14 @@ export class Unit {
   }
 }
 
-import { CSVUtils } from "./util/csv";
-import firstNameDataBase64 from "../resources/Datasets/First Names.csv";
-import lastNameDataBase64 from "../resources/Datasets/Last Names.csv";
-import populationDensityDataBase64 from "../resources/Datasets/Population Densities.csv";
-import professionDataBase64 from "../resources/Datasets/Professions.csv";
-import settlementTypeDataBase64 from "../resources/Datasets/Settlement Types.csv";
-import travelMethodDataBase64 from "../resources/Datasets/Travel Methods.csv";
-import talentDataBase64 from "../resources/Datasets/Talent Ranks.csv";
+import { CSVUtils } from "../util/csv";
+import firstNameDataBase64 from "resources/Datasets/First Names.csv";
+import lastNameDataBase64 from "resources/Datasets/Last Names.csv";
+import populationDensityDataBase64 from "resources/Datasets/Population Densities.csv";
+import professionDataBase64 from "resources/Datasets/Professions.csv";
+import settlementTypeDataBase64 from "resources/Datasets/Settlement Types.csv";
+import travelMethodDataBase64 from "resources/Datasets/Travel Methods.csv";
+import talentDataBase64 from "resources/Datasets/Talent Ranks.csv";
 
 // CSV Data Files
 export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.csvParse(atob(firstNameDataBase64), true).map(
@@ -224,7 +224,7 @@ export const defaultTalentRanks: Readonly<TalentRank[]> = CSVUtils.csvParse(atob
   (row) => new TalentRank(row)
 );
 
-import unitConversionDataBase64 from "../resources/Datasets/Unit Conversions.yaml";
+import unitConversionDataBase64 from "resources/Datasets/Unit Conversions.yaml";
 import { Notice, TFile, parseYaml } from "obsidian";
 
 // YAML Data Files

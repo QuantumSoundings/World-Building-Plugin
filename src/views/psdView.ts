@@ -1,5 +1,5 @@
 import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
-import { PointOfInterest } from "src/dataManagers/psdManager";
+import { PointOfInterest } from "src/data/managers/psdManager";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { PSDUtils } from "src/util/psd";

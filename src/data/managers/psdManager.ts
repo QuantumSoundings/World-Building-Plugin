@@ -1,11 +1,11 @@
 import { TAbstractFile, TFile } from "obsidian";
-import WorldBuildingPlugin from "../main";
+import WorldBuildingPlugin from "../../main";
 import Psd from "@webtoon/psd";
 import { Logger } from "src/util/Logger";
 import { Result } from "src/errors/result";
 import { BaseError } from "src/errors/baseError";
 import { CSVUtils } from "src/util/csv";
-import { CompositeLayer, PSDUtils } from "src/util/psd";
+import { PSDUtils } from "src/util/psd";
 
 class CountryData {
   name: string;

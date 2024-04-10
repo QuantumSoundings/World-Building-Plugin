@@ -34,7 +34,7 @@ export class SettlementEntityConfiguration implements BaseConfiguration {
       Logger.warn(this, "Creating a blank SettlementEntityConfiguration");
       return;
     }
-    if (!fm.hasOwnProperty("wbMeta")) {
+    if (!("wbMeta" in fm)) {
       Logger.error(this, "Failed to find wbMeta in SettlementEntityConfiguration");
       return;
     }

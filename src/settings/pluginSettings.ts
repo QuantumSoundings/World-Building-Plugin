@@ -71,7 +71,7 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
               value = normalizePath(value);
               this.plugin.settings.settlementTypeDataOverridePath = value;
               await this.plugin.saveSettings();
-              await this.plugin.userOverrideData.reloadData();
+              await this.plugin.dataManager.reloadData();
             })
         );
 
@@ -88,7 +88,7 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
               value = normalizePath(value);
               this.plugin.settings.populationDensityDataOverridePath = value;
               await this.plugin.saveSettings();
-              await this.plugin.userOverrideData.reloadData();
+              await this.plugin.dataManager.reloadData();
             })
         );
 
@@ -105,7 +105,7 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
               value = normalizePath(value);
               this.plugin.settings.unitConversionDataOverridePath = value;
               await this.plugin.saveSettings();
-              await this.plugin.userOverrideData.reloadData();
+              await this.plugin.dataManager.reloadData();
             })
         );
     }

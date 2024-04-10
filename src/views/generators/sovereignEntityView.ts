@@ -1,3 +1,4 @@
+import { DataUtils } from "src/data/dataUtils";
 import { FormatUtils } from "src/util/format";
 import { Logger } from "src/util/Logger";
 import { SovereignEntity } from "src/world/sovereignEntity";
@@ -39,9 +40,10 @@ function generateOverviewTable(sovereignEntity: SovereignEntity) {
 
 function generatePopulationTable(sovereignEntity: SovereignEntity) {
   const populationDensity = sovereignEntity.population / sovereignEntity.configuration.geography.size;
-  const densityDescriptorResult = sovereignEntity.plugin
-    .getPopulationAPI()
-    .getDescriptorForPopulation(populationDensity, sovereignEntity.configuration.geography.sizeUnit);
+  const densityDescriptorResult = DataUtils.getDescriptorForPopulation(
+    populationDensity,
+    sovereignEntity.configuration.geography.sizeUnit
+  );
   if (densityDescriptorResult.success === false) {
     Logger.error(sovereignEntity, densityDescriptorResult.error.message);
     return "";
@@ -134,7 +136,7 @@ function generateSettlementTable(sovereignEntity: SovereignEntity) {
   settlementTable += FormatUtils.formatRow(["---", "---", "---", "---"]);
   let warnBadDistribution = 0;
   for (const settlement of sovereignEntity.configuration.geography.settlements) {
-    const settlementData = sovereignEntity.plugin.getSettlementAPI().findSettlementDataByType(settlement.name);
+    const settlementData = DataUtils.findSettlementDataByType(settlement.name);
     if (settlementData === undefined) {
       Logger.error(sovereignEntity, "Could not find settlement data for type: " + settlement.name);
       continue;
@@ -188,7 +190,7 @@ function generateTalentRankTable(sovereignEntity: SovereignEntity) {
     "Blessing (Divine)",
   ]);
   talentTable += FormatUtils.formatRow(["---", "---", "---", "---"]);
-  for (const talentRank of sovereignEntity.plugin.userOverrideData.defaultData.talentRanks) {
+  for (const talentRank of sovereignEntity.plugin.dataManager.defaultData.talentRanks) {
     const individuals = talentRank.perMillionPeople * (sovereignEntity.population / 1_000_000);
 
     const externalManaUsers = individuals * EXTERNAL_MANA_TAlENT;

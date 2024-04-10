@@ -1,6 +1,5 @@
-import { Profession } from "src/defaultData";
+import { Profession } from "src/data/defaultData";
 import { FormatUtils } from "src/util/format";
-import { Logger } from "src/util/Logger";
 import { SettlementEntity } from "src/world/settlementEntity";
 
 export function generateSettlementEntityView(settlementEntity: SettlementEntity, el: HTMLElement): void {
@@ -30,7 +29,7 @@ function generateProfessionTable(settlementEntity: SettlementEntity) {
   let professionTable = FormatUtils.formatRow(["Profession", "# Of Practitioners"]);
   professionTable += FormatUtils.formatRow(["---", "---"]);
   // Rows
-  settlementEntity.plugin.userOverrideData.defaultData.professionData.forEach((profession: Profession) => {
+  settlementEntity.plugin.dataManager.defaultData.professionData.forEach((profession: Profession) => {
     if (!isNaN(profession.supportValue)) {
       professionTable += FormatUtils.formatRow([
         profession.name,

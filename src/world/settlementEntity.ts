@@ -2,6 +2,7 @@ import WorldBuildingPlugin from "src/main";
 import { MappableEntity } from "./worldEngine";
 import { SettlementEntityConfiguration } from "src/frontmatter/settlementEntityConfiguration";
 import { Logger } from "src/util/Logger";
+import { DataUtils } from "src/data/dataUtils";
 
 export class SettlementEntity implements MappableEntity {
   name: string;
@@ -32,12 +33,10 @@ export class SettlementEntity implements MappableEntity {
       relY: this.configuration.map.relY,
       type: this.configuration.demographics.settlementType,
     };
-    const settlementPopulation = this.plugin
-      .getSettlementAPI()
-      .generateSettlementPopulation(
-        this.configuration.demographics.settlementType,
-        this.configuration.demographics.populationScale
-      );
+    const settlementPopulation = DataUtils.generateSettlementPopulation(
+      this.configuration.demographics.settlementType,
+      this.configuration.demographics.populationScale
+    );
     if (settlementPopulation === undefined) {
       Logger.error(this, "Failed to generate population for settlement");
       return;
