@@ -65,7 +65,7 @@ export class ConfigManager {
   }
 
   private async loadCSVConfig<T>(info: ConfigInfo<T>) {
-    const filePath = `${this.plugin.settings.datasetsPath}/${info.configName}`;
+    const filePath = `${this.plugin.settings.configsPath}/${info.configName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (file !== null && file instanceof TFile) {
       const content = await this.plugin.app.vault.read(file as TFile);

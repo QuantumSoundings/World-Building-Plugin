@@ -33,6 +33,7 @@ import { DataUtils } from "../dataUtils";
 
 interface DatasetInfo<T> {
   datasetName: string;
+  data: string;
   default: T[];
   live: T[];
   converter: (data: any) => T;
@@ -54,48 +55,56 @@ export class DataManager {
   datasets: Datasets = {
     firstName: {
       datasetName: FIRST_NAME_DATASET,
+      data: firstNameDataString,
       default: [],
       live: [],
       converter: (data: any) => new Name(data),
     },
     lastName: {
       datasetName: LAST_NAME_DATASET,
+      data: lastNameDataString,
       default: [],
       live: [],
       converter: (data: any) => new Name(data),
     },
     populationDensity: {
       datasetName: POPULATION_DENSITY_DATASET,
+      data: populationDensityDataString,
       default: [],
       live: [],
       converter: (data: any) => new PopulationDensity(data),
     },
     profession: {
       datasetName: PROFESSION_DATASET,
+      data: professionDataString,
       default: [],
       live: [],
       converter: (data: any) => new Profession(data),
     },
     settlementType: {
       datasetName: SETTLEMENT_TYPE_DATASET,
+      data: settlementTypeDataString,
       default: [],
       live: [],
       converter: (data: any) => new SettlementType(data),
     },
     travelMethod: {
       datasetName: TRAVEL_METHOD_DATASET,
+      data: travelMethodDataString,
       default: [],
       live: [],
       converter: (data: any) => new TravelMethod(data),
     },
     talent: {
       datasetName: TALENT_DATASET,
+      data: talentDataString,
       default: [],
       live: [],
       converter: (data: any) => new TalentRank(data),
     },
     unit: {
       datasetName: UNIT_DATASET,
+      data: unitConversionDataString,
       default: [],
       live: [],
       converter: (data: any) => new Unit(data),
@@ -108,14 +117,14 @@ export class DataManager {
   }
 
   public async reloadDatasets() {
-    this.loadCSVDataset(this.datasets.firstName, firstNameDataString);
-    this.loadCSVDataset(this.datasets.lastName, lastNameDataString);
-    this.loadCSVDataset(this.datasets.populationDensity, populationDensityDataString);
-    this.loadCSVDataset(this.datasets.profession, professionDataString);
-    this.loadCSVDataset(this.datasets.settlementType, settlementTypeDataString);
-    this.loadCSVDataset(this.datasets.travelMethod, travelMethodDataString);
-    this.loadCSVDataset(this.datasets.talent, talentDataString);
-    this.loadFMDataset(this.datasets.unit, unitConversionDataString);
+    this.loadCSVDataset(this.datasets.firstName);
+    this.loadCSVDataset(this.datasets.lastName);
+    this.loadCSVDataset(this.datasets.populationDensity);
+    this.loadCSVDataset(this.datasets.profession);
+    this.loadCSVDataset(this.datasets.settlementType);
+    this.loadCSVDataset(this.datasets.travelMethod);
+    this.loadCSVDataset(this.datasets.talent);
+    this.loadFMDataset(this.datasets.unit);
   }
 
   public exportDefaultData() {
@@ -150,8 +159,8 @@ export class DataManager {
     this.plugin.registerEvent(this.plugin.app.vault.on("modify", modifyEvent));
   }
 
-  private async loadCSVDataset<T>(info: DatasetInfo<T>, defaultDataString: string) {
-    info.default = CSVUtils.csvParse(defaultDataString, true).map(info.converter);
+  private async loadCSVDataset<T>(info: DatasetInfo<T>) {
+    info.default = CSVUtils.csvParse(info.data, true).map(info.converter);
 
     const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
@@ -167,8 +176,8 @@ export class DataManager {
     }
   }
 
-  private async loadFMDataset<T>(info: DatasetInfo<T>, defaultDataString: string) {
-    const parsedData = parseYaml(defaultDataString).data as [];
+  private async loadFMDataset<T>(info: DatasetInfo<T>) {
+    const parsedData = parseYaml(info.data).data as [];
     info.default = parsedData.map(info.converter);
 
     const fm = await this.plugin.frontMatterManager.getFrontMatter(
@@ -181,19 +190,24 @@ export class DataManager {
   }
 
   private writeCSVDataset<T>(info: DatasetInfo<T>) {
-    CSVUtils.writeCSVByPath(
-      `${this.plugin.settings.datasetsPath}/${info.datasetName}`,
-      info.default as unknown[],
-      this.plugin.app.vault,
-      {
-        header: true,
-      }
-    );
+    const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
+    const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
+    if (file === null) {
+      this.plugin.app.vault.create(filePath, info.data);
+      return;
+    } else if (file instanceof TFile) {
+      this.plugin.app.vault.modify(file, info.data);
+    }
   }
 
   private writeFMDataset<T>(info: DatasetInfo<T>) {
-    this.plugin.frontMatterManager.writeFile(`${this.plugin.settings.datasetsPath}/${info.datasetName}`, {
-      data: info.default,
-    });
+    const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
+    const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
+    if (file === null) {
+      this.plugin.app.vault.create(filePath, `---\n${info.data}\n---`);
+      return;
+    } else if (file instanceof TFile) {
+      this.plugin.app.vault.modify(file, `---\n${info.data}\n---`);
+    }
   }
 }
