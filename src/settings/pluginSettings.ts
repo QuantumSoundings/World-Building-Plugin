@@ -2,17 +2,14 @@ import { App, PluginSettingTab, Setting, normalizePath } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 
 export class WorldBuildingPluginSettings {
-  // Internal Data Settings
-  exportPath: string = "";
-  settlementTypeDataOverridePath: string = "";
-  populationDensityDataOverridePath: string = "";
-  unitConversionDataOverridePath: string = "";
+  // Paths
+  configsPath: string = "";
+  datasetsPath: string = "";
 
   // CSV Settings
   csvHeadersPresent: boolean = true;
 
   // Map Settings
-  mapConfigPath: string = "";
   processMapsOnLoad: boolean = false;
 }
 
@@ -20,16 +17,13 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
   plugin: WorldBuildingPlugin;
 
   // Internal Data Settings
-  exportPathSetting: Setting;
-  settlementOverrideSetting: Setting;
-  populationDensityOverrideSetting: Setting;
-  unitConversionOverrideSetting: Setting;
+  configsPathSetting: Setting;
+  datasetsPathSetting: Setting;
 
   // CSV Settings
   csvHeadersPresentSetting: Setting;
 
   // Map Settings
-  mapConfigPathSetting: Setting;
   processMapsOnLoadSetting: Setting;
 
   constructor(app: App, plugin: WorldBuildingPlugin) {
@@ -42,72 +36,35 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    // Internal Data Settings
+    // Path Settings
     {
-      this.exportPathSetting = new Setting(containerEl)
-        .setName("Export Path")
-        .setDesc("Where the default data files will be exported.")
+      this.configsPathSetting = new Setting(containerEl)
+        .setName("Config Path")
+        .setDesc("Where the plugin config files will be exported.")
         .addText((text) => {
           text
-            .setPlaceholder("Enter the export path")
-            .setValue(this.plugin.settings.exportPath)
+            .setPlaceholder("Enter the config path")
+            .setValue(this.plugin.settings.configsPath)
             .onChange(async (value) => {
               value = normalizePath(value);
-              this.plugin.settings.exportPath = value;
+              this.plugin.settings.configsPath = value;
               await this.plugin.saveSettings();
             });
         });
 
-      this.settlementOverrideSetting = new Setting(containerEl)
-        .setName("Settlement Data Override File Path")
-        .setDesc(
-          "This file overrides the internal settlement data. It is recommended to first export the default data to the root directory and then modify it."
-        )
-        .addText((text) =>
+      this.datasetsPathSetting = new Setting(containerEl)
+        .setName("Datasets Path")
+        .setDesc("Where the datasets will be exported.")
+        .addText((text) => {
           text
-            .setPlaceholder("Enter the file name")
-            .setValue(this.plugin.settings.settlementTypeDataOverridePath)
+            .setPlaceholder("Enter the datasets path")
+            .setValue(this.plugin.settings.datasetsPath)
             .onChange(async (value) => {
               value = normalizePath(value);
-              this.plugin.settings.settlementTypeDataOverridePath = value;
+              this.plugin.settings.datasetsPath = value;
               await this.plugin.saveSettings();
-              await this.plugin.dataManager.reloadData();
-            })
-        );
-
-      this.populationDensityOverrideSetting = new Setting(containerEl)
-        .setName("Population Density Data File")
-        .setDesc(
-          "This file overrides the internal population density data. It is recommended to first export the default data to the root directory and then modify it."
-        )
-        .addText((text) =>
-          text
-            .setPlaceholder("Enter the file name")
-            .setValue(this.plugin.settings.populationDensityDataOverridePath)
-            .onChange(async (value) => {
-              value = normalizePath(value);
-              this.plugin.settings.populationDensityDataOverridePath = value;
-              await this.plugin.saveSettings();
-              await this.plugin.dataManager.reloadData();
-            })
-        );
-
-      this.unitConversionOverrideSetting = new Setting(containerEl)
-        .setName("Unit Conversion Data File")
-        .setDesc(
-          "This file overrides the internal unit conversion data. It is recommended to first export the default data to the root directory and then modify it."
-        )
-        .addText((text) =>
-          text
-            .setPlaceholder("Enter the file name")
-            .setValue(this.plugin.settings.unitConversionDataOverridePath)
-            .onChange(async (value) => {
-              value = normalizePath(value);
-              this.plugin.settings.unitConversionDataOverridePath = value;
-              await this.plugin.saveSettings();
-              await this.plugin.dataManager.reloadData();
-            })
-        );
+            });
+        });
     }
 
     // CSV Settings
@@ -127,21 +84,6 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
 
     // Map Settings
     {
-      this.mapConfigPathSetting = new Setting(containerEl)
-        .setName("Map Config Path")
-        .setDesc("The path to the map config file. This must be a csv file.")
-        .addText((text) => {
-          text
-            .setPlaceholder("Enter the map config path")
-            .setValue(this.plugin.settings.mapConfigPath)
-            .onChange(async (value) => {
-              value = normalizePath(value);
-              this.plugin.settings.mapConfigPath = value;
-              await this.plugin.saveSettings();
-              await this.plugin.psdManager.updateConfig();
-            });
-        });
-
       this.processMapsOnLoadSetting = new Setting(containerEl)
         .setName("Force Process Maps on Discovery")
         .setDesc(

@@ -190,7 +190,7 @@ function generateTalentRankTable(sovereignEntity: SovereignEntity) {
     "Blessing (Divine)",
   ]);
   talentTable += FormatUtils.formatRow(["---", "---", "---", "---"]);
-  for (const talentRank of sovereignEntity.plugin.dataManager.defaultData.talentRanks) {
+  for (const talentRank of sovereignEntity.plugin.dataManager.datasets.talent.live) {
     const individuals = talentRank.perMillionPeople * (sovereignEntity.population / 1_000_000);
 
     const externalManaUsers = individuals * EXTERNAL_MANA_TAlENT;

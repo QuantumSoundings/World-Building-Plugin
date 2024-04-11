@@ -1,7 +1,7 @@
 import Psd, { Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
 import { getIcon } from "obsidian";
-import { PointOfInterest } from "src/data/managers/psdManager";
+import { PointOfInterest } from "src/data/dataTypes";
 
 export class CompositeLayer {
   layer: Layer;
@@ -37,10 +37,10 @@ export class PSDUtils {
         const compositeLayer = await this.layerToCompositeLayer(layer);
         groupedLayers.politicalLayers.push(compositeLayer);
       } else if (layer.parent.name === POINTS_OF_INTEREST_GROUP_NAME) {
-        const poi = new PointOfInterest();
+        const poi = new PointOfInterest(null);
         poi.relX = (layer.left + layer.width / 2) / psd.width;
         poi.relY = (layer.top + layer.height / 2) / psd.height;
-        poi.name = layer.name;
+        poi.label = layer.name;
         groupedLayers.pointsOfInterest.push(poi);
       }
     }

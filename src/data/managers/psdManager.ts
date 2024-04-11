@@ -4,8 +4,9 @@ import Psd from "@webtoon/psd";
 import { Logger } from "src/util/Logger";
 import { Result } from "src/errors/result";
 import { BaseError } from "src/errors/baseError";
-import { CSVUtils } from "src/util/csv";
 import { PSDUtils } from "src/util/psd";
+import { MAP_CONFIG } from "../constants";
+import { PointOfInterest } from "../dataTypes";
 
 class CountryData {
   name: string;
@@ -34,22 +35,6 @@ class MapData {
   };
 }
 
-class MapConfig {
-  mapName: string;
-  unitHeight: number;
-  unitWidth: number;
-  unit: string;
-  geometry: string;
-}
-
-export class PointOfInterest {
-  relX: number;
-  relY: number;
-  name: string;
-  type: string;
-  filePath: string;
-}
-
 class CacheEntry {
   file: TAbstractFile;
   psd: Psd;
@@ -63,18 +48,12 @@ export class PSDManager {
   plugin: WorldBuildingPlugin;
   psdMap: Map<string, CacheEntry>;
 
-  configFile: TAbstractFile | undefined;
-  configData: MapConfig[] | undefined;
-
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
     this.psdMap = new Map<string, CacheEntry>();
-    this.configFile = undefined;
-    this.configData = undefined;
   }
 
   public async initialize() {
-    await this.updateConfig();
     const allFiles = this.plugin.app.vault.getAllLoadedFiles();
     for (const file of allFiles) {
       if (this.isFileSupported(file)) {
@@ -83,50 +62,15 @@ export class PSDManager {
     }
   }
 
-  public async updateConfig() {
-    const configPath = this.plugin.settings.mapConfigPath;
-    const configFile = this.plugin.app.vault.getAbstractFileByPath(configPath);
-    if (configFile === null) {
-      Logger.error(this, "Map Config file not found.");
-      return;
-    }
-    this.configFile = configFile;
-    const configData = await CSVUtils.readCSVByPath(configFile.path, this.plugin.app.vault, true);
-    this.configData = [];
-    for (const config of configData) {
-      const mapConfig = new MapConfig();
-      mapConfig.mapName = config[0];
-      mapConfig.unitHeight = parseInt(config[1]);
-      mapConfig.unitWidth = parseInt(config[2]);
-      mapConfig.unit = config[3];
-      mapConfig.geometry = config[4];
-      this.configData.push(mapConfig);
-    }
-    // Update all the entries with the new config data.
-    for (const [, entry] of this.psdMap) {
-      this.updateEntryConfig(entry);
-    }
-  }
-
   public async registerEventCallbacks() {
     const creationEvent = async (file: TAbstractFile) => {
-      // For new PSD files, create them.
       if (this.isFileSupported(file)) {
         await this.createEntryFromFile(file);
-      }
-      // If for some reason the config file path is being created, update the config data.
-      if (file.path === this.plugin.settings.mapConfigPath) {
-        await this.updateConfig();
       }
     };
     const deletionEvent = (file: TAbstractFile) => {
       if (this.psdMap.has(file.path)) {
         this.psdMap.delete(file.path);
-      }
-      // If for some reason the config file path is being deleted, clear the config data.
-      if (file.path === this.plugin.settings.mapConfigPath) {
-        this.configFile = undefined;
-        this.configData = undefined;
       }
     };
     const renameEvent = async (file: TAbstractFile, oldPath: string) => {
@@ -134,15 +78,6 @@ export class PSDManager {
         const entry = this.psdMap.get(oldPath) as CacheEntry;
         this.psdMap.delete(oldPath);
         this.psdMap.set(file.path, entry);
-      }
-      // If we are renaming the config file to something else, clear the config data.
-      if (oldPath === this.plugin.settings.mapConfigPath) {
-        this.configFile = undefined;
-        this.configData = undefined;
-      }
-      // Else if we are renaming something to the config file, update the config data.
-      if (file.path === this.plugin.settings.mapConfigPath) {
-        await this.updateConfig();
       }
     };
     const modifyEvent = async (file: TAbstractFile) => {
@@ -152,8 +87,10 @@ export class PSDManager {
         entry.psd = Psd.parse(newBinaryContent);
         await this.processEntry(entry, false);
       }
-      if (this.plugin.settings.mapConfigPath === file.path) {
-        await this.updateConfig();
+      if (`${this.plugin.settings.configsPath}/${MAP_CONFIG}` === file.path) {
+        for (const [, entry] of this.psdMap) {
+          this.updateEntryConfig(entry);
+        }
       }
     };
 
@@ -212,11 +149,9 @@ export class PSDManager {
   }
 
   private updateEntryConfig(entry: CacheEntry) {
-    if (this.configData === undefined) {
-      return;
-    }
-
-    const configData = this.configData.find((config) => config.mapName === entry.file.name);
+    const configData = this.plugin.configManager.configs.mapConfigurations.values.find(
+      (config) => config.mapName === entry.file.name
+    );
     if (configData === undefined) {
       return;
     }

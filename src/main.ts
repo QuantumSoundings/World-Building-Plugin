@@ -4,7 +4,6 @@ import { CSVView, CSV_VIEW } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
-import { exportDefaultData } from "./data/defaultData";
 import { WorldEngine } from "./world/worldEngine";
 import { FrontMatterManager } from "./data/managers/frontMatterManager";
 import { SovereignEntity } from "./world/sovereignEntity";
@@ -14,11 +13,13 @@ import { DataManager } from "./data/managers/dataManager";
 import { WORLD_ENGINE_VIEW, WorldEngineView } from "./views/worldEngineView";
 import { PSDView, PSD_VIEW } from "./views/psdView";
 import { generateSovereignEntityView } from "./views/generators/sovereignEntityView";
+import { ConfigManager } from "./data/managers/configManager";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
   settingsTab: WorldBuildingSettingTab;
   // Data Managers
+  configManager: ConfigManager;
   dataManager: DataManager;
   psdManager: PSDManager;
   frontMatterManager: FrontMatterManager;
@@ -38,13 +39,14 @@ export default class WorldBuildingPlugin extends Plugin {
     this.addSettingTab(this.settingsTab);
 
     // Initialize all the members of the plugin
-    this.dataManager = new DataManager(this);
-    await this.dataManager.reloadData();
-
-    this.psdManager = new PSDManager(this);
     this.frontMatterManager = new FrontMatterManager(this);
+    this.configManager = new ConfigManager(this);
+    this.dataManager = new DataManager(this);
+    this.psdManager = new PSDManager(this);
     this.worldEngine = new WorldEngine(this);
 
+    await this.configManager.reloadConfigs();
+    await this.dataManager.reloadDatasets();
     await this.psdManager.initialize();
 
     // Load the world engine
@@ -156,14 +158,32 @@ export default class WorldBuildingPlugin extends Plugin {
 
   private registerCommands() {
     this.addCommand({
-      id: "wb-export-default-data",
-      name: "Export Default Data",
+      id: "wb-export-configs",
+      name: "Export Configs",
       checkCallback: (checking: boolean) => {
         if (!checking) {
-          exportDefaultData(this, this.settings.exportPath);
-          new Notice("Default data has been saved to the export path!", 2000);
+          this.configManager.exportBlankConfigs();
+
+          new Notice("Configs have been exported!", 2000);
+          return true;
+        } else {
+          return this.settings.configsPath !== "";
         }
-        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "wb-export-datasets",
+      name: "Export Datasets",
+      checkCallback: (checking: boolean) => {
+        if (!checking) {
+          this.dataManager.exportDefaultData();
+
+          new Notice("Datasets have been exported!", 2000);
+          return true;
+        } else {
+          return this.settings.datasetsPath !== "";
+        }
       },
     });
 
@@ -200,6 +220,7 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   private registerEventHandlers() {
+    this.configManager.registerEventCallbacks();
     this.dataManager.registerEventCallbacks();
     this.psdManager.registerEventCallbacks();
     this.worldEngine.registerEventCallbacks();

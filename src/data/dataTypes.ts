@@ -1,16 +1,3 @@
-import WorldBuildingPlugin from "../main";
-
-/**
- * Adding New Datasets.
- * 1. Create a new class for the dataset entries.
- * 2. Add a new import statement for the dataset file.
- * 3. Add a new constant for the dataset.
- * 4. Add a line to save the default data.
- * 5. Make this data available in the UserOverrideData.
- * 6. Use the data!
- */
-
-// CSV Classes that can be loaded easily
 export class PopulationDensity {
   descriptor: string;
   minPopulation: number;
@@ -38,6 +25,7 @@ export class SettlementType {
   distributionType: string;
   minPopulation: number;
   maxPopulation: number;
+  mapIcon: string;
 
   constructor(data: string[] | SettlementType | null) {
     if (data instanceof SettlementType) {
@@ -46,12 +34,14 @@ export class SettlementType {
       this.distributionType = data.distributionType;
       this.minPopulation = data.minPopulation;
       this.maxPopulation = data.maxPopulation;
+      this.mapIcon = data.mapIcon;
     } else if (data instanceof Array) {
       this.type = data[0];
       this.description = data[1];
       this.distributionType = data[2];
       this.minPopulation = parseFloat(data[3]);
       this.maxPopulation = parseFloat(data[4]);
+      this.mapIcon = data[5];
     }
   }
 }
@@ -184,107 +174,53 @@ export class Unit {
   }
 }
 
-import { CSVUtils } from "../util/csv";
-import firstNameDataBase64 from "resources/Datasets/First Names.csv";
-import lastNameDataBase64 from "resources/Datasets/Last Names.csv";
-import populationDensityDataBase64 from "resources/Datasets/Population Densities.csv";
-import professionDataBase64 from "resources/Datasets/Professions.csv";
-import settlementTypeDataBase64 from "resources/Datasets/Settlement Types.csv";
-import travelMethodDataBase64 from "resources/Datasets/Travel Methods.csv";
-import talentDataBase64 from "resources/Datasets/Talent Ranks.csv";
+export class MapConfiguration {
+  mapName: string;
+  unitHeight: number;
+  unitWidth: number;
+  unit: string;
+  geometry: string;
 
-// CSV Data Files
-export const defaultFirstNameData: Readonly<Name[]> = CSVUtils.csvParse(atob(firstNameDataBase64), true).map(
-  (row) => new Name(row)
-);
-
-export const defaultLastNameData: Readonly<Name[]> = CSVUtils.csvParse(atob(lastNameDataBase64), true).map(
-  (row) => new Name(row)
-);
-
-export const defaultPopulationDensityData: Readonly<PopulationDensity[]> = CSVUtils.csvParse(
-  atob(populationDensityDataBase64),
-  true
-).map((row) => new PopulationDensity(row));
-
-export const defaultProfessionData: Readonly<Profession[]> = CSVUtils.csvParse(atob(professionDataBase64), true).map(
-  (row) => new Profession(row)
-);
-
-export const defaultSettlementData: Readonly<SettlementType[]> = CSVUtils.csvParse(
-  atob(settlementTypeDataBase64),
-  true
-).map((row) => new SettlementType(row));
-
-export const defaultTravelMethods: Readonly<TravelMethod[]> = CSVUtils.csvParse(atob(travelMethodDataBase64), true).map(
-  (row) => new TravelMethod(row)
-);
-
-export const defaultTalentRanks: Readonly<TalentRank[]> = CSVUtils.csvParse(atob(talentDataBase64), true).map(
-  (row) => new TalentRank(row)
-);
-
-import unitConversionDataBase64 from "resources/Datasets/Unit Conversions.yaml";
-import { Notice, TFile, parseYaml } from "obsidian";
-
-// YAML Data Files
-export const defaultUnitConversionData: Readonly<Unit[]> = parseYaml(atob(unitConversionDataBase64)).units.map(
-  (data: any) => new Unit(data)
-);
-
-export function exportDefaultData(plugin: WorldBuildingPlugin, exportPath: string = "") {
-  const aFile = plugin.app.vault.getAbstractFileByPath(exportPath);
-  if (aFile === null || aFile instanceof TFile) {
-    new Notice("The export path is a file and not a folder. Please enter a valid folder path.");
-    return;
+  constructor(data: string[] | MapConfiguration | null) {
+    if (data instanceof MapConfiguration) {
+      this.mapName = data.mapName;
+      this.unitHeight = data.unitHeight;
+      this.unitWidth = data.unitWidth;
+      this.unit = data.unit;
+      this.geometry = data.geometry;
+    } else if (data instanceof Array) {
+      this.mapName = data[0];
+      this.unitHeight = parseFloat(data[1]);
+      this.unitWidth = parseFloat(data[2]);
+      this.unit = data[3];
+      this.geometry = data[4];
+    }
   }
+}
 
-  const path = aFile.path + "/";
+export class PointOfInterest {
+  mapName: string;
+  link: string;
+  label: string;
+  relX: number;
+  relY: number;
+  mapIcon: string;
 
-  CSVUtils.writeCSVByPath(path + "Default First Names Data.csv", defaultFirstNameData as unknown[], plugin.app.vault, {
-    header: true,
-  });
-
-  CSVUtils.writeCSVByPath(path + "Default Last Names Data.csv", defaultLastNameData as unknown[], plugin.app.vault, {
-    header: true,
-  });
-
-  CSVUtils.writeCSVByPath(
-    path + "Default Population Density Data.csv",
-    defaultPopulationDensityData as unknown[],
-    plugin.app.vault,
-    {
-      header: true,
+  constructor(data: string[] | PointOfInterest | null) {
+    if (data instanceof PointOfInterest) {
+      this.mapName = data.mapName;
+      this.link = data.link;
+      this.label = data.label;
+      this.relX = data.relX;
+      this.relY = data.relY;
+      this.mapIcon = data.mapIcon;
+    } else if (data instanceof Array) {
+      this.mapName = data[0];
+      this.link = data[1];
+      this.label = data[2];
+      this.relX = parseFloat(data[3]);
+      this.relY = parseFloat(data[4]);
+      this.mapIcon = data[5];
     }
-  );
-
-  CSVUtils.writeCSVByPath(path + "Default Professions Data.csv", defaultProfessionData as unknown[], plugin.app.vault, {
-    header: true,
-  });
-
-  CSVUtils.writeCSVByPath(
-    path + "Default Settlement Types Data.csv",
-    defaultSettlementData as unknown[],
-    plugin.app.vault,
-    {
-      header: true,
-    }
-  );
-
-  CSVUtils.writeCSVByPath(
-    path + "Default Travel Methods Data.csv",
-    defaultTravelMethods as unknown[],
-    plugin.app.vault,
-    {
-      header: true,
-    }
-  );
-
-  CSVUtils.writeCSVByPath(path + "Default Talent Ranks Data.csv", defaultTalentRanks as unknown[], plugin.app.vault, {
-    header: true,
-  });
-
-  plugin.frontMatterManager.writeFile(path + "Default Unit Conversion Data.md", {
-    units: defaultUnitConversionData,
-  });
+  }
 }

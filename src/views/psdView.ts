@@ -1,5 +1,5 @@
 import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
-import { PointOfInterest } from "src/data/managers/psdManager";
+import { PointOfInterest } from "src/data/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { PSDUtils } from "src/util/psd";
@@ -65,7 +65,7 @@ export class PSDView extends FileView {
     this.controlsContainerElement = this.headerContainerElement.createEl("div");
     this.controlsContainerElement.setCssStyles({ maxWidth: "100%" });
     this.pointOfInterestElement = this.headerContainerElement.createEl("h2", {
-      text: `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.name : "None"}`,
+      text: `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.label : "None"}`,
     });
     this.pointOfInterestElement.setCssStyles({ maxWidth: "100%" });
 
@@ -112,15 +112,10 @@ export class PSDView extends FileView {
     super.onLoadFile(file);
     this.loadingFile = true;
 
-    // Load our zoom level from local storage
-    const storageItem = localStorage.getItem(file.path);
-    if (storageItem !== null) {
-      const storage: PersistState = JSON.parse(storageItem);
-      this.currentScale = storage.zoom;
-      this.updateZoomSlider();
-    }
+    // Load settings from local storage
+    this.loadStorage();
+
     // Grab data from the psdManager
-    const psdPOIs = this.plugin.psdManager.getPointsOfInterest(file.path);
     const image = this.plugin.psdManager.getImage(file.path);
     if (image !== null) {
       this.image = image;
@@ -128,7 +123,7 @@ export class PSDView extends FileView {
     }
 
     // Mark any points of interest
-    this.addMapEntities(psdPOIs === undefined ? [] : psdPOIs);
+    this.addPointsOfInterest();
 
     // Scale our icons
     this.scaleIcons();
@@ -138,10 +133,7 @@ export class PSDView extends FileView {
   }
 
   public override async onUnloadFile(file: TFile): Promise<void> {
-    const storage: PersistState = {
-      zoom: this.currentScale,
-    };
-    localStorage.setItem(file.path, JSON.stringify(storage));
+    this.saveStorage();
     super.onUnloadFile(file);
   }
 
@@ -174,24 +166,31 @@ export class PSDView extends FileView {
     }
   }
 
-  private addMapEntities(psdPOIs: PointOfInterest[]) {
+  private addPointsOfInterest() {
     if (this.file === null) {
       return;
     }
+    const file = this.file;
     this.pointsOfInterest = [];
-    if (psdPOIs !== undefined && psdPOIs.length > 0) {
+
+    const psdPOIs = this.plugin.psdManager.getPointsOfInterest(file.path);
+    if (psdPOIs !== undefined) {
       this.pointsOfInterest.push(...psdPOIs);
     }
 
-    const wePOIs = this.plugin.worldEngine.getEntitiesForMap(this.file.name);
-    for (const entity of wePOIs) {
-      this.pointsOfInterest.push({
-        relX: entity.map.relX,
-        relY: entity.map.relY,
-        name: entity.name,
-        type: entity.map.type,
-        filePath: entity.filePath,
-      });
+    const configPOIs = this.plugin.configManager.configs.pointsOfInterest.values.filter(
+      (value) => value.mapName === file.name
+    );
+    this.pointsOfInterest.push(...configPOIs);
+
+    const enginePOIs = this.plugin.worldEngine.getEntitiesForMap(file.name);
+    for (const entity of enginePOIs) {
+      const poi = new PointOfInterest(null);
+      poi.label = entity.name;
+      poi.relX = entity.map.relX;
+      poi.relY = entity.map.relY;
+      poi.link = entity.filePath;
+      poi.mapIcon = entity.map.type;
     }
   }
 
@@ -225,6 +224,30 @@ export class PSDView extends FileView {
     return { relX, relY };
   }
 
+  private saveStorage() {
+    const storage: PersistState = {
+      zoom: this.currentScale,
+    };
+    if (this.file !== null) {
+      localStorage.setItem(this.file.path, JSON.stringify(storage));
+    }
+  }
+
+  private loadStorage() {
+    if (this.file === null) {
+      this.currentScale = 100;
+      return;
+    }
+
+    const storageItem = localStorage.getItem(this.file.path);
+    if (storageItem !== null) {
+      const storage: PersistState = JSON.parse(storageItem);
+      this.currentScale = storage.zoom;
+      this.updateZoomSlider();
+    }
+  }
+
+  // Methods for handling events
   private onWheelUpdate(event: WheelEvent) {
     if (this.loadingFile) {
       return;
@@ -270,7 +293,7 @@ export class PSDView extends FileView {
     for (const poi of this.pointsOfInterest) {
       if (this.hasCollision(relX, relY, poi)) {
         this.pointOfInterestElement.setText(
-          `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.name : "None"}`
+          `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.label : "None"}`
         );
         this.currentPointOfInterest = poi;
         return;
@@ -302,9 +325,9 @@ export class PSDView extends FileView {
     const poi = this.currentPointOfInterest;
     if (poi !== null) {
       menu.addItem((item) => {
-        item.setTitle(`Open ${poi.name} in new tab`);
+        item.setTitle(`Open ${poi.label} in new tab`);
         item.onClick(async () => {
-          await this.app.workspace.openLinkText(poi.filePath, "", true);
+          await this.app.workspace.openLinkText(poi.link, "", true);
           menu.close();
         });
       });

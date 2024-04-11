@@ -49,7 +49,7 @@ export class CSVUtils {
     return converted;
   }
 
-  private static csvArrayToStringArray(csvArray: unknown[][]): string[][] {
+  public static csvArrayToStringArray(csvArray: unknown[][]): string[][] {
     const result: string[][] = [];
     for (let i = 0; i < csvArray.length; i++) {
       const row = csvArray[i];

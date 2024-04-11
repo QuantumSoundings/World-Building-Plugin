@@ -11,9 +11,9 @@ demographics:
 map:
   # Map name and extension. Should match the MapConfig name.
   name:
-  # The position of the settlement on the map.
-  xPos: 0
-  yPos: 0
+  # The relative position of the settlement on the map. Should be a number between 0 and 1.
+  relX: 0
+  relY: 0
 
 # How this entity connects with others.
 relations:

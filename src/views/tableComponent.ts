@@ -207,12 +207,20 @@ export class TableComponent extends MarkdownRenderChild {
 
     // In case the file is empty give us a few rows and columns to work with.
     if (this.rowData.length === 0) {
-      this.rowData = [
-        ["", "", "", "", ""],
-        ["", "", "", "", ""],
-        ["", "", "", "", ""],
-        ["", "", "", "", ""],
-      ];
+      if (this.headerData instanceof Array) {
+        const row = [];
+        for (let i = 0; i < this.headerData.length; i++) {
+          row.push("");
+        }
+        this.rowData = [row, row, row, row];
+      } else {
+        this.rowData = [
+          ["", "", "", ""],
+          ["", "", "", ""],
+          ["", "", "", ""],
+          ["", "", "", ""],
+        ];
+      }
     }
 
     this.rebindDataToTable();

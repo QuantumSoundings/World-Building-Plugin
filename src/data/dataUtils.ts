@@ -1,7 +1,7 @@
 import { BaseError } from "src/errors/baseError";
 import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
-import { SettlementType } from "./defaultData";
+import { SettlementType } from "./dataTypes";
 import { Logger } from "src/util/Logger";
 import { FormatUtils } from "src/util/format";
 
@@ -19,7 +19,7 @@ export class DataUtils {
   }
 
   public static convertUnit(value: number, fromUnit: string, toUnit: string): Result<number> {
-    const fromUnitData = DataUtils.getPlugin().dataManager.unitData.find((unit) => unit.name === fromUnit);
+    const fromUnitData = DataUtils.getPlugin().dataManager.datasets.unit.live.find((unit) => unit.name === fromUnit);
     if (fromUnitData === undefined) {
       return { success: false, error: new BaseError("Could not find unit data for unit: " + fromUnit) };
     }
@@ -34,7 +34,7 @@ export class DataUtils {
   }
 
   public static getSymbolForUnit(unitName: string): Result<string> {
-    const unitData = DataUtils.getPlugin().dataManager.unitData.find((unit) => unit.name === unitName);
+    const unitData = DataUtils.getPlugin().dataManager.datasets.unit.live.find((unit) => unit.name === unitName);
     if (unitData === undefined) {
       return { success: false, error: new BaseError("Could not find unit data for unit: " + unitName) };
     }
@@ -42,7 +42,7 @@ export class DataUtils {
   }
 
   public static getDescriptorForPopulation(populationDensity: number, areaUnit: string): Result<string> {
-    for (const density of DataUtils.getPlugin().dataManager.populationDensityData) {
+    for (const density of DataUtils.getPlugin().dataManager.datasets.populationDensity.live) {
       let min = density.minPopulation;
       let max = density.maxPopulation;
       if (density.areaUnit !== areaUnit) {
@@ -66,7 +66,9 @@ export class DataUtils {
   }
 
   public static findSettlementDataByType(type: string): SettlementType | undefined {
-    return DataUtils.getPlugin().dataManager.settlementTypeData.find((settlement) => settlement.type === type);
+    return DataUtils.getPlugin().dataManager.datasets.settlementType.live.find(
+      (settlement) => settlement.type === type
+    );
   }
 
   public static generateSettlementPopulation(settlementType: string, populationScale: number): number | undefined {
