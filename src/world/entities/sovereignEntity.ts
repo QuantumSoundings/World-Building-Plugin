@@ -1,9 +1,9 @@
 import { SovereignEntityConfiguration } from "src/frontmatter/sovereignEntityConfiguration";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
-import { BaseEntity } from "./worldEngine";
 import { DataUtils } from "src/data/dataUtils";
 import { PSDUtils } from "src/util/psd";
+import { BaseEntity } from "./shared";
 
 export class SovereignEntity implements BaseEntity {
   name: string;

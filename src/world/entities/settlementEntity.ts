@@ -1,8 +1,8 @@
 import WorldBuildingPlugin from "src/main";
-import { MappableEntity } from "./worldEngine";
 import { SettlementEntityConfiguration } from "src/frontmatter/settlementEntityConfiguration";
 import { Logger } from "src/util/Logger";
 import { DataUtils } from "src/data/dataUtils";
+import { MappableEntity } from "./shared";
 
 export class SettlementEntity implements MappableEntity {
   name: string;

@@ -1,10 +1,10 @@
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
-import { SovereignEntity } from "src/world/sovereignEntity";
-import { WorldEngineEntity } from "src/world/worldEngine";
 import { generateSovereignEntityView } from "./generators/sovereignEntityView";
-import { SettlementEntity } from "src/world/settlementEntity";
+import { SettlementEntity } from "src/world/entities/settlementEntity";
 import { generateSettlementEntityView } from "./generators/settlementEntityView";
+import { WorldEngineEntity } from "src/world/entities/shared";
+import { SovereignEntity } from "src/world/entities/sovereignEntity";
 
 export const WORLD_ENGINE_VIEW = "world-engine-view";
 

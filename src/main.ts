@@ -6,7 +6,7 @@ import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
 import { WorldEngine } from "./world/worldEngine";
 import { FrontMatterManager } from "./frontmatter/frontMatterManager";
-import { SovereignEntity } from "./world/sovereignEntity";
+import { SovereignEntity } from "./world/entities/sovereignEntity";
 import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings/pluginSettings";
 import { CSVUtils } from "./util/csv";
 import { DataManager } from "./data/managers/dataManager";

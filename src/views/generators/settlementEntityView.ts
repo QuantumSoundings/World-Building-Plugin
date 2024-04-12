@@ -1,6 +1,6 @@
 import { Profession } from "src/data/dataTypes";
 import { FormatUtils } from "src/util/format";
-import { SettlementEntity } from "src/world/settlementEntity";
+import { SettlementEntity } from "src/world/entities/settlementEntity";
 
 export function generateSettlementEntityView(settlementEntity: SettlementEntity, el: HTMLElement): void {
   el.createEl("h1", { text: "Generated Statistics" });

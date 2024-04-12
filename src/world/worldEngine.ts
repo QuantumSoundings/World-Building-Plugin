@@ -1,27 +1,10 @@
 import WorldBuildingPlugin from "src/main";
-import { SovereignEntity } from "./sovereignEntity";
+import { SovereignEntity } from "./entities/sovereignEntity";
 import { TAbstractFile } from "obsidian";
-import { SettlementEntity } from "./settlementEntity";
+import { SettlementEntity } from "./entities/settlementEntity";
 import { Logger } from "src/util/Logger";
-
-export interface BaseEntity {
-  name: string;
-  plugin: WorldBuildingPlugin;
-  filePath: string;
-}
-
-export interface MapEntity {
-  map: {
-    name: string;
-    relX: number;
-    relY: number;
-    type: string;
-  };
-}
-
-export type MappableEntity = BaseEntity & MapEntity;
-
-export type WorldEngineEntity = SovereignEntity | SettlementEntity;
+import { WorldEngineEntity, MappableEntity } from "./entities/shared";
+import { WBMetaDataEnum } from "src/frontmatter/types/meta";
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
@@ -129,12 +112,12 @@ export class WorldEngine {
 
     let entity: WorldEngineEntity;
     switch (frontMatter["wbMeta"].type) {
-      case "sovereignEntity": {
+      case WBMetaDataEnum.sovereignEntity: {
         entity = new SovereignEntity(this.plugin, frontMatter);
 
         break;
       }
-      case "settlementEntity": {
+      case WBMetaDataEnum.settlementEntity: {
         entity = new SettlementEntity(this.plugin, frontMatter);
         break;
       }
