@@ -1,5 +1,6 @@
 import { Logger } from "src/util/Logger";
-import { BaseConfiguration, WBMetaData } from "./sharedConfiguration";
+import { BaseConfiguration } from "./types/shared";
+import { WBMetaData } from "./types/meta";
 
 export class SettlementEntityConfiguration implements BaseConfiguration {
   name: string;

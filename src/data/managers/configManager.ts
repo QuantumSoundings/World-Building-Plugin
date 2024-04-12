@@ -1,6 +1,6 @@
 import WorldBuildingPlugin from "src/main";
 import { MapConfiguration, PointOfInterest } from "../dataTypes";
-import { MAP_CONFIG, POINTS_OF_INTEREST_CONFIG, mapConfigString, pointsOfInterestConfigString } from "../constants";
+import { MAP_CONFIG, POINTS_OF_INTEREST_CONFIG, mapConfigString, pointsOfInterestConfigString } from "../../constants";
 import { TAbstractFile, TFile } from "obsidian";
 import { parse } from "csv-parse/sync";
 import { CSVUtils } from "src/util/csv";

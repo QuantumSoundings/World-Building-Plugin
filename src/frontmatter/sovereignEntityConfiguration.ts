@@ -1,4 +1,5 @@
-import { Datasets, Distribution, WBMetaData } from "./sharedConfiguration";
+import { WBMetaData } from "./types/meta";
+import { Datasets, Distribution } from "./types/shared";
 import { Logger } from "src/util/Logger";
 
 export class SovereignEntityConfiguration {

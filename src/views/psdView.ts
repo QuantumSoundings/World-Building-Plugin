@@ -1,4 +1,4 @@
-import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf, getLinkpath, parseLinktext } from "obsidian";
+import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
 import { PointOfInterest } from "src/data/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";

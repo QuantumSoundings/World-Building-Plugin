@@ -1,21 +1,15 @@
-export class Distribution {
+export interface BaseConfiguration {
+  name: string;
+}
+
+export interface Distribution {
   name: string;
   value: number;
 }
 
-export class WBMetaData {
-  type: string;
-  version: string;
-  id: string;
-}
-
-export class Datasets {
+export interface Datasets {
   territories: string;
   settlements: string;
-}
-
-export interface BaseConfiguration {
-  name: string;
 }
 
 export interface CultureConfiguration {

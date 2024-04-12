@@ -1,5 +1,5 @@
 import { App, Notice, FuzzySuggestModal } from "obsidian";
-import { TEMPLATES, TemplateType, getTemplateFromType } from "src/frontmatter/templates";
+import { TEMPLATES, TemplateType, getTemplateFromType } from "src/constants";
 
 export class TemplatePickerModal extends FuzzySuggestModal<TemplateType> {
   constructor(app: App, public onChoose: (template: string) => void) {

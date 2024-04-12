@@ -26,7 +26,7 @@ import {
   settlementTypeDataString,
   travelMethodDataString,
   talentDataString,
-} from "../constants";
+} from "../../constants";
 import { CSVUtils } from "src/util/csv";
 import { parse } from "csv-parse/sync";
 import { DataUtils } from "../dataUtils";
