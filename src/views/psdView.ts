@@ -1,4 +1,4 @@
-import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
+import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf, getLinkpath, parseLinktext } from "obsidian";
 import { PointOfInterest } from "src/data/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
@@ -327,7 +327,10 @@ export class PSDView extends FileView {
       menu.addItem((item) => {
         item.setTitle(`Open ${poi.label} in new tab`);
         item.onClick(async () => {
-          await this.app.workspace.openLinkText(poi.link, "", true);
+          const file = this.app.metadataCache.getFirstLinkpathDest(poi.link, "");
+          if (file !== null) {
+            await this.app.workspace.openLinkText(file.path, "", true);
+          }
           menu.close();
         });
       });

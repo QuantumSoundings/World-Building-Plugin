@@ -57,7 +57,8 @@ export class ConfigManager {
         path.includes(this.configs.mapConfigurations.configName) ||
         path.includes(this.configs.pointsOfInterest.configName);
       if (shouldReload) {
-        this.reloadConfigs();
+        await this.reloadConfigs();
+        this.plugin.worldEngine.triggerUpdate();
       }
     };
 

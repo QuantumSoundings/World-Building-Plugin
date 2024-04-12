@@ -1,7 +1,8 @@
 import Psd, { Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
 import { getIcon } from "obsidian";
-import { PointOfInterest } from "src/data/dataTypes";
+import { MapConfiguration, PointOfInterest } from "src/data/dataTypes";
+import { PoliticalLayerData } from "src/data/managers/psdManager";
 
 export class CompositeLayer {
   layer: Layer;
@@ -41,6 +42,8 @@ export class PSDUtils {
         poi.relX = (layer.left + layer.width / 2) / psd.width;
         poi.relY = (layer.top + layer.height / 2) / psd.height;
         poi.label = layer.name;
+        // For now assume the name is also the link
+        poi.link = layer.name;
         groupedLayers.pointsOfInterest.push(poi);
       }
     }
@@ -124,5 +127,9 @@ export class PSDUtils {
     const img = new Image();
     img.setAttribute("src", data);
     return img;
+  }
+
+  public static calculateArea(config: MapConfiguration, politicalLayerData: PoliticalLayerData) {
+    return config.unitHeight * config.unitWidth * politicalLayerData.percentOfTotalMapArea;
   }
 }

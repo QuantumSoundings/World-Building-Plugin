@@ -5,34 +5,16 @@ import { Logger } from "src/util/Logger";
 import { Result } from "src/errors/result";
 import { BaseError } from "src/errors/baseError";
 import { PSDUtils } from "src/util/psd";
-import { MAP_CONFIG } from "../constants";
 import { PointOfInterest } from "../dataTypes";
 
-class CountryData {
+export class PoliticalLayerData {
   name: string;
-  rawPixelCount: number;
   percentOfTotalMapArea: number;
-  //The following will be populated if _MapConfig.csv exists in the same directory as the PSD file and has an entry for this country.
-  unitArea: number;
 }
 
 class MapData {
-  pixelHeight: number;
-  pixelWidth: number;
-  pixelTotal: number;
-
-  countryData: CountryData[];
+  politicalLayerData: PoliticalLayerData[];
   pointsOfInterest: PointOfInterest[];
-
-  // Config Based Data
-  configData: {
-    unitHeight: number;
-    unitWidth: number;
-    unit: string;
-    unitHeightToPixelRatio: number;
-    unitWidthToPixelRatio: number;
-    unitAreaToPixelRatio: number;
-  };
 }
 
 class CacheEntry {
@@ -40,7 +22,7 @@ class CacheEntry {
   psd: Psd;
   image: ImageBitmap | null;
 
-  processedFile: TAbstractFile | null;
+  processedFilePath: string;
   processedData: MapData;
 }
 
@@ -87,11 +69,6 @@ export class PSDManager {
         entry.psd = Psd.parse(newBinaryContent);
         await this.processEntry(entry, false);
       }
-      if (`${this.plugin.settings.configsPath}/${MAP_CONFIG}` === file.path) {
-        for (const [, entry] of this.psdMap) {
-          this.updateEntryConfig(entry);
-        }
-      }
     };
 
     this.plugin.registerEvent(this.plugin.app.vault.on("create", creationEvent));
@@ -100,9 +77,20 @@ export class PSDManager {
     this.plugin.registerEvent(this.plugin.app.vault.on("modify", modifyEvent));
   }
 
-  public findCountryData(country: string): Result<CountryData> {
+  public findMapFileByCountry(country: string): Result<TAbstractFile> {
     for (const [, entry] of this.psdMap) {
-      for (const countryData of entry.processedData.countryData) {
+      for (const countryData of entry.processedData.politicalLayerData) {
+        if (countryData.name === country) {
+          return { success: true, result: entry.file };
+        }
+      }
+    }
+    return { success: false, error: new BaseError("Country not found.") };
+  }
+
+  public findCountryData(country: string): Result<PoliticalLayerData> {
+    for (const [, entry] of this.psdMap) {
+      for (const countryData of entry.processedData.politicalLayerData) {
         if (countryData.name === country) {
           return { success: true, result: countryData };
         }
@@ -142,60 +130,20 @@ export class PSDManager {
     const binaryContent = await this.plugin.app.vault.readBinary(file as TFile);
     cacheEntry.psd = Psd.parse(binaryContent);
 
-    cacheEntry.processedFile = this.plugin.app.vault.getAbstractFileByPath(file.path.replace(".psd", ".md"));
+    cacheEntry.processedFilePath = file.path.replace(".psd", ".md");
     await this.processEntry(cacheEntry, this.plugin.settings.processMapsOnLoad);
 
     this.psdMap.set(file.path, cacheEntry);
   }
 
-  private updateEntryConfig(entry: CacheEntry) {
-    const configData = this.plugin.configManager.configs.mapConfigurations.values.find(
-      (config) => config.mapName === entry.file.name
-    );
-    if (configData === undefined) {
-      return;
-    }
-    entry.processedData.configData = {
-      unitHeight: configData.unitHeight,
-      unitWidth: configData.unitWidth,
-      unit: configData.unit,
-      unitHeightToPixelRatio: configData.unitHeight / entry.processedData.pixelHeight,
-      unitWidthToPixelRatio: configData.unitWidth / entry.processedData.pixelWidth,
-      unitAreaToPixelRatio: (configData.unitHeight * configData.unitWidth) / entry.processedData.pixelTotal,
-    };
-    for (const country of entry.processedData.countryData) {
-      country.unitArea = country.rawPixelCount * entry.processedData.configData.unitAreaToPixelRatio;
-    }
-  }
-
   private async processEntry(entry: CacheEntry, force: boolean = false): Promise<void> {
-    // Setup our data structure in case we need to return early.
-    const mapData: MapData = new MapData();
-    mapData.pixelHeight = entry.psd.height;
-    mapData.pixelWidth = entry.psd.width;
-    mapData.pixelTotal = entry.psd.height * entry.psd.width;
-    mapData.countryData = [];
-
-    entry.processedData = mapData;
-
-    // If we have a processed map file thats newer than the map file, use it.
-    let needsRecalculation = false;
-    if (entry.processedFile !== null) {
-      const mF = entry.file as TFile;
-      const pMF = entry.processedFile as TFile;
-      if (mF.stat.mtime < pMF.stat.mtime) {
-        // Map is older than the processed map, use the processed map data.
-        const mapData = await this.plugin.frontMatterManager.getFrontMatter(entry.processedFile.path);
-        entry.processedData = mapData;
-      } else {
-        // Need to recalculate the map data, as it is newer than the processed map.
-        needsRecalculation = true;
-      }
-    } else {
-      needsRecalculation = true;
-    }
+    await this.loadProcessedMapData(entry);
+    const needsRecalculation = entry.processedData === null;
 
     if (force || needsRecalculation) {
+      const mapData: MapData = new MapData();
+      mapData.politicalLayerData = [];
+      entry.processedData = mapData;
       await this.processLayerData(entry);
     }
 
@@ -203,32 +151,41 @@ export class PSDManager {
     const imageData = new ImageData(compositeBuffer, entry.psd.width, entry.psd.height);
     entry.image = await createImageBitmap(imageData);
 
-    this.updateEntryConfig(entry);
-
     await this.writeProcessedMapData(entry);
+  }
+
+  private async loadProcessedMapData(entry: CacheEntry) {
+    const processedFile = this.plugin.app.vault.getAbstractFileByPath(entry.processedFilePath);
+    if (processedFile !== null && processedFile instanceof TFile && entry.file instanceof TFile) {
+      if (entry.file.stat.mtime < processedFile.stat.mtime) {
+        // Map is older than the processed map, use the processed map data.
+        const mapData = await this.plugin.frontMatterManager.getFrontMatter(entry.processedFilePath);
+        entry.processedData = mapData;
+      }
+    }
   }
 
   private async processLayerData(entry: CacheEntry) {
     const groupedLayers = await PSDUtils.getGroupedLayers(entry.psd);
     entry.processedData.pointsOfInterest = groupedLayers.pointsOfInterest;
 
-    entry.processedData.countryData = [];
+    entry.processedData.politicalLayerData = [];
     for (const politicalLayer of groupedLayers.politicalLayers) {
-      const countryData = new CountryData();
+      const countryData = new PoliticalLayerData();
       countryData.name = politicalLayer.layer.name;
-      countryData.rawPixelCount = await PSDUtils.findLayerIntersection(
+      const rawPixelCount = await PSDUtils.findLayerIntersection(
         groupedLayers.baseLayer,
         politicalLayer,
         entry.psd.width,
         entry.psd.height
       );
-      countryData.percentOfTotalMapArea = countryData.rawPixelCount / entry.processedData.pixelTotal;
-      entry.processedData.countryData.push(countryData);
+      countryData.percentOfTotalMapArea = rawPixelCount / (entry.psd.width * entry.psd.height);
+      entry.processedData.politicalLayerData.push(countryData);
     }
-    const sortBySize = (a: CountryData, b: CountryData) => {
-      return b.rawPixelCount - a.rawPixelCount;
+    const sortBySize = (a: PoliticalLayerData, b: PoliticalLayerData) => {
+      return b.percentOfTotalMapArea - a.percentOfTotalMapArea;
     };
-    entry.processedData.countryData.sort(sortBySize);
+    entry.processedData.politicalLayerData.sort(sortBySize);
   }
 
   private async writeProcessedMapData(entry: CacheEntry) {

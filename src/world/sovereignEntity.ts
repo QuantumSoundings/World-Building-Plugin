@@ -3,6 +3,7 @@ import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { BaseEntity } from "./worldEngine";
 import { DataUtils } from "src/data/dataUtils";
+import { PSDUtils } from "src/util/psd";
 
 export class SovereignEntity implements BaseEntity {
   name: string;
@@ -32,15 +33,31 @@ export class SovereignEntity implements BaseEntity {
   }
 
   public update() {
+    this.calculateMapSize();
+    this.calculatePopulation();
+  }
+
+  private calculateMapSize() {
     if (this.updateUsingMap) {
+      const mapFile = this.plugin.psdManager.findMapFileByCountry(this.configuration.name);
+      if (mapFile.success === false) {
+        Logger.error(this, mapFile.error.message);
+        return;
+      }
       const countryDataResult = this.plugin.psdManager.findCountryData(this.configuration.name);
       if (countryDataResult.success === false) {
         Logger.error(this, countryDataResult.error.message);
         return;
       }
-      this.configuration.geography.size = countryDataResult.result.unitArea;
+      const map = this.plugin.configManager.configs.mapConfigurations.values.find(
+        (predicate) => predicate.mapName === mapFile.result.name
+      );
+      if (map === undefined) {
+        Logger.error(this, "Map Configuration not found.");
+        return;
+      }
+      this.configuration.geography.size = PSDUtils.calculateArea(map, countryDataResult.result);
     }
-    this.calculatePopulation();
   }
 
   private calculatePopulation() {

@@ -96,6 +96,12 @@ export class WorldEngineView extends ItemView {
     spacer.setCssStyles({ marginBottom: "25px" });
   }
 
+  public reloadEntity() {
+    if (this.currentEntity !== undefined) {
+      this.displayEntity(this.currentEntity);
+    }
+  }
+
   public getCurrentEntity() {
     return this.currentEntity;
   }

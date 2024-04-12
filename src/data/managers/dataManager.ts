@@ -153,6 +153,7 @@ export class DataManager {
         path.includes(this.datasets.unit.datasetName);
       if (shouldReload) {
         this.reloadDatasets();
+        this.plugin.worldEngine.triggerUpdate();
       }
     };
 

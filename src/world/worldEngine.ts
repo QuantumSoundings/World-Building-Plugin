@@ -85,6 +85,18 @@ export class WorldEngine {
     this.plugin.registerEvent(this.plugin.app.vault.on("modify", onFileModify));
   }
 
+  public triggerUpdate() {
+    const worldEngineView = this.plugin.getWorldEngineView();
+    if (worldEngineView === undefined) return;
+    const entity = worldEngineView.getCurrentEntity();
+    if (entity !== undefined) {
+      if ("update" in entity) {
+        entity.update();
+        worldEngineView.reloadEntity();
+      }
+    }
+  }
+
   public getEntity(fullPath: string): WorldEngineEntity | undefined {
     const entity = this.entities.get(fullPath);
     if (entity !== undefined && "update" in entity) {
