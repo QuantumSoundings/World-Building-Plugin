@@ -19,6 +19,7 @@ type PersistState = {
 export class PSDView extends FileView implements HoverParent {
   plugin: WorldBuildingPlugin;
   hoverPopover: HoverPopover | null;
+  hoverOpen: boolean = false;
 
   // View Container
   viewContainerElement: HTMLElement;
@@ -206,6 +207,7 @@ export class PSDView extends FileView implements HoverParent {
     this.canvasElement.addEventListener("contextmenu", this.onContextMenu.bind(this));
     this.canvasElement.addEventListener("mouseover", this.onMouseUpdate.bind(this));
     this.canvasElement.addEventListener("mousemove", this.onMouseUpdate.bind(this));
+    this.canvasElement.addEventListener("click", this.onMouseClick.bind(this));
   }
 
   private hasCollision(relX: number, relY: number, poi: PointOfInterest) {
@@ -286,6 +288,12 @@ export class PSDView extends FileView implements HoverParent {
     this.updateZoomSlider();
   }
 
+  private async onMouseClick() {
+    if (this.currentPointOfInterest !== null) {
+      const link = this.currentPointOfInterest.link.substring(2, this.currentPointOfInterest.link.length - 2);
+      await this.plugin.app.workspace.openLinkText(link, "", true);
+    }
+  }
   private onMouseUpdate(event: MouseEvent) {
     const { relX, relY } = this.toRelativePosition(event.clientX, event.clientY);
     for (const poi of this.pointsOfInterest) {
@@ -295,18 +303,28 @@ export class PSDView extends FileView implements HoverParent {
         );
         this.currentPointOfInterest = poi;
 
-        this.plugin.app.workspace.trigger("hover-link", {
-          event: event,
-          source: PSD_HOVER_SOURCE,
-          hoverParent: this,
-          targetEl: this.canvasElement,
-          linktext: this.currentPointOfInterest.link.substring(2, this.currentPointOfInterest.link.length - 2),
-        });
+        if (!this.hoverOpen) {
+          this.plugin.app.workspace.trigger("hover-link", {
+            event: event,
+            source: PSD_HOVER_SOURCE,
+            hoverParent: this,
+            targetEl: this.canvasElement,
+            linktext: this.currentPointOfInterest.link.substring(2, this.currentPointOfInterest.link.length - 2),
+          });
+          this.hoverOpen = true;
+        }
+
         return;
       }
     }
     this.pointOfInterestElement.setText("Points of Interest: None");
     this.currentPointOfInterest = null;
+    if (this.hoverOpen) {
+      this.hoverPopover?.hoverEl.hide();
+      this.hoverPopover?.unload();
+      this.hoverPopover = new HoverPopover(this, this.canvasElement);
+      this.hoverOpen = false;
+    }
   }
 
   private onContextMenu(event: MouseEvent) {
