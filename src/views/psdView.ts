@@ -1,4 +1,4 @@
-import { FileView, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
+import { FileView, HoverParent, HoverPopover, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
 import { PointOfInterest } from "src/data/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
@@ -18,8 +18,9 @@ type PersistState = {
  * Relative Positions are stored as percentages of the image size. In the range [0, 1]
  */
 
-export class PSDView extends FileView {
+export class PSDView extends FileView implements HoverParent {
   plugin: WorldBuildingPlugin;
+  hoverPopover: HoverPopover | null;
 
   // View Container
   viewContainerElement: HTMLElement;
@@ -77,6 +78,7 @@ export class PSDView extends FileView {
     if (this.canvasContext === null) {
       Logger.warn(this, "Failed to get 2d context for canvas");
     }
+    this.hoverPopover = new HoverPopover(this, this.canvasElement, 2000);
 
     this.loadingFile = false;
     this.currentScale = 100;

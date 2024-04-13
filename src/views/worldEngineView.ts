@@ -1,4 +1,4 @@
-import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
+import { HoverParent, HoverPopover, ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { generateSovereignEntityView } from "./generators/sovereignEntityView";
 import { SettlementEntity } from "src/world/entities/settlementEntity";
@@ -14,8 +14,9 @@ const PAUSED = STATUS + "Paused";
 const ENTITY = "Entity: ";
 const NO_ENTITY = ENTITY + "No entity shown";
 
-export class WorldEngineView extends ItemView {
+export class WorldEngineView extends ItemView implements HoverParent {
   plugin: WorldBuildingPlugin;
+  hoverPopover: HoverPopover | null;
 
   viewContainerElement: HTMLElement;
 
@@ -23,6 +24,7 @@ export class WorldEngineView extends ItemView {
   titleEl: HTMLElement;
   statusEl: HTMLElement;
   entityTitleEl: HTMLElement;
+  entityTitleLink: HTMLElement;
   entityLinkEl: HTMLElement;
 
   contentContainerEl: HTMLElement;
@@ -47,7 +49,16 @@ export class WorldEngineView extends ItemView {
     this.headerContainerEl = this.viewContainerElement.createEl("div");
     this.titleEl = this.headerContainerEl.createEl("h1", { text: "World Engine" });
     this.statusEl = this.headerContainerEl.createEl("h2", { text: RUNNING });
-    this.entityTitleEl = this.headerContainerEl.createEl("h2", { text: NO_ENTITY });
+    this.entityTitleEl = this.headerContainerEl.createEl("h2"); //, { text: NO_ENTITY });
+    this.entityTitleLink = this.entityTitleEl.createEl("a", { text: NO_ENTITY });
+    this.entityTitleLink.setAttr("data-href", null);
+    this.entityTitleLink.setAttr("href", null);
+    this.entityTitleLink.classList.add("internal-link");
+    this.entityTitleLink.setAttr("target", "_blank");
+    this.entityTitleLink.setAttr("rel", "noopener");
+
+    this.hoverPopover = new HoverPopover(this, this.entityTitleLink);
+
     this.entityLinkEl = this.addAction("globe", "Open Entity Note", () => {
       if (this.currentEntity === undefined) return;
       const file = this.plugin.app.vault.getAbstractFileByPath(this.currentEntity.filePath);
@@ -83,7 +94,9 @@ export class WorldEngineView extends ItemView {
       return;
     }
     this.contentContainerEl.empty();
-    this.entityTitleEl.setText(ENTITY + entity.configuration.name);
+    this.entityTitleLink.setText(ENTITY + entity.configuration.name);
+    this.entityTitleLink.setAttr("data-href", entity.configuration.name);
+    this.entityTitleLink.setAttr("href", entity.configuration.name);
 
     if (entity instanceof SovereignEntity) {
       generateSovereignEntityView(entity, this.contentContainerEl);

@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
+import { HoverLinkSource, MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
 import { PSDManager } from "./data/managers/psdManager";
 import { CSVView, CSV_VIEW } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
@@ -69,6 +69,14 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerCommands();
     this.registerCodeBlockProcessors();
     this.registerEventHandlers();
+
+    const hoverLinkSource: HoverLinkSource = {
+      display: "world-building-plugin",
+      defaultMod: false,
+    };
+    this.registerHoverLinkSource(PSD_VIEW, hoverLinkSource);
+    this.registerHoverLinkSource(WORLD_ENGINE_VIEW, hoverLinkSource);
+    this.registerHoverLinkSource(CSV_VIEW, hoverLinkSource);
 
     // Finished!
     Logger.debug(this, "WorldBuilding plugin loaded.");
