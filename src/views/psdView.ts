@@ -2,6 +2,7 @@ import { FileView, HoverParent, HoverPopover, Menu, Setting, SliderComponent, TF
 import { PSD_HOVER_SOURCE, PSD_VIEW } from "src/constants";
 import { PointOfInterest } from "src/data/dataTypes";
 import WorldBuildingPlugin from "src/main";
+import { PointOfInterestModal } from "src/modal/pointOfInterestModal";
 import { Logger } from "src/util/Logger";
 import { PSDUtils } from "src/util/psd";
 
@@ -20,6 +21,7 @@ export class PSDView extends FileView implements HoverParent {
   plugin: WorldBuildingPlugin;
   hoverPopover: HoverPopover | null;
   hoverOpen: boolean = false;
+  hoverPoi: PointOfInterest | null;
 
   // View Container
   viewContainerElement: HTMLElement;
@@ -210,11 +212,13 @@ export class PSDView extends FileView implements HoverParent {
     this.canvasElement.addEventListener("click", this.onMouseClick.bind(this));
   }
 
+  private getDistance(relX: number, relY: number, poi: PointOfInterest) {
+    return Math.sqrt((relX - poi.relX) ** 2 + (relY - poi.relY) ** 2);
+  }
+
   private hasCollision(relX: number, relY: number, poi: PointOfInterest) {
-    const distance = Math.sqrt((relX - poi.relX) ** 2 + (relY - poi.relY) ** 2);
     // Distance is with 1/200 of the image size
-    //Logger.info(this, `XPos: ${relX}, YPos: ${relY}, Distance: ${distance}`);
-    return distance <= 0.005;
+    return this.getDistance(relX, relY, poi) <= 0.005;
   }
 
   private toRelativePosition(absX: number, absY: number) {
@@ -312,6 +316,7 @@ export class PSDView extends FileView implements HoverParent {
             linktext: this.currentPointOfInterest.link.substring(2, this.currentPointOfInterest.link.length - 2),
           });
           this.hoverOpen = true;
+          this.hoverPoi = poi;
         }
 
         return;
@@ -319,11 +324,12 @@ export class PSDView extends FileView implements HoverParent {
     }
     this.pointOfInterestElement.setText("Points of Interest: None");
     this.currentPointOfInterest = null;
-    if (this.hoverOpen) {
+    if (this.hoverOpen && this.getDistance(relX, relY, this.hoverPoi!) > 0.02) {
       this.hoverPopover?.hoverEl.hide();
       this.hoverPopover?.unload();
       this.hoverPopover = new HoverPopover(this, this.canvasElement);
       this.hoverOpen = false;
+      this.hoverPoi = null;
     }
   }
 
@@ -344,6 +350,13 @@ export class PSDView extends FileView implements HoverParent {
         menu.close();
       });
     });
+    menu.addSeparator();
+    menu.addItem((item) => {
+      item.setTitle("New Point of Interest Here");
+      item.onClick(async () => {
+        new PointOfInterestModal(this.plugin, this.file!.name, relX, relY).open();
+      });
+    });
 
     // If we are over a poi add it to the context menu
     const poi = this.currentPointOfInterest;
@@ -351,10 +364,8 @@ export class PSDView extends FileView implements HoverParent {
       menu.addItem((item) => {
         item.setTitle(`Open ${poi.label} in new tab`);
         item.onClick(async () => {
-          const file = this.app.metadataCache.getFirstLinkpathDest(poi.link, "");
-          if (file !== null) {
-            await this.app.workspace.openLinkText(file.path, "", true);
-          }
+          const link = poi.link.substring(2, poi.link.length - 2);
+          await this.plugin.app.workspace.openLinkText(link, "", true);
           menu.close();
         });
       });
