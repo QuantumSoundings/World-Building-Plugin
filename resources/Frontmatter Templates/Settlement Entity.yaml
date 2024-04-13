@@ -8,12 +8,13 @@ demographics:
   # 0.5 is the average size for that settlement type.
   populationScale: 0.5
 
-map:
+pointOfInterest:
   # Map name and extension. Should match the MapConfig name.
-  name:
+  mapName: Map Name
   # The relative position of the settlement on the map. Should be a number between 0 and 1.
   relX: 0
   relY: 0
+  icon: castle
 
 # How this entity connects with others.
 relations:

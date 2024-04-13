@@ -3,8 +3,9 @@ import { SovereignEntity } from "./entities/sovereignEntity";
 import { TAbstractFile } from "obsidian";
 import { SettlementEntity } from "./entities/settlementEntity";
 import { Logger } from "src/util/Logger";
-import { WorldEngineEntity, MappableEntity } from "./entities/shared";
+import { WorldEngineEntity, isPointOfInterestEntity } from "./entities/shared";
 import { WBMetaDataEnum } from "src/frontmatter/types/meta";
+import { PointOfInterest } from "src/data/dataTypes";
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
@@ -16,10 +17,10 @@ export class WorldEngine {
     this.entities = new Map<string, WorldEngineEntity>();
   }
 
-  public initialize() {
+  public async initialize() {
     const files = this.plugin.app.vault.getMarkdownFiles();
     for (const file of files) {
-      this.createEntity(file);
+      await this.createEntity(file);
     }
   }
 
@@ -88,12 +89,12 @@ export class WorldEngine {
     return entity;
   }
 
-  public getEntitiesForMap(mapName: string): MappableEntity[] {
-    const output: MappableEntity[] = [];
-    for (const entity of this.entities.values()) {
-      if ("map" in entity) {
-        if (entity.map.name === mapName) {
-          output.push(entity);
+  public getEntitiesForMap(mapName: string): PointOfInterest[] {
+    const output: PointOfInterest[] = [];
+    for (const [, entity] of this.entities) {
+      if (isPointOfInterestEntity(entity)) {
+        if (entity.configuration.pointOfInterest.mapName === mapName) {
+          output.push(entity.getMapPointOfInterest());
         }
       }
     }

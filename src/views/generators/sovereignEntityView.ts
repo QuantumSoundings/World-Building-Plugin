@@ -1,7 +1,7 @@
 import { DataUtils } from "src/data/dataUtils";
 import { FormatUtils } from "src/util/format";
 import { Logger } from "src/util/Logger";
-import { SovereignEntity } from "src/world/sovereignEntity";
+import { SovereignEntity } from "src/world/entities/sovereignEntity";
 
 export function generateSovereignEntityView(sovereignEntity: SovereignEntity, el: HTMLElement): void {
   el.createEl("h1", { text: "Generated Statistics" });

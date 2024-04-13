@@ -39,11 +39,11 @@ export class PSDUtils {
         groupedLayers.politicalLayers.push(compositeLayer);
       } else if (layer.parent.name === POINTS_OF_INTEREST_GROUP_NAME) {
         const poi = new PointOfInterest(null);
+        poi.label = layer.name;
+        poi.link = `[[${layer.name}]]`;
         poi.relX = (layer.left + layer.width / 2) / psd.width;
         poi.relY = (layer.top + layer.height / 2) / psd.height;
-        poi.label = layer.name;
-        // For now assume the name is also the link
-        poi.link = layer.name;
+        poi.mapIcon = "x";
         groupedLayers.pointsOfInterest.push(poi);
       }
     }

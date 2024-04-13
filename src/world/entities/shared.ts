@@ -1,6 +1,7 @@
 import WorldBuildingPlugin from "src/main";
 import { SettlementEntity } from "./settlementEntity";
 import { SovereignEntity } from "./sovereignEntity";
+import { PointOfInterest } from "src/data/dataTypes";
 
 export interface BaseEntity {
   name: string;
@@ -8,15 +9,14 @@ export interface BaseEntity {
   filePath: string;
 }
 
-export interface MapEntity {
-  map: {
-    name: string;
-    relX: number;
-    relY: number;
-    type: string;
-  };
+export interface PointOfInterestEntity {
+  getMapPointOfInterest(): PointOfInterest;
 }
 
-export type MappableEntity = BaseEntity & MapEntity;
+export function isPointOfInterestEntity(entity: any): entity is PointOfInterestEntity {
+  return "getMapPointOfInterest" in entity;
+}
+
+export type MappableEntity = BaseEntity & PointOfInterestEntity;
 
 export type WorldEngineEntity = SovereignEntity | SettlementEntity;

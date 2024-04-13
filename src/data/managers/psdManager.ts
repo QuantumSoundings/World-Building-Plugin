@@ -108,10 +108,10 @@ export class PSDManager {
     return entry.image;
   }
 
-  public getPointsOfInterest(fullPath: string) {
+  public getPointsOfInterest(fullPath: string): PointOfInterest[] {
     const entry = this.psdMap.get(fullPath);
     if (entry === undefined) {
-      return undefined;
+      return [];
     }
     return entry.processedData.pointsOfInterest;
   }
@@ -138,7 +138,7 @@ export class PSDManager {
 
   private async processEntry(entry: CacheEntry, force: boolean = false): Promise<void> {
     await this.loadProcessedMapData(entry);
-    const needsRecalculation = entry.processedData === null;
+    const needsRecalculation = entry.processedData === undefined;
 
     if (force || needsRecalculation) {
       const mapData: MapData = new MapData();
@@ -167,6 +167,7 @@ export class PSDManager {
 
   private async processLayerData(entry: CacheEntry) {
     const groupedLayers = await PSDUtils.getGroupedLayers(entry.psd);
+    groupedLayers.pointsOfInterest.forEach((poi) => (poi.mapName = entry.file.name));
     entry.processedData.pointsOfInterest = groupedLayers.pointsOfInterest;
 
     entry.processedData.politicalLayerData = [];

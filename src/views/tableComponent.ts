@@ -246,16 +246,4 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
     this.handsonTableBaseSettings.colHeaders = this.headerData;
     this.handsonTable.updateSettings(this.handsonTableBaseSettings);
   }
-
-  // Creates a link html element when formated as [[Link]].
-  private renderCellObsidianLinks(instance: Handsontable, td: HTMLTableElement, row, col) {
-    const value = instance.getDataAtCell(row, col);
-    if (value.startsWith("[[") && value.endsWith("]]")) {
-      const linkText = value.substring(2, value.length - 2);
-      td.innerHTML = `<a href="${linkText}">${linkText}</a>`;
-    } else {
-      td.innerHTML = value;
-    }
-    return td;
-  }
 }

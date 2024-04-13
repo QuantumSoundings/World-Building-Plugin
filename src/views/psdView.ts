@@ -8,8 +8,6 @@ import { PSDUtils } from "src/util/psd";
 const ZOOM_STEP_CTRL = 5;
 const ZOOM_STEP_SHIFT_CTRL = 1;
 
-const CITY_ICON = "castle";
-
 type PersistState = {
   zoom: number;
 };
@@ -122,13 +120,11 @@ export class PSDView extends FileView implements HoverParent {
     if (image !== null) {
       this.image = image;
       this.iconSize = this.image.height / 100;
+      this.icons.clear();
     }
 
     // Mark any points of interest
     this.addPointsOfInterest();
-
-    // Scale our icons
-    this.scaleIcons();
 
     this.updateCanvas();
     this.loadingFile = false;
@@ -159,11 +155,13 @@ export class PSDView extends FileView implements HoverParent {
       for (const poi of this.pointsOfInterest) {
         const absX = this.image.width * poi.relX;
         const absY = this.image.height * poi.relY;
-        const iconImage = this.icons.get(CITY_ICON);
-        if (iconImage !== undefined) {
-          const iconOffset = this.iconSize / 2;
-          this.canvasContext.drawImage(iconImage, absX - iconOffset, absY - iconOffset);
+        let iconImage = this.icons.get(poi.mapIcon);
+        if (iconImage === undefined) {
+          iconImage = PSDUtils.iconToImage(poi.mapIcon, this.iconSize);
+          this.icons.set(poi.mapIcon, iconImage);
         }
+        const iconOffset = this.iconSize / 2;
+        this.canvasContext.drawImage(iconImage, absX - iconOffset, absY - iconOffset);
       }
     }
   }
@@ -175,29 +173,27 @@ export class PSDView extends FileView implements HoverParent {
     const file = this.file;
     this.pointsOfInterest = [];
 
-    const psdPOIs = this.plugin.psdManager.getPointsOfInterest(file.path);
-    if (psdPOIs !== undefined) {
-      this.pointsOfInterest.push(...psdPOIs);
-    }
+    const addIfNew = (poi: PointOfInterest) => {
+      const existing = this.pointsOfInterest.find((existingPoi) => existingPoi.label === poi.label);
+      if (existing === undefined) {
+        this.pointsOfInterest.push(poi);
+      }
+    };
 
+    // Three sources of POIs.
+    // 1. Configs
+    // 2. World Engine
+    // 3. PSD Manager
     const configPOIs = this.plugin.configManager.configs.pointsOfInterest.values.filter(
       (value) => value.mapName === file.name
     );
-    this.pointsOfInterest.push(...configPOIs);
+    configPOIs.forEach(addIfNew);
 
     const enginePOIs = this.plugin.worldEngine.getEntitiesForMap(file.name);
-    for (const entity of enginePOIs) {
-      const poi = new PointOfInterest(null);
-      poi.label = entity.name;
-      poi.relX = entity.map.relX;
-      poi.relY = entity.map.relY;
-      poi.link = entity.filePath;
-      poi.mapIcon = entity.map.type;
-    }
-  }
+    enginePOIs.forEach(addIfNew);
 
-  private scaleIcons() {
-    this.icons.set(CITY_ICON, PSDUtils.iconToImage(CITY_ICON, this.iconSize));
+    const psdPOIs = this.plugin.psdManager.getPointsOfInterest(file.path);
+    psdPOIs.forEach(addIfNew);
   }
 
   private updateZoomSlider() {

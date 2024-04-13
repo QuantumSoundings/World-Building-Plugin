@@ -1,4 +1,4 @@
-import { HoverLinkSource, MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
+import { MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
 import { PSDManager } from "./data/managers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
@@ -58,7 +58,7 @@ export default class WorldBuildingPlugin extends Plugin {
     await this.psdManager.initialize();
 
     // Load the world engine
-    this.worldEngine.initialize();
+    await this.worldEngine.initialize();
 
     // Register everything with obsidian
     this.registerView(CSV_VIEW, (leaf) => {

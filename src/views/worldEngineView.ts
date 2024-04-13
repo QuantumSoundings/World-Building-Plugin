@@ -1,4 +1,4 @@
-import { HoverParent, HoverPopover, ItemView, TFile, WorkspaceLeaf } from "obsidian";
+import { HoverParent, HoverPopover, ItemView, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { generateSovereignEntityView } from "./generators/sovereignEntityView";
 import { SettlementEntity } from "src/world/entities/settlementEntity";
@@ -10,8 +10,7 @@ import { WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "src/constants";
 const STATUS = "Status: ";
 const RUNNING = STATUS + "Running";
 const PAUSED = STATUS + "Paused";
-const ENTITY = "Entity: ";
-const NO_ENTITY = ENTITY + "No entity shown";
+const NO_ENTITY = "No Entity Selected";
 
 export class WorldEngineView extends ItemView implements HoverParent {
   plugin: WorldBuildingPlugin;
@@ -47,16 +46,8 @@ export class WorldEngineView extends ItemView implements HoverParent {
     this.headerContainerEl = this.viewContainerElement.createEl("div");
     this.titleEl = this.headerContainerEl.createEl("h1", { text: "World Engine" });
     this.statusEl = this.headerContainerEl.createEl("h2", { text: RUNNING });
-    this.entityTitleEl = this.headerContainerEl.createEl("h2"); //, { text: NO_ENTITY });
+    this.entityTitleEl = this.headerContainerEl.createEl("h2");
     this.entityTitleLink = this.entityTitleEl.createEl("a", { text: NO_ENTITY });
-    this.entityTitleLink.setAttr("data-href", null);
-    this.entityTitleLink.setAttr("href", null);
-    this.entityTitleLink.classList.add("internal-link");
-    this.entityTitleLink.setAttr("target", "_blank");
-    this.entityTitleLink.setAttr("rel", "noopener");
-
-    this.hoverPopover = new HoverPopover(this, this.entityTitleLink);
-
     this.entityTitleLink.addEventListener("mouseover", (event: MouseEvent) => {
       if (this.currentEntity === undefined) return;
       this.plugin.app.workspace.trigger("hover-link", {
@@ -67,6 +58,12 @@ export class WorldEngineView extends ItemView implements HoverParent {
         linktext: this.currentEntity.filePath,
       });
     });
+    this.entityTitleLink.addEventListener("click", async () => {
+      if (this.currentEntity === undefined) return;
+      await this.plugin.app.workspace.openLinkText(this.currentEntity.filePath, "", true);
+    });
+
+    this.hoverPopover = new HoverPopover(this, this.entityTitleLink);
 
     // Content container.
     this.contentContainerEl = this.viewContainerElement.createEl("div");
@@ -94,8 +91,6 @@ export class WorldEngineView extends ItemView implements HoverParent {
     }
     this.contentContainerEl.empty();
     this.entityTitleLink.setText(entity.configuration.name);
-    this.entityTitleLink.setAttr("data-href", entity.configuration.name);
-    this.entityTitleLink.setAttr("href", entity.configuration.name);
 
     if (entity instanceof SovereignEntity) {
       generateSovereignEntityView(entity, this.contentContainerEl);
@@ -104,8 +99,10 @@ export class WorldEngineView extends ItemView implements HoverParent {
     }
 
     this.currentEntity = entity;
-    const spacer = this.contentContainerEl.createEl("div");
-    spacer.setCssStyles({ marginBottom: "25px" });
+
+    // Add a spacer to the bottom of the view.
+    const spacerEl = this.contentContainerEl.createEl("div");
+    spacerEl.setCssStyles({ marginBottom: "25px" });
   }
 
   public reloadEntity() {

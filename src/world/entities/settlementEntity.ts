@@ -3,17 +3,13 @@ import { SettlementEntityConfiguration } from "src/frontmatter/settlementEntityC
 import { Logger } from "src/util/Logger";
 import { DataUtils } from "src/data/dataUtils";
 import { MappableEntity } from "./shared";
+import { PointOfInterest } from "src/data/dataTypes";
 
 export class SettlementEntity implements MappableEntity {
   name: string;
   plugin: WorldBuildingPlugin;
   filePath: string;
-  map: {
-    name: string;
-    relX: number;
-    relY: number;
-    type: string;
-  };
+
   configuration: SettlementEntityConfiguration;
 
   // Values calculated on update
@@ -24,15 +20,20 @@ export class SettlementEntity implements MappableEntity {
     this.updateConfiguration(initialFrontMatter);
   }
 
+  public getMapPointOfInterest(): PointOfInterest {
+    const poi = new PointOfInterest(null);
+    poi.label = this.name;
+    poi.link = `[[${this.name}]]`;
+    poi.mapIcon = "castle";
+    poi.mapName = this.configuration.pointOfInterest.mapName;
+    poi.relX = this.configuration.pointOfInterest.relX;
+    poi.relY = this.configuration.pointOfInterest.relY;
+    return poi;
+  }
+
   public updateConfiguration(newFrontMatter: any) {
     this.configuration = new SettlementEntityConfiguration(newFrontMatter);
     this.name = this.configuration.name;
-    this.map = {
-      name: this.configuration.map.name,
-      relX: this.configuration.map.relX,
-      relY: this.configuration.map.relY,
-      type: this.configuration.demographics.settlementType,
-    };
     const settlementPopulation = DataUtils.generateSettlementPopulation(
       this.configuration.demographics.settlementType,
       this.configuration.demographics.populationScale

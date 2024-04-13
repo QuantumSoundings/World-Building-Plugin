@@ -10,10 +10,11 @@ export class SettlementEntityConfiguration implements BaseConfiguration {
     populationScale: number;
   };
 
-  map: {
-    name: string;
+  pointOfInterest: {
+    mapName: string;
     relX: number;
     relY: number;
+    icon: string;
   };
 
   relations: {
@@ -51,10 +52,11 @@ export class SettlementEntityConfiguration implements BaseConfiguration {
           settlementType: fm.demographics.settlementType,
           populationScale: fm.demographics.populationScale,
         };
-        this.map = {
-          name: fm.map.name,
-          relX: fm.map.relX,
-          relY: fm.map.relY,
+        this.pointOfInterest = {
+          mapName: fm.pointOfInterest.mapName,
+          relX: fm.pointOfInterest.relX,
+          relY: fm.pointOfInterest.relY,
+          icon: fm.pointOfInterest.icon,
         };
         this.relations = {
           parentEntity: fm.relations.parentEntity,
