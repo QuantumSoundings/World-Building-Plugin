@@ -76,3 +76,14 @@ export function getTemplateFromType(templateType: TemplateType): string {
       return "";
   }
 }
+
+// View Constants
+export const PLUGIN_NAME = "world-building-plugin";
+export const CSV_VIEW = "csv-view";
+export const PSD_VIEW = "psd-view";
+export const WORLD_ENGINE_VIEW = "world-engine-view";
+
+// Hover Link Sources
+export const CSV_HOVER_SOURCE = `${PLUGIN_NAME}:${CSV_VIEW}`;
+export const PSD_HOVER_SOURCE = `${PLUGIN_NAME}:${PSD_VIEW}`;
+export const WORLD_ENGINE_HOVER_SOURCE = `${PLUGIN_NAME}:${WORLD_ENGINE_VIEW}`;

@@ -1,10 +1,10 @@
 import { FileView, HoverParent, HoverPopover, Menu, Setting, SliderComponent, TFile, WorkspaceLeaf } from "obsidian";
+import { PSD_HOVER_SOURCE, PSD_VIEW } from "src/constants";
 import { PointOfInterest } from "src/data/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { PSDUtils } from "src/util/psd";
 
-export const PSD_VIEW = "psd-view";
 const ZOOM_STEP_CTRL = 5;
 const ZOOM_STEP_SHIFT_CTRL = 1;
 
@@ -78,7 +78,7 @@ export class PSDView extends FileView implements HoverParent {
     if (this.canvasContext === null) {
       Logger.warn(this, "Failed to get 2d context for canvas");
     }
-    this.hoverPopover = new HoverPopover(this, this.canvasElement, 2000);
+    this.hoverPopover = new HoverPopover(this, this.canvasElement);
 
     this.loadingFile = false;
     this.currentScale = 100;
@@ -298,6 +298,14 @@ export class PSDView extends FileView implements HoverParent {
           `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.label : "None"}`
         );
         this.currentPointOfInterest = poi;
+
+        this.plugin.app.workspace.trigger("hover-link", {
+          event: event,
+          source: PSD_HOVER_SOURCE,
+          hoverParent: this,
+          targetEl: this.canvasElement,
+          linktext: this.currentPointOfInterest.link.substring(2, this.currentPointOfInterest.link.length - 2),
+        });
         return;
       }
     }

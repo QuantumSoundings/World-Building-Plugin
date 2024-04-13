@@ -3,7 +3,8 @@ import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
-import { MarkdownRenderChild, Setting, TFile, ToggleComponent } from "obsidian";
+import { HoverParent, HoverPopover, MarkdownRenderChild, Setting, TFile, ToggleComponent } from "obsidian";
+import { CSV_HOVER_SOURCE } from "src/constants";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 
@@ -14,8 +15,9 @@ class TableState {
   currentlyLoading: boolean;
 }
 
-export class TableComponent extends MarkdownRenderChild {
+export class TableComponent extends MarkdownRenderChild implements HoverParent {
   plugin: WorldBuildingPlugin;
+  hoverPopover: HoverPopover | null;
 
   // Table Settings Objects
   headerToggle: ToggleComponent;
@@ -67,6 +69,7 @@ export class TableComponent extends MarkdownRenderChild {
     this.tableContainerElement = parentElement.createDiv();
     this.tableContainerElement.classList.add("csv-table-wrapper");
     const handsonTableContainer = this.tableContainerElement.createDiv();
+    this.hoverPopover = new HoverPopover(this, handsonTableContainer);
 
     this.configureHandsonTable(handsonTableContainer);
     this.configureSettingComponents();
@@ -79,14 +82,6 @@ export class TableComponent extends MarkdownRenderChild {
       data: this.rowData,
       colHeaders: this.headerData,
       // Other configuration options
-      //afterChange: this.onHandsonTableChange,
-      //afterColumnSort: this.requestAutoSave,
-      //afterColumnMove: this.requestAutoSave,
-      //afterRowMove: this.requestAutoSave,
-      //afterCreateCol: this.requestAutoSave,
-      //afterCreateRow: this.requestAutoSave,
-      //afterRemoveCol: this.requestAutoSave,
-      //afterRemoveRow: this.requestAutoSave,
       height: 700,
       width: "auto",
       rowHeaders: true,
@@ -105,6 +100,23 @@ export class TableComponent extends MarkdownRenderChild {
     };
 
     this.handsonTable = new Handsontable(parentElement, this.handsonTableBaseSettings);
+
+    this.handsonTable.addHook(
+      "afterOnCellMouseOver",
+      (event: MouseEvent, coords: Handsontable.CellCoords, TD: HTMLTableCellElement) => {
+        const cellData = this.handsonTable.getSourceDataAtCell(coords.row, coords.col) as string;
+        if (cellData.startsWith("[[") && cellData.endsWith("]]")) {
+          const linkText = cellData.substring(2, cellData.length - 2);
+          this.plugin.app.workspace.trigger("hover-link", {
+            event: event,
+            source: CSV_HOVER_SOURCE,
+            hoverParent: this,
+            targetEl: TD,
+            linktext: linkText,
+          });
+        }
+      }
+    );
   }
 
   private configureSettingComponents() {
@@ -189,6 +201,7 @@ export class TableComponent extends MarkdownRenderChild {
   }
 
   public setViewData(data: string): void {
+    this.loadingBarElement.show();
     const fileData = parse(data);
     if (this.headerToggle.getValue()) {
       const parsedHeader = fileData.shift();
@@ -232,5 +245,17 @@ export class TableComponent extends MarkdownRenderChild {
     this.handsonTableBaseSettings.data = this.rowData;
     this.handsonTableBaseSettings.colHeaders = this.headerData;
     this.handsonTable.updateSettings(this.handsonTableBaseSettings);
+  }
+
+  // Creates a link html element when formated as [[Link]].
+  private renderCellObsidianLinks(instance: Handsontable, td: HTMLTableElement, row, col) {
+    const value = instance.getDataAtCell(row, col);
+    if (value.startsWith("[[") && value.endsWith("]]")) {
+      const linkText = value.substring(2, value.length - 2);
+      td.innerHTML = `<a href="${linkText}">${linkText}</a>`;
+    } else {
+      td.innerHTML = value;
+    }
+    return td;
   }
 }

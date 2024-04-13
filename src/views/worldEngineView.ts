@@ -5,8 +5,7 @@ import { SettlementEntity } from "src/world/entities/settlementEntity";
 import { generateSettlementEntityView } from "./generators/settlementEntityView";
 import { WorldEngineEntity } from "src/world/entities/shared";
 import { SovereignEntity } from "src/world/entities/sovereignEntity";
-
-export const WORLD_ENGINE_VIEW = "world-engine-view";
+import { WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "src/constants";
 
 const STATUS = "Status: ";
 const RUNNING = STATUS + "Running";
@@ -25,7 +24,6 @@ export class WorldEngineView extends ItemView implements HoverParent {
   statusEl: HTMLElement;
   entityTitleEl: HTMLElement;
   entityTitleLink: HTMLElement;
-  entityLinkEl: HTMLElement;
 
   contentContainerEl: HTMLElement;
 
@@ -59,15 +57,16 @@ export class WorldEngineView extends ItemView implements HoverParent {
 
     this.hoverPopover = new HoverPopover(this, this.entityTitleLink);
 
-    this.entityLinkEl = this.addAction("globe", "Open Entity Note", () => {
+    this.entityTitleLink.addEventListener("mouseover", (event: MouseEvent) => {
       if (this.currentEntity === undefined) return;
-      const file = this.plugin.app.vault.getAbstractFileByPath(this.currentEntity.filePath);
-      if (file !== null && file instanceof TFile) {
-        const middleLeaf = this.plugin.app.workspace.getLeaf(true);
-        middleLeaf.openFile(file, { active: true, state: { mode: "source" } });
-      }
+      this.plugin.app.workspace.trigger("hover-link", {
+        event: event,
+        source: WORLD_ENGINE_HOVER_SOURCE,
+        hoverParent: this,
+        targetEl: this.entityTitleLink,
+        linktext: this.currentEntity.filePath,
+      });
     });
-    this.headerContainerEl.appendChild(this.entityLinkEl);
 
     // Content container.
     this.contentContainerEl = this.viewContainerElement.createEl("div");
@@ -94,7 +93,7 @@ export class WorldEngineView extends ItemView implements HoverParent {
       return;
     }
     this.contentContainerEl.empty();
-    this.entityTitleLink.setText(ENTITY + entity.configuration.name);
+    this.entityTitleLink.setText(entity.configuration.name);
     this.entityTitleLink.setAttr("data-href", entity.configuration.name);
     this.entityTitleLink.setAttr("href", entity.configuration.name);
 

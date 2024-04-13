@@ -1,6 +1,6 @@
 import { HoverLinkSource, MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
 import { PSDManager } from "./data/managers/psdManager";
-import { CSVView, CSV_VIEW } from "./views/csvView";
+import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/tableComponent";
 import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
@@ -10,10 +10,18 @@ import { SovereignEntity } from "./world/entities/sovereignEntity";
 import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings/pluginSettings";
 import { CSVUtils } from "./util/csv";
 import { DataManager } from "./data/managers/dataManager";
-import { WORLD_ENGINE_VIEW, WorldEngineView } from "./views/worldEngineView";
-import { PSDView, PSD_VIEW } from "./views/psdView";
+import { WorldEngineView } from "./views/worldEngineView";
+import { PSDView } from "./views/psdView";
 import { generateSovereignEntityView } from "./views/generators/sovereignEntityView";
 import { ConfigManager } from "./data/managers/configManager";
+import {
+  CSV_HOVER_SOURCE,
+  CSV_VIEW,
+  PSD_HOVER_SOURCE,
+  PSD_VIEW,
+  WORLD_ENGINE_HOVER_SOURCE,
+  WORLD_ENGINE_VIEW,
+} from "./constants";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -70,13 +78,9 @@ export default class WorldBuildingPlugin extends Plugin {
     this.registerCodeBlockProcessors();
     this.registerEventHandlers();
 
-    const hoverLinkSource: HoverLinkSource = {
-      display: "world-building-plugin",
-      defaultMod: false,
-    };
-    this.registerHoverLinkSource(PSD_VIEW, hoverLinkSource);
-    this.registerHoverLinkSource(WORLD_ENGINE_VIEW, hoverLinkSource);
-    this.registerHoverLinkSource(CSV_VIEW, hoverLinkSource);
+    this.registerHoverLinkSource(CSV_HOVER_SOURCE, { display: "WB CSV View", defaultMod: false });
+    this.registerHoverLinkSource(PSD_HOVER_SOURCE, { display: "WB PSD View", defaultMod: false });
+    this.registerHoverLinkSource(WORLD_ENGINE_HOVER_SOURCE, { display: "WB World Engine", defaultMod: false });
 
     // Finished!
     Logger.debug(this, "WorldBuilding plugin loaded.");
