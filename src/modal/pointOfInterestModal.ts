@@ -2,6 +2,14 @@ import { Modal, Notice, Setting } from "obsidian";
 import { TemplateType, getTemplateFromType } from "src/constants";
 import WorldBuildingPlugin from "src/main";
 
+export interface POIModalOptions {
+  name?: string;
+  mapName: string;
+  relX?: number;
+  relY?: number;
+  icon?: string;
+}
+
 export class PointOfInterestModal extends Modal {
   plugin: WorldBuildingPlugin;
 
@@ -13,13 +21,14 @@ export class PointOfInterestModal extends Modal {
   icon: string;
   template: TemplateType;
 
-  constructor(plugin: WorldBuildingPlugin, mapName: string, relX: number, relY: number) {
+  constructor(plugin: WorldBuildingPlugin, options: POIModalOptions) {
     super(plugin.app);
     this.plugin = plugin;
-    this.mapName = mapName;
-    this.relX = relX;
-    this.relY = relY;
-    this.icon = "castle";
+    this.name = options.name ?? "";
+    this.mapName = options.mapName ?? "";
+    this.relX = options.relX ?? 0;
+    this.relY = options.relY ?? 0;
+    this.icon = options.icon ?? "castle";
     this.template = TemplateType.SettlementEntity;
   }
 
@@ -28,11 +37,12 @@ export class PointOfInterestModal extends Modal {
 
     contentEl.createEl("h1", { text: "Create New Point of Interest" });
 
-    new Setting(contentEl).setName("Name").addText((text) =>
+    new Setting(contentEl).setName("Name").addText((text) => {
+      text.setValue(this.name);
       text.onChange((value) => {
         this.name = value;
-      })
-    );
+      });
+    });
 
     new Setting(contentEl).setName("Relative X").addText((text) => {
       text.setValue(`${this.relX}`);

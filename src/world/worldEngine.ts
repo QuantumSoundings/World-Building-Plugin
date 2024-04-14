@@ -89,7 +89,7 @@ export class WorldEngine {
     return entity;
   }
 
-  public getEntitiesForMap(mapName: string): PointOfInterest[] {
+  public getPointsOfInterestByMap(mapName: string): PointOfInterest[] {
     const output: PointOfInterest[] = [];
     for (const [, entity] of this.entities) {
       if (isPointOfInterestEntity(entity)) {

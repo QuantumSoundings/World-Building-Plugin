@@ -65,6 +65,10 @@ export class ConfigManager {
     this.plugin.registerEvent(this.plugin.app.vault.on("modify", modifyEvent));
   }
 
+  public getPointsOfInterestByMap(mapName: string): PointOfInterest[] {
+    return this.configs.pointsOfInterest.values.filter((poi) => poi.mapName === mapName);
+  }
+
   private async loadCSVConfig<T>(info: ConfigInfo<T>) {
     const filePath = `${this.plugin.settings.configsPath}/${info.configName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);

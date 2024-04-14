@@ -7,6 +7,7 @@ import { HoverParent, HoverPopover, MarkdownRenderChild, Setting, TFile, ToggleC
 import { CSV_HOVER_SOURCE } from "src/constants";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
+import { FileUtils } from "src/util/file";
 
 class TableState {
   // Settings
@@ -105,14 +106,14 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
       "afterOnCellMouseOver",
       (event: MouseEvent, coords: Handsontable.CellCoords, TD: HTMLTableCellElement) => {
         const cellData = this.handsonTable.getSourceDataAtCell(coords.row, coords.col) as string;
+        // Check it here to prevent sending excess events
         if (cellData.startsWith("[[") && cellData.endsWith("]]")) {
-          const linkText = cellData.substring(2, cellData.length - 2);
           this.plugin.app.workspace.trigger("hover-link", {
             event: event,
             source: CSV_HOVER_SOURCE,
             hoverParent: this,
             targetEl: TD,
-            linktext: linkText,
+            linktext: FileUtils.parseBracketLink(cellData),
           });
         }
       }

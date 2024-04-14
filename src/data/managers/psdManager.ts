@@ -108,7 +108,7 @@ export class PSDManager {
     return entry.image;
   }
 
-  public getPointsOfInterest(fullPath: string): PointOfInterest[] {
+  public getPointsOfInterestByMap(fullPath: string): PointOfInterest[] {
     const entry = this.psdMap.get(fullPath);
     if (entry === undefined) {
       return [];

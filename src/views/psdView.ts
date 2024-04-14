@@ -4,10 +4,18 @@ import { PointOfInterest } from "src/data/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import { PointOfInterestModal } from "src/modal/pointOfInterestModal";
 import { Logger } from "src/util/Logger";
+import { FileUtils } from "src/util/file";
 import { PSDUtils } from "src/util/psd";
+
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 200;
 
 const ZOOM_STEP_CTRL = 5;
 const ZOOM_STEP_SHIFT_CTRL = 1;
+
+const ZOOM_ELEMENT_PREFIX = "Zoom Level:";
+const POI_ELEMENT_PREFIX = "Closest Point of Interest:";
+const POI_ELEMENT_NONE = `${POI_ELEMENT_PREFIX} None`;
 
 type PersistState = {
   zoom: number;
@@ -66,9 +74,7 @@ export class PSDView extends FileView implements HoverParent {
     this.headerContainerElement = this.viewContainerElement.createEl("div");
     this.controlsContainerElement = this.headerContainerElement.createEl("div");
     this.controlsContainerElement.setCssStyles({ maxWidth: "100%" });
-    this.pointOfInterestElement = this.headerContainerElement.createEl("h2", {
-      text: `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.label : "None"}`,
-    });
+    this.pointOfInterestElement = this.headerContainerElement.createEl("h2", { text: POI_ELEMENT_NONE });
     this.pointOfInterestElement.setCssStyles({ maxWidth: "100%" });
 
     // Content container.
@@ -85,7 +91,7 @@ export class PSDView extends FileView implements HoverParent {
     this.currentScale = 100;
 
     this.zoomSetting = new Setting(this.controlsContainerElement)
-      .setName(`Zoom Level: ${this.currentScale}%`)
+      .setName(`${ZOOM_ELEMENT_PREFIX} ${this.currentScale}%`)
       .addSlider((slider) => {
         this.zoomSlider = slider;
         this.zoomSlider.setLimits(1, 200, ZOOM_STEP_CTRL);
@@ -95,7 +101,7 @@ export class PSDView extends FileView implements HoverParent {
             return;
           }
           this.currentScale = value;
-          this.zoomSetting.setName(`Zoom Level: ${this.currentScale}%`);
+          this.zoomSetting.setName(`${ZOOM_ELEMENT_PREFIX} ${this.currentScale}%`);
           this.updateCanvas();
         });
       });
@@ -187,21 +193,20 @@ export class PSDView extends FileView implements HoverParent {
     // 1. Configs
     // 2. World Engine
     // 3. PSD Manager
-    const configPOIs = this.plugin.configManager.configs.pointsOfInterest.values.filter(
-      (value) => value.mapName === file.name
-    );
+    const configPOIs = this.plugin.configManager.getPointsOfInterestByMap(file.name);
     configPOIs.forEach(addIfNew);
 
-    const enginePOIs = this.plugin.worldEngine.getEntitiesForMap(file.name);
+    const enginePOIs = this.plugin.worldEngine.getPointsOfInterestByMap(file.name);
     enginePOIs.forEach(addIfNew);
 
-    const psdPOIs = this.plugin.psdManager.getPointsOfInterest(file.path);
+    const psdPOIs = this.plugin.psdManager.getPointsOfInterestByMap(file.path);
     psdPOIs.forEach(addIfNew);
   }
 
   private updateZoomSlider() {
     this.zoomSlider.setValue(this.currentScale);
-    this.zoomSetting.setName(`Zoom Level: ${this.currentScale}%`);
+    this.zoomSetting.setName(`${ZOOM_ELEMENT_PREFIX} ${this.currentScale}%`);
+    this.canvasElement.height;
   }
 
   private setEventListeners() {
@@ -258,31 +263,31 @@ export class PSDView extends FileView implements HoverParent {
     }
     if (event.shiftKey && event.ctrlKey) {
       if (event.deltaY < 0) {
-        if (this.currentScale < 200) {
+        if (this.currentScale < MAX_ZOOM) {
           this.currentScale += ZOOM_STEP_SHIFT_CTRL;
         } else {
-          this.currentScale = 200;
+          this.currentScale = MAX_ZOOM;
         }
       } else {
-        if (this.currentScale > 5) {
+        if (this.currentScale > ZOOM_STEP_SHIFT_CTRL) {
           this.currentScale -= ZOOM_STEP_SHIFT_CTRL;
         } else {
-          this.currentScale = 1;
+          this.currentScale = MIN_ZOOM;
         }
       }
     } else if (event.ctrlKey) {
       event.preventDefault();
       if (event.deltaY < 0) {
-        if (this.currentScale < 200) {
+        if (this.currentScale < MAX_ZOOM) {
           this.currentScale += ZOOM_STEP_CTRL;
         } else {
-          this.currentScale = 200;
+          this.currentScale = MAX_ZOOM;
         }
       } else {
-        if (this.currentScale > 5) {
+        if (this.currentScale > ZOOM_STEP_CTRL) {
           this.currentScale -= ZOOM_STEP_CTRL;
         } else {
-          this.currentScale = 1;
+          this.currentScale = MIN_ZOOM;
         }
       }
     } else {
@@ -294,46 +299,75 @@ export class PSDView extends FileView implements HoverParent {
 
   private async onMouseClick() {
     if (this.currentPointOfInterest !== null) {
-      const link = this.currentPointOfInterest.link.substring(2, this.currentPointOfInterest.link.length - 2);
-      await this.plugin.app.workspace.openLinkText(link, "", true);
+      // A non created point of interest.
+      if (this.currentPointOfInterest.mapIcon === "x") {
+        new PointOfInterestModal(this.plugin, {
+          mapName: this.file!.name,
+          relX: this.currentPointOfInterest.relX,
+          relY: this.currentPointOfInterest.relY,
+          name: this.currentPointOfInterest.label,
+        }).open();
+      } else {
+        const link = FileUtils.parseBracketLink(this.currentPointOfInterest.link);
+        await this.plugin.app.workspace.openLinkText(link, "", true);
+      }
     }
   }
   private onMouseUpdate(event: MouseEvent) {
-    const { relX, relY } = this.toRelativePosition(event.clientX, event.clientY);
-    for (const poi of this.pointsOfInterest) {
-      if (this.hasCollision(relX, relY, poi)) {
-        this.pointOfInterestElement.setText(
-          `Points of Interest: ${this.currentPointOfInterest ? this.currentPointOfInterest.label : "None"}`
-        );
-        this.currentPointOfInterest = poi;
-
-        if (!this.hoverOpen) {
-          this.plugin.app.workspace.trigger("hover-link", {
-            event: event,
-            source: PSD_HOVER_SOURCE,
-            hoverParent: this,
-            targetEl: this.canvasElement,
-            linktext: this.currentPointOfInterest.link.substring(2, this.currentPointOfInterest.link.length - 2),
-          });
-          this.hoverOpen = true;
-          this.hoverPoi = poi;
-        }
-
-        return;
-      }
+    // Nothing to do if we have no points of interest.
+    if (this.pointsOfInterest.length === 0) {
+      return;
     }
-    this.pointOfInterestElement.setText("Points of Interest: None");
-    this.currentPointOfInterest = null;
-    if (this.hoverOpen && this.getDistance(relX, relY, this.hoverPoi!) > 0.02) {
-      this.hoverPopover?.hoverEl.hide();
-      this.hoverPopover?.unload();
-      this.hoverPopover = new HoverPopover(this, this.canvasElement);
-      this.hoverOpen = false;
-      this.hoverPoi = null;
+
+    // Sort by closest to prevent issues with overlapping points of interest.
+    const { relX, relY } = this.toRelativePosition(event.clientX, event.clientY);
+    const sortByClosest = (a: PointOfInterest, b: PointOfInterest) => {
+      return this.getDistance(relX, relY, a) - this.getDistance(relX, relY, b);
+    };
+    this.pointsOfInterest.sort(sortByClosest);
+
+    const closestPoi = this.pointsOfInterest[0];
+    if (this.hasCollision(relX, relY, closestPoi)) {
+      this.pointOfInterestElement.setText(`${POI_ELEMENT_PREFIX} ${closestPoi.label}`);
+      this.currentPointOfInterest = closestPoi;
+      // Make mouse a cursor
+      this.canvasElement.style.cursor = "pointer";
+
+      if (!this.hoverOpen) {
+        this.plugin.app.workspace.trigger("hover-link", {
+          event: event,
+          source: PSD_HOVER_SOURCE,
+          hoverParent: this,
+          targetEl: this.canvasElement,
+          linktext: FileUtils.parseBracketLink(this.currentPointOfInterest.link),
+        });
+        this.hoverOpen = true;
+        this.hoverPoi = closestPoi;
+      }
+    } else {
+      this.pointOfInterestElement.setText(POI_ELEMENT_NONE);
+      this.currentPointOfInterest = null;
+      // Reset cursor
+      this.canvasElement.style.cursor = "default";
+
+      if (this.hoverOpen && this.getDistance(relX, relY, this.hoverPoi!) > 0.02) {
+        this.hoverPopover?.hoverEl.hide();
+        this.hoverPopover?.unload();
+        this.hoverPopover = new HoverPopover(this, this.canvasElement);
+        this.hoverOpen = false;
+        this.hoverPoi = null;
+      }
     }
   }
 
   private onContextMenu(event: MouseEvent) {
+    // Relative X Position: XX
+    // Relative Y Position: YY
+    // -------------------------
+    // Copy to clipboard as [x, y]
+    // -------------------------
+    // New Point of Interest Here
+    // Open [Point of Interest] in new tab
     const { relX, relY } = this.toRelativePosition(event.clientX, event.clientY);
     const menu = new Menu();
     menu.addItem((item) => {
@@ -354,7 +388,7 @@ export class PSDView extends FileView implements HoverParent {
     menu.addItem((item) => {
       item.setTitle("New Point of Interest Here");
       item.onClick(async () => {
-        new PointOfInterestModal(this.plugin, this.file!.name, relX, relY).open();
+        new PointOfInterestModal(this.plugin, { mapName: this.file!.name, relX: relX, relY: relY }).open();
       });
     });
 
@@ -364,8 +398,18 @@ export class PSDView extends FileView implements HoverParent {
       menu.addItem((item) => {
         item.setTitle(`Open ${poi.label} in new tab`);
         item.onClick(async () => {
-          const link = poi.link.substring(2, poi.link.length - 2);
-          await this.plugin.app.workspace.openLinkText(link, "", true);
+          // A non created point of interest.
+          if (poi.mapIcon === "x") {
+            new PointOfInterestModal(this.plugin, {
+              mapName: this.file!.name,
+              relX: poi.relX,
+              relY: poi.relY,
+              name: poi.mapName,
+            }).open();
+          } else {
+            const link = FileUtils.parseBracketLink(poi.link);
+            await this.plugin.app.workspace.openLinkText(link, "", true);
+          }
           menu.close();
         });
       });
