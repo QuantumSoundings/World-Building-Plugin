@@ -103,12 +103,16 @@ export default class WorldBuildingPlugin extends Plugin {
   }
 
   private async createWorldEngineLeaf() {
-    let worldEngineView = this.getWorldEngineLeaf();
+    const worldEngineView = this.getWorldEngineLeaf();
 
     if (worldEngineView === undefined) {
       // View not found, create one on the right sidebar
-      worldEngineView = this.app.workspace.getRightLeaf(false);
-      await worldEngineView.setViewState({ type: WORLD_ENGINE_VIEW, active: false });
+      const rightLeaf = this.app.workspace.getRightLeaf(false);
+      if (rightLeaf === null) {
+        Logger.error(this, "Failed to create World Engine view, cannot show view.");
+        return;
+      }
+      await rightLeaf.setViewState({ type: WORLD_ENGINE_VIEW, active: false });
     } else {
       // View found, its possible this is a hot reload.
       Logger.warn(this, "World Engine view already exists, this is possibly a hot reload.");
