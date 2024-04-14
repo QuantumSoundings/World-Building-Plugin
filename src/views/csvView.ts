@@ -1,7 +1,7 @@
 /* eslint-disable no-debugger */
 import { TextFileView, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
-import { TableComponent } from "./tableComponent";
+import { TableComponent } from "./components/tableComponent";
 import { Logger } from "src/util/Logger";
 import { CSV_VIEW } from "src/constants";
 

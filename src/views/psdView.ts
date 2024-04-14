@@ -367,7 +367,6 @@ export class PSDView extends FileView implements HoverParent {
     // Copy to clipboard as [x, y]
     // -------------------------
     // New Point of Interest Here
-    // Open [Point of Interest] in new tab
     const { relX, relY } = this.toRelativePosition(event.clientX, event.clientY);
     const menu = new Menu();
     menu.addItem((item) => {
@@ -391,29 +390,6 @@ export class PSDView extends FileView implements HoverParent {
         new PointOfInterestModal(this.plugin, { mapName: this.file!.name, relX: relX, relY: relY }).open();
       });
     });
-
-    // If we are over a poi add it to the context menu
-    const poi = this.currentPointOfInterest;
-    if (poi !== null) {
-      menu.addItem((item) => {
-        item.setTitle(`Open ${poi.label} in new tab`);
-        item.onClick(async () => {
-          // A non created point of interest.
-          if (poi.mapIcon === "x") {
-            new PointOfInterestModal(this.plugin, {
-              mapName: this.file!.name,
-              relX: poi.relX,
-              relY: poi.relY,
-              name: poi.mapName,
-            }).open();
-          } else {
-            const link = FileUtils.parseBracketLink(poi.link);
-            await this.plugin.app.workspace.openLinkText(link, "", true);
-          }
-          menu.close();
-        });
-      });
-    }
 
     menu.showAtPosition({ x: event.clientX, y: event.clientY });
   }

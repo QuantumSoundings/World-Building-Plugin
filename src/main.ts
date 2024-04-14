@@ -1,7 +1,7 @@
 import { MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
 import { PSDManager } from "./data/managers/psdManager";
 import { CSVView } from "./views/csvView";
-import { TableComponent } from "./views/tableComponent";
+import { TableComponent } from "./views/components/tableComponent";
 import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
 import { WorldEngine } from "./world/worldEngine";
