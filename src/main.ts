@@ -22,6 +22,7 @@ import {
   WORLD_ENGINE_HOVER_SOURCE,
   WORLD_ENGINE_VIEW,
 } from "./constants";
+import { MapParser } from "./mapparser/mapParser";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -31,6 +32,7 @@ export default class WorldBuildingPlugin extends Plugin {
   dataManager: DataManager;
   psdManager: PSDManager;
   frontMatterManager: FrontMatterManager;
+  mapParser: MapParser;
 
   worldEngine: WorldEngine;
 
@@ -52,6 +54,7 @@ export default class WorldBuildingPlugin extends Plugin {
     this.dataManager = new DataManager(this);
     this.psdManager = new PSDManager(this);
     this.worldEngine = new WorldEngine(this);
+    this.mapParser = new MapParser(this);
 
     await this.configManager.reloadConfigs();
     await this.dataManager.reloadDatasets();
@@ -208,7 +211,7 @@ export default class WorldBuildingPlugin extends Plugin {
       name: "Process and Save Map Data to Markdown Files",
       checkCallback: (checking: boolean) => {
         if (!checking) {
-          this.psdManager.reprocessAllMaps().then(() => {
+          this.mapParser.parseAllMaps().then(() => {
             new Notice("Maps have been processed and saved!", 2000);
           });
         }

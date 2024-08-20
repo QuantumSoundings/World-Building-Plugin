@@ -1,0 +1,2 @@
+robocopy "C:\Dev\workspace\World-Building-Plugin\output" "C:\Users\jshow\Documents\World Building Vault\World Building\.obsidian\plugins\world-building-plugin" main.js
+robocopy "C:\Dev\workspace\World-Building-Plugin" "C:\Users\jshow\Documents\World Building Vault\World Building\.obsidian\plugins\world-building-plugin" manifest.json ".hotreload" styles.css
