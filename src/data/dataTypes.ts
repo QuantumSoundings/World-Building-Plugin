@@ -226,19 +226,19 @@ export class PointOfInterest {
 }
 
 export class NationData {
-  mapName: string;
   nationName: string;
   nationSizePercent: number;
+  mapName: string;
 
   constructor(data: string[] | NationData | null) {
     if (data instanceof NationData) {
-      this.mapName = data.mapName;
       this.nationName = data.nationName;
       this.nationSizePercent = data.nationSizePercent;
+      this.mapName = data.mapName;
     } else if (data instanceof Array) {
-      this.mapName = data[0];
-      this.nationName = data[1];
-      this.nationSizePercent = parseFloat(data[2]);
+      this.nationName = data[0];
+      this.nationSizePercent = parseFloat(data[1]);
+      this.mapName = data[2];
     }
   }
 }
