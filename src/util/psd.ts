@@ -2,7 +2,6 @@ import Psd, { Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
 import { getIcon } from "obsidian";
 import { MapConfiguration, PointOfInterest } from "src/data/dataTypes";
-import { PoliticalLayerData } from "src/data/managers/psdManager";
 
 export class CompositeLayer {
   layer: Layer;
@@ -129,7 +128,7 @@ export class PSDUtils {
     return img;
   }
 
-  public static calculateArea(config: MapConfiguration, politicalLayerData: PoliticalLayerData) {
-    return config.unitHeight * config.unitWidth * politicalLayerData.percentOfTotalMapArea;
+  public static calculateArea(config: MapConfiguration, areaPercentage: number) {
+    return config.unitHeight * config.unitWidth * areaPercentage;
   }
 }

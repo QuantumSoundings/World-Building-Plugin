@@ -1,6 +1,8 @@
 // Config Names
 export const MAP_CONFIG = "WB Config - Maps.csv";
 export const POINTS_OF_INTEREST_CONFIG = "WB Config - Points of Interest.csv";
+export const NATIONS_CONFIG_GENERATED = "Nations Parsed From Maps.csv";
+export const POI_CONFIG_GENERATED = "POIs Parsed From Maps.csv";
 
 // Config Base64 Includes
 import mapConfigBase64 from "resources/Configs/WB Config - Maps.csv";

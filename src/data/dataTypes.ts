@@ -224,3 +224,21 @@ export class PointOfInterest {
     }
   }
 }
+
+export class NationData {
+  mapName: string;
+  nationName: string;
+  nationSizePercent: number;
+
+  constructor(data: string[] | NationData | null) {
+    if (data instanceof NationData) {
+      this.mapName = data.mapName;
+      this.nationName = data.nationName;
+      this.nationSizePercent = data.nationSizePercent;
+    } else if (data instanceof Array) {
+      this.mapName = data[0];
+      this.nationName = data[1];
+      this.nationSizePercent = parseFloat(data[2]);
+    }
+  }
+}

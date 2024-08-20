@@ -1,5 +1,4 @@
 import { MarkdownView, Notice, Plugin, TFolder, WorkspaceLeaf } from "obsidian";
-import { PSDManager } from "./data/managers/psdManager";
 import { CSVView } from "./views/csvView";
 import { TableComponent } from "./views/components/tableComponent";
 import { Logger } from "./util/Logger";
@@ -11,7 +10,6 @@ import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings
 import { CSVUtils } from "./util/csv";
 import { DataManager } from "./data/managers/dataManager";
 import { WorldEngineView } from "./views/worldEngineView";
-import { PSDView } from "./views/psdView";
 import { generateSovereignEntityView } from "./views/generators/sovereignEntityView";
 import { ConfigManager } from "./data/managers/configManager";
 import {
@@ -22,7 +20,7 @@ import {
   WORLD_ENGINE_HOVER_SOURCE,
   WORLD_ENGINE_VIEW,
 } from "./constants";
-import { MapParser } from "./mapparser/mapParser";
+import { MapParser } from "./maps/mapParser";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -30,7 +28,6 @@ export default class WorldBuildingPlugin extends Plugin {
   // Data Managers
   configManager: ConfigManager;
   dataManager: DataManager;
-  psdManager: PSDManager;
   frontMatterManager: FrontMatterManager;
   mapParser: MapParser;
 
@@ -52,13 +49,11 @@ export default class WorldBuildingPlugin extends Plugin {
     this.frontMatterManager = new FrontMatterManager(this);
     this.configManager = new ConfigManager(this);
     this.dataManager = new DataManager(this);
-    this.psdManager = new PSDManager(this);
     this.worldEngine = new WorldEngine(this);
     this.mapParser = new MapParser(this);
 
     await this.configManager.reloadConfigs();
     await this.dataManager.reloadDatasets();
-    await this.psdManager.initialize();
 
     // Load the world engine
     await this.worldEngine.initialize();
@@ -69,9 +64,6 @@ export default class WorldBuildingPlugin extends Plugin {
     });
     this.registerView(WORLD_ENGINE_VIEW, (leaf) => {
       return new WorldEngineView(leaf, this);
-    });
-    this.registerView(PSD_VIEW, (leaf) => {
-      return new PSDView(leaf, this);
     });
     this.addRibbonIcons();
     this.createWorldEngineLeaf();
@@ -241,7 +233,6 @@ export default class WorldBuildingPlugin extends Plugin {
   private registerEventHandlers() {
     this.configManager.registerEventCallbacks();
     this.dataManager.registerEventCallbacks();
-    this.psdManager.registerEventCallbacks();
     this.worldEngine.registerEventCallbacks();
 
     this.app.workspace.on("active-leaf-change", async (leaf) => {

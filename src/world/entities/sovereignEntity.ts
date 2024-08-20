@@ -39,24 +39,21 @@ export class SovereignEntity implements BaseEntity {
 
   private calculateMapSize() {
     if (this.updateUsingMap) {
-      const mapFile = this.plugin.psdManager.findMapFileByCountry(this.configuration.name);
-      if (mapFile.success === false) {
-        Logger.error(this, mapFile.error.message);
-        return;
-      }
-      const countryDataResult = this.plugin.psdManager.findCountryData(this.configuration.name);
-      if (countryDataResult.success === false) {
-        Logger.error(this, countryDataResult.error.message);
+      const nationData = this.plugin.configManager.configs.nations.values.find(
+        (predicate) => predicate.nationName === this.configuration.name
+      );
+      if (nationData === undefined) {
+        Logger.error(this, "Nation Data not found.");
         return;
       }
       const map = this.plugin.configManager.configs.mapConfigurations.values.find(
-        (predicate) => predicate.mapName === mapFile.result.name
+        (predicate) => predicate.mapName === nationData.mapName
       );
       if (map === undefined) {
         Logger.error(this, "Map Configuration not found.");
         return;
       }
-      this.configuration.geography.size = PSDUtils.calculateArea(map, countryDataResult.result);
+      this.configuration.geography.size = PSDUtils.calculateArea(map, nationData.nationSizePercent);
     }
   }
 
