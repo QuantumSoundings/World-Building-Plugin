@@ -105,7 +105,11 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
     this.handsonTable.addHook(
       "afterOnCellMouseOver",
       (event: MouseEvent, coords: Handsontable.CellCoords, TD: HTMLTableCellElement) => {
-        const cellData = this.handsonTable.getSourceDataAtCell(coords.row, coords.col) as string;
+        const cellData = this.handsonTable.getSourceDataAtCell(coords.row, coords.col);
+        // Bail early if the cell data isn't a string
+        if (typeof cellData !== "string") {
+          return;
+        }
         // Check it here to prevent sending excess events
         if (cellData.startsWith("[[") && cellData.endsWith("]]")) {
           this.plugin.app.workspace.trigger("hover-link", {
