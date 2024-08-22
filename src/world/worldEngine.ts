@@ -4,8 +4,11 @@ import { TAbstractFile } from "obsidian";
 import { SettlementEntity } from "./entities/settlementEntity";
 import { Logger } from "src/util/Logger";
 import { WorldEngineEntity, isPointOfInterestEntity } from "./entities/shared";
-import { WBMetaDataEnum } from "src/frontmatter/types/meta";
 import { PointOfInterest } from "src/data/dataTypes";
+import { FMUtils } from "src/frontmatter/frontMatterUtils";
+import { SovereignEntityConfiguration } from "src/frontmatter/sovereignEntityConfiguration";
+import { SettlementEntityConfiguration } from "src/frontmatter/settlementEntityConfiguration";
+import { WBFrontMatter } from "src/frontmatter/types/meta";
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
@@ -38,15 +41,15 @@ export class WorldEngine {
     };
     const onFileModify = async (file: TAbstractFile) => {
       const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(file.path);
-      const validEntity = this.isValidEntity(frontMatter);
-      if (!validEntity) return;
+      if (!FMUtils.validateWBEntityType(frontMatter)) return;
+      const validFM = frontMatter as WBFrontMatter;
 
       const entity = this.entities.get(file.path);
       if (entity !== undefined) {
         const worldEngineView = this.plugin.getWorldEngineView();
         const entityMatches = worldEngineView !== undefined && worldEngineView.getCurrentEntity() === entity;
-        if (frontMatter["wbMeta"].type === entity.configuration.wbMeta.type) {
-          entity.updateConfiguration(frontMatter);
+        if (validFM.wbEntityType === entity.configuration.wbEntityType) {
+          this.updateEntityConfiguration(entity, validFM);
           if (entityMatches) {
             worldEngineView.displayEntity(entity);
           }
@@ -101,34 +104,34 @@ export class WorldEngine {
     return output;
   }
 
-  private isValidEntity(frontMatter: any): boolean {
-    if (frontMatter === null || frontMatter === undefined) return false;
-    if (!frontMatter.hasOwnProperty("wbMeta")) return false;
-    return true;
-  }
-
   private async createEntity(file: TAbstractFile) {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
-    if (!this.isValidEntity(frontMatter)) return;
+    const newEntityConfiguration = FMUtils.convertFMToEntityConfiguration(frontMatter);
+    if (newEntityConfiguration === undefined) {
+      return;
+    }
 
     let entity: WorldEngineEntity;
-    switch (frontMatter["wbMeta"].type) {
-      case WBMetaDataEnum.sovereignEntity: {
-        entity = new SovereignEntity(this.plugin, frontMatter);
-
-        break;
-      }
-      case WBMetaDataEnum.settlementEntity: {
-        entity = new SettlementEntity(this.plugin, frontMatter);
-        break;
-      }
-      default: {
-        Logger.error(this, "Unknown entity type: " + frontMatter["wbMeta"].type);
-        return;
-      }
+    if (newEntityConfiguration instanceof SovereignEntityConfiguration) {
+      entity = new SovereignEntity(this.plugin, newEntityConfiguration);
+    } else if (newEntityConfiguration instanceof SettlementEntityConfiguration) {
+      entity = new SettlementEntity(this.plugin, newEntityConfiguration);
+    } else {
+      Logger.error(this, "Unknown entity type: " + frontMatter["wbEntityType"]);
+      return;
     }
 
     entity.filePath = file.path;
     this.entities.set(file.path, entity);
+  }
+
+  private async updateEntityConfiguration(entity: WorldEngineEntity, validatedFM: WBFrontMatter) {
+    if (entity instanceof SovereignEntity) {
+      entity.updateConfiguration(new SovereignEntityConfiguration(validatedFM));
+    } else if (entity instanceof SettlementEntity) {
+      entity.updateConfiguration(new SettlementEntityConfiguration(validatedFM));
+    } else {
+      Logger.error(this, "Unknown entity type: " + validatedFM["wbEntityType"]);
+    }
   }
 }

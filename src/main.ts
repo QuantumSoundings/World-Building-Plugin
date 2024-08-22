@@ -12,14 +12,7 @@ import { DataManager } from "./data/managers/dataManager";
 import { WorldEngineView } from "./views/worldEngineView";
 import { generateSovereignEntityView } from "./views/generators/sovereignEntityView";
 import { ConfigManager } from "./data/managers/configManager";
-import {
-  CSV_HOVER_SOURCE,
-  CSV_VIEW,
-  PSD_HOVER_SOURCE,
-  PSD_VIEW,
-  WORLD_ENGINE_HOVER_SOURCE,
-  WORLD_ENGINE_VIEW,
-} from "./constants";
+import { CSV_HOVER_SOURCE, CSV_VIEW, WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "./constants";
 import { MapParser } from "./maps/mapParser";
 
 export default class WorldBuildingPlugin extends Plugin {
@@ -68,13 +61,11 @@ export default class WorldBuildingPlugin extends Plugin {
     this.addRibbonIcons();
     this.createWorldEngineLeaf();
     this.registerExtensions(["csv"], CSV_VIEW);
-    this.registerExtensions(["psd"], PSD_VIEW);
     this.registerCommands();
     this.registerCodeBlockProcessors();
     this.registerEventHandlers();
 
     this.registerHoverLinkSource(CSV_HOVER_SOURCE, { display: "WB CSV View", defaultMod: false });
-    this.registerHoverLinkSource(PSD_HOVER_SOURCE, { display: "WB PSD View", defaultMod: false });
     this.registerHoverLinkSource(WORLD_ENGINE_HOVER_SOURCE, { display: "WB World Engine", defaultMod: false });
 
     // Finished!

@@ -1,5 +1,6 @@
 # Represents a settlement of people. A town, city, village, etc.
 name: Settlement Name
+wbEntityType: SettlementEntity
 
 demographics:
   # Should be a type defined in you settlement types dataset.
@@ -22,15 +23,3 @@ relations:
   parentEntity: Sovereign Entity Name
   # Can be a person or organization.
   rulingParty: Mayor
-
-# Some things should be inherited from parent entities and some things can be overridden.
-overrides:
-  # Override the default culture settings.
-  culture:
-    firstNameOrigin: English
-    lastNameOrigin: English
-
-wbMeta:
-  type: settlementEntity
-  version: 0.0.1
-  id: GEN

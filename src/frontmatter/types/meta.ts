@@ -1,10 +1,9 @@
 export enum WBMetaDataEnum {
-  sovereignEntity = "sovereignEntity",
-  settlementEntity = "settlementEntity",
+  sovereignEntity = "sovereignentity",
+  settlementEntity = "settlemententity",
 }
 
-export interface WBMetaData {
-  type: WBMetaDataEnum;
-  version: string;
-  id: string;
+// A frontmatter object that is a verified to work with the world engine
+export interface WBFrontMatter {
+  wbEntityType: WBMetaDataEnum;
 }

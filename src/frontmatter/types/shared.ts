@@ -1,4 +1,6 @@
-export interface BaseConfiguration {
+import { WBFrontMatter } from "./meta";
+
+export interface BaseConfiguration extends WBFrontMatter {
   name: string;
 }
 

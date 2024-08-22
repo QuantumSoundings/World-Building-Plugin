@@ -43,6 +43,10 @@ export class ConfigManager {
       converter: (data: any) => new NationData(data),
     },
   };
+
+  geographyAreaUnit: string = "mile^2";
+  landFertilityUnit: string = "mile^2";
+
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
   }

@@ -1,23 +1,15 @@
 # Represents an independent political entity, a sovereign state, nation, group, etc.
 # They have a dependent population and territory.
 name: EntityName
+wbEntityType: SovereignEntity
 
 geography:
   size: 1.0
-  sizeUnit: mile^2
   # Average land fertility. How many people can be supported per square unit of land.
   # Affected by technology, climate, and other factors.
-  # 180 is a good starting value, but can range from 20 to 400+. Assuming mile^2 unit.
   landFertility: 180.0
-  landFertilityUnit: mile^2
   # How much of the controlled land is lived on.
-  cultivatedLand: 1.0
-  cultivatedLandUnit: Percent # Percent or Unit
-
-  generation:
-    # Size or Population
-    method: Size
-    unit: mile^2
+  cultivatedLandPercentage: 1.0
 
   # How the types of territories are distributed and organized. Good to get a rough idea of scale.
   territories:
@@ -31,38 +23,3 @@ geography:
   settlements:
     - name: Isolated # defined internally or overridden by settlement_types dataset setting.
       value: 1.0
-
-# The population demographics of the entity.
-demographics:
-  # Average age of death. US average is 78 years.
-  lifeExpectancy: 55
-  # Percentage increase per year. [0, 100]
-  populationGrowthRate: 1.1
-
-# Cultural Origin of the entity. Used to generate names.
-culture:
-  firstNameOrigin: English
-  lastNameOrigin: English
-  territoryNameOrigin: English
-  settlementNameOrigin: English
-
-# Validation check that total percentage should equal 100.
-species:
-  - name: Human
-    value: 1.0
-
-languages:
-  - name: Central
-    value: 1.0
-
-staticDatasets:
-  # A dataset for all the named territories. A named territory includes a static name, type, population, and size.
-  territories:
-  # A dataset for all the named settlements. A named settlement includes a static name, type, population, and size.
-  settlements:
-
-# Metadata used by the World Building Plugin.
-wbMeta:
-  type: sovereignEntity
-  version: 0.0.1
-  id: GEN

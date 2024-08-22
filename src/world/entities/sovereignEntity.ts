@@ -1,9 +1,8 @@
 import { SovereignEntityConfiguration } from "src/frontmatter/sovereignEntityConfiguration";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
-import { DataUtils } from "src/data/dataUtils";
-import { PSDUtils } from "src/util/psd";
 import { BaseEntity } from "./shared";
+import { MapUtils } from "src/util/maps";
 
 export class SovereignEntity implements BaseEntity {
   name: string;
@@ -12,23 +11,24 @@ export class SovereignEntity implements BaseEntity {
   configuration: SovereignEntityConfiguration;
 
   // Update Flags
-  updateUsingMap: boolean;
+  updateUsingMap: boolean = false;
+  resolvedSize: number = 0;
 
   // Values calculated on update
-  population: number;
+  population: number = 0;
 
-  constructor(plugin: WorldBuildingPlugin, initialFrontMatter: any) {
+  constructor(plugin: WorldBuildingPlugin, configuration: SovereignEntityConfiguration) {
     this.plugin = plugin;
-
-    this.updateConfiguration(initialFrontMatter);
+    this.updateConfiguration(configuration);
   }
 
-  public updateConfiguration(newFrontMatter: any) {
-    this.updateUsingMap = newFrontMatter.geography.size === "MAP";
-    if (this.updateUsingMap) {
-      newFrontMatter.geography.size = 0;
+  public updateConfiguration(configuration: SovereignEntityConfiguration) {
+    this.configuration = configuration;
+    if (typeof configuration.geography.size === "string") {
+      if (configuration.geography.size.toLowerCase() === "map") {
+        this.updateUsingMap = true;
+      }
     }
-    this.configuration = new SovereignEntityConfiguration(newFrontMatter);
     this.update();
   }
 
@@ -53,39 +53,15 @@ export class SovereignEntity implements BaseEntity {
         Logger.error(this, "Map Configuration not found.");
         return;
       }
-      this.configuration.geography.size = PSDUtils.calculateArea(map, nationData.nationSizePercent);
+      this.resolvedSize = MapUtils.calculateArea(map, nationData.nationSizePercent);
     }
   }
 
   private calculatePopulation() {
     // Population Information
-    const size = this.configuration.geography.size;
-    const sizeUnit = this.configuration.geography.sizeUnit;
-
-    let cultivatedLand = this.configuration.geography.cultivatedLand;
-    const cultivatedLandUnit = this.configuration.geography.cultivatedLandUnit;
-
-    let landFertility = this.configuration.geography.landFertility;
-    const landFertilityUnit = this.configuration.geography.landFertilityUnit;
-
-    // Convert cultivatedLand and LandFertility to the same unit as size.
-    if (cultivatedLandUnit === "Percent") {
-      cultivatedLand = size * (cultivatedLand / 100);
-    } else if (cultivatedLandUnit !== sizeUnit) {
-      const result = DataUtils.convertUnit(cultivatedLand, cultivatedLandUnit, sizeUnit);
-      if (result.success === false) {
-        return;
-      }
-      cultivatedLand = result.result;
-    }
-
-    if (landFertilityUnit !== sizeUnit) {
-      const result = DataUtils.convertUnit(landFertility, landFertilityUnit, sizeUnit);
-      if (result.success === false) {
-        return;
-      }
-      landFertility = result.result;
-    }
+    const size = this.resolvedSize;
+    const cultivatedLand = size * (this.configuration.geography.cultivatedLandPercentage / 100.0);
+    const landFertility = this.configuration.geography.landFertility;
 
     this.population = cultivatedLand * landFertility;
   }

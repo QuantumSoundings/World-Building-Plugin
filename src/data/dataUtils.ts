@@ -81,7 +81,11 @@ export class DataUtils {
   }
 
   private static generatePopulation(settlementData: SettlementType, populationScale: number): number {
-    switch (settlementData.distributionType) {
+    const population =
+      ((settlementData.maxPopulation - settlementData.minPopulation) * (populationScale - 0)) / (1 - 0) +
+      settlementData.minPopulation;
+    return population;
+    /*switch (settlementData.distributionType) {
       case "gaussian":
         return FormatUtils.generateGaussianValue(
           settlementData.minPopulation,
@@ -91,5 +95,6 @@ export class DataUtils {
       default:
         return NaN;
     }
+        */
   }
 }

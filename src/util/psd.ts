@@ -1,7 +1,7 @@
 import Psd, { Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
 import { getIcon } from "obsidian";
-import { MapConfiguration, PointOfInterest } from "src/data/dataTypes";
+import { PointOfInterest } from "src/data/dataTypes";
 
 export class CompositeLayer {
   layer: Layer;
@@ -126,9 +126,5 @@ export class PSDUtils {
     const img = new Image();
     img.setAttribute("src", data);
     return img;
-  }
-
-  public static calculateArea(config: MapConfiguration, areaPercentage: number) {
-    return config.unitHeight * config.unitWidth * areaPercentage;
   }
 }
