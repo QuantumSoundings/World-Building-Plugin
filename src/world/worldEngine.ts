@@ -1,70 +1,75 @@
 import WorldBuildingPlugin from "src/main";
-import { SovereignEntity } from "./entities/sovereignEntity";
-import { TAbstractFile } from "obsidian";
-import { SettlementEntity } from "./entities/settlementEntity";
+import { TAbstractFile, TFile } from "obsidian";
 import { Logger } from "src/util/Logger";
-import { WorldEngineEntity, isPointOfInterestEntity } from "./entities/shared";
 import { PointOfInterest } from "src/data/dataTypes";
 import { FMUtils } from "src/frontmatter/frontMatterUtils";
-import { SovereignEntityConfiguration } from "src/frontmatter/sovereignEntityConfiguration";
-import { SettlementEntityConfiguration } from "src/frontmatter/settlementEntityConfiguration";
-import { WBFrontMatter } from "src/frontmatter/types/meta";
+import { instanceOfMappableNote, WB_NOTE_PROP_NAME, WBNote, WBNoteTypeEnum } from "./notes/wbNote";
+import { NationNote } from "./notes/nationNote";
+import { SettlementNote } from "./notes/settlementNote";
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
 
-  private entities: Map<string, WorldEngineEntity>;
+  private notes: Map<string, WBNote>;
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
-    this.entities = new Map<string, WorldEngineEntity>();
+    this.notes = new Map<string, WBNote>();
   }
 
   public async initialize() {
     const files = this.plugin.app.vault.getMarkdownFiles();
     for (const file of files) {
-      await this.createEntity(file);
+      await this.createWBNote(file);
     }
   }
 
   public registerEventCallbacks() {
     const onFileDeletion = (file: TAbstractFile) => {
-      if (this.entities.has(file.path)) {
-        this.entities.delete(file.path);
+      if (this.notes.has(file.path)) {
+        this.notes.delete(file.path);
       }
     };
-    const onFileRename = (file: TAbstractFile, oldPath: string) => {
-      if (this.entities.has(oldPath)) {
-        this.entities.set(file.path, this.entities.get(oldPath) as WorldEngineEntity);
-        this.entities.delete(oldPath);
+    const onFileRename = async (file: TAbstractFile, oldPath: string) => {
+      if (this.notes.has(oldPath)) {
+        const note = this.notes.get(oldPath);
+        if (note !== undefined) {
+          note.setFile(file as TFile);
+          this.notes.set(file.path, note);
+          this.notes.delete(oldPath);
+          await note.update();
+        }
       }
     };
     const onFileModify = async (file: TAbstractFile) => {
       const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(file.path);
-      if (!FMUtils.validateWBEntityType(frontMatter)) return;
-      const validFM = frontMatter as WBFrontMatter;
+      if (!FMUtils.validateWBNoteType(frontMatter)) return;
+      const fmNoteType = frontMatter[WB_NOTE_PROP_NAME];
 
-      const entity = this.entities.get(file.path);
-      if (entity !== undefined) {
+      const note = this.notes.get(file.path);
+      if (note !== undefined) {
         const worldEngineView = this.plugin.getWorldEngineView();
-        const entityMatches = worldEngineView !== undefined && worldEngineView.getCurrentEntity() === entity;
-        if (validFM.wbEntityType === entity.configuration.wbEntityType) {
-          this.updateEntityConfiguration(entity, validFM);
-          if (entityMatches) {
-            worldEngineView.displayEntity(entity);
+        const noteIsCurrentlyDisplayed = worldEngineView !== undefined && worldEngineView.getCurrentWBNote() === note;
+
+        if (fmNoteType === note.wbNoteType) {
+          note.setFile(file as TFile);
+          await note.update();
+          if (noteIsCurrentlyDisplayed) {
+            worldEngineView.displayWBNote(note);
           }
         } else {
-          // Entity type has changed, reload the file.
-          await this.createEntity(file);
-          const newEntity = this.entities.get(file.path);
-          if (newEntity !== undefined) {
-            if (entityMatches) {
-              worldEngineView.displayEntity(newEntity);
+          // Note type has changed, delete old and create new note
+          this.notes.delete(file.path);
+          await this.createWBNote(file);
+          const newNote = this.notes.get(file.path);
+          if (newNote !== undefined) {
+            if (noteIsCurrentlyDisplayed) {
+              worldEngineView.displayWBNote(newNote);
             }
           }
         }
       } else {
-        await this.createEntity(file);
+        await this.createWBNote(file);
       }
     };
     this.plugin.registerEvent(this.plugin.app.vault.on("delete", onFileDeletion));
@@ -72,66 +77,58 @@ export class WorldEngine {
     this.plugin.registerEvent(this.plugin.app.vault.on("modify", onFileModify));
   }
 
-  public triggerUpdate() {
+  public async triggerUpdate() {
     const worldEngineView = this.plugin.getWorldEngineView();
     if (worldEngineView === undefined) return;
-    const entity = worldEngineView.getCurrentEntity();
-    if (entity !== undefined) {
-      if ("update" in entity) {
-        entity.update();
-        worldEngineView.reloadEntity();
-      }
+    const note = worldEngineView.getCurrentWBNote();
+    if (note !== undefined) {
+      await note.update();
+      worldEngineView.reloadWBNote();
     }
   }
 
-  public getEntity(fullPath: string): WorldEngineEntity | undefined {
-    const entity = this.entities.get(fullPath);
-    if (entity !== undefined && "update" in entity) {
-      entity.update();
+  public async getWBNote(fullPath: string): Promise<WBNote | undefined> {
+    const note = this.notes.get(fullPath);
+    if (note !== undefined) {
+      await note.update();
+      return note;
     }
-    return entity;
+    return undefined;
   }
 
   public getPointsOfInterestByMap(mapName: string): PointOfInterest[] {
     const output: PointOfInterest[] = [];
-    for (const [, entity] of this.entities) {
-      if (isPointOfInterestEntity(entity)) {
-        if (entity.configuration.pointOfInterest.mapName === mapName) {
-          output.push(entity.getMapPointOfInterest());
+    for (const [, note] of this.notes) {
+      if (instanceOfMappableNote(note)) {
+        const poi = note.getPointOfInterest();
+        if (poi.mapName === mapName) {
+          output.push(poi);
         }
       }
     }
     return output;
   }
 
-  private async createEntity(file: TAbstractFile) {
-    const frontMatter = await this.plugin.frontMatterManager.getFrontMatter(file.path);
-    const newEntityConfiguration = FMUtils.convertFMToEntityConfiguration(frontMatter);
-    if (newEntityConfiguration === undefined) {
-      return;
+  private async createWBNote(file: TAbstractFile) {
+    const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(file.path);
+
+    if (!FMUtils.validateWBNoteType(frontMatter)) return;
+    const noteType = frontMatter[WB_NOTE_PROP_NAME] as WBNoteTypeEnum;
+
+    let note: WBNote;
+    switch (noteType) {
+      case WBNoteTypeEnum.NATION:
+        note = new NationNote(this.plugin, file as TFile);
+        break;
+      case WBNoteTypeEnum.SETTLEMENT:
+        note = new SettlementNote(this.plugin, file as TFile);
+        break;
+      default:
+        Logger.error(this, "Unknown note type: " + noteType);
+        return;
     }
 
-    let entity: WorldEngineEntity;
-    if (newEntityConfiguration instanceof SovereignEntityConfiguration) {
-      entity = new SovereignEntity(this.plugin, newEntityConfiguration);
-    } else if (newEntityConfiguration instanceof SettlementEntityConfiguration) {
-      entity = new SettlementEntity(this.plugin, newEntityConfiguration);
-    } else {
-      Logger.error(this, "Unknown entity type: " + frontMatter["wbEntityType"]);
-      return;
-    }
-
-    entity.filePath = file.path;
-    this.entities.set(file.path, entity);
-  }
-
-  private async updateEntityConfiguration(entity: WorldEngineEntity, validatedFM: WBFrontMatter) {
-    if (entity instanceof SovereignEntity) {
-      entity.updateConfiguration(new SovereignEntityConfiguration(validatedFM));
-    } else if (entity instanceof SettlementEntity) {
-      entity.updateConfiguration(new SettlementEntityConfiguration(validatedFM));
-    } else {
-      Logger.error(this, "Unknown entity type: " + validatedFM["wbEntityType"]);
-    }
+    await note.update();
+    this.notes.set(file.path, note);
   }
 }

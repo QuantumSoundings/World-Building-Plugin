@@ -29,7 +29,7 @@ export class PointOfInterestModal extends Modal {
     this.relX = options.relX ?? 0;
     this.relY = options.relY ?? 0;
     this.icon = options.icon ?? "castle";
-    this.template = TemplateType.SettlementEntity;
+    this.template = TemplateType.SETTLEMENT;
   }
 
   onOpen() {
@@ -59,7 +59,7 @@ export class PointOfInterestModal extends Modal {
     });
 
     new Setting(contentEl).setName("Point of Interest Type").addDropdown((dropdown) => {
-      dropdown.addOptions({ Settlement: TemplateType.SettlementEntity });
+      dropdown.addOptions({ Settlement: TemplateType.SETTLEMENT });
       dropdown.onChange((value) => {
         this.template = value as TemplateType;
       });

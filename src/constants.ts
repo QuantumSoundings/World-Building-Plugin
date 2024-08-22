@@ -43,36 +43,36 @@ export const talentDataString = atob(talentDataBase64);
 export const unitConversionDataString = atob(unitConversionDataBase64);
 
 // Template Base64 Includes
-import sovereignEntityTemplateBase64 from "resources/Frontmatter Templates/Sovereign Entity.yaml";
-import settlementEntityTemplateBase64 from "resources/Frontmatter Templates/Settlement Entity.yaml";
-import worldConfigTemplateBase64 from "resources/Frontmatter Templates/World Entity.yaml";
+import nationTemplateBase64 from "resources/Frontmatter Templates/nation.yaml";
+import settlementTemplateBase64 from "resources/Frontmatter Templates/settlement.yaml";
+import worldConfigTemplateBase64 from "resources/Frontmatter Templates/world.yaml";
 
 // Template Strings Decoded
-export const sovereignEntityTemplateString = atob(sovereignEntityTemplateBase64);
-export const settlementEntityTemplateString = atob(settlementEntityTemplateBase64);
+export const nationTemplateString = atob(nationTemplateBase64);
+export const settlementTemplateString = atob(settlementTemplateBase64);
 export const worldConfigTemplateString = atob(worldConfigTemplateBase64);
 
 export enum TemplateType {
-  SovereignEntity = "Sovereign Entity Template",
-  SettlementEntity = "Settlement Entity Template",
-  WorldConfig = "World Entity Template",
+  NATION = "Nation Template",
+  SETTLEMENT = "Settlement Template",
+  WORLD_CONFIG = "World Template",
 }
 
 export const TEMPLATE_TYPE_LATEST_VERSION = {
-  [TemplateType.SovereignEntity]: "0.0.1",
-  [TemplateType.SettlementEntity]: "0.0.1",
-  [TemplateType.WorldConfig]: "0.0.1",
+  [TemplateType.NATION]: "0.0.1",
+  [TemplateType.SETTLEMENT]: "0.0.1",
+  [TemplateType.WORLD_CONFIG]: "0.0.1",
 };
 
-export const TEMPLATES = [TemplateType.SovereignEntity, TemplateType.SettlementEntity, TemplateType.WorldConfig];
+export const TEMPLATES = [TemplateType.NATION, TemplateType.SETTLEMENT, TemplateType.WORLD_CONFIG];
 
 export function getTemplateFromType(templateType: TemplateType): string {
   switch (templateType) {
-    case TemplateType.SovereignEntity:
-      return sovereignEntityTemplateString;
-    case TemplateType.SettlementEntity:
-      return settlementEntityTemplateString;
-    case TemplateType.WorldConfig:
+    case TemplateType.NATION:
+      return nationTemplateString;
+    case TemplateType.SETTLEMENT:
+      return settlementTemplateString;
+    case TemplateType.WORLD_CONFIG:
       return worldConfigTemplateString;
     default:
       return "";

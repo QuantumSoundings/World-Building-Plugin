@@ -5,15 +5,15 @@ import { Logger } from "./util/Logger";
 import { TemplatePickerModal } from "./modal/templatePickerModal";
 import { WorldEngine } from "./world/worldEngine";
 import { FrontMatterManager } from "./frontmatter/frontMatterManager";
-import { SovereignEntity } from "./world/entities/sovereignEntity";
 import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings/pluginSettings";
 import { CSVUtils } from "./util/csv";
 import { DataManager } from "./data/managers/dataManager";
 import { WorldEngineView } from "./views/worldEngineView";
-import { generateSovereignEntityView } from "./views/generators/sovereignEntityView";
+import { generateNationView } from "./views/generators/nationView";
 import { ConfigManager } from "./data/managers/configManager";
 import { CSV_HOVER_SOURCE, CSV_VIEW, WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "./constants";
 import { MapParser } from "./maps/mapParser";
+import { NationNote } from "./world/notes/nationNote";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -234,14 +234,14 @@ export default class WorldBuildingPlugin extends Plugin {
         const mdView = leaf.view as MarkdownView;
         const file = mdView.file;
         if (file !== null) {
-          const entity = this.worldEngine.getEntity(file.path);
-          if (entity !== undefined) {
+          const note = await this.worldEngine.getWBNote(file.path);
+          if (note !== undefined) {
             const worldEngineView = this.getWorldEngineView();
             if (worldEngineView === undefined) {
               Logger.error(this, "World Engine view not found, cannot update views.");
               return;
             }
-            await worldEngineView.displayEntity(entity);
+            await worldEngineView.displayWBNote(note);
           }
         }
       }
@@ -301,14 +301,14 @@ export default class WorldBuildingPlugin extends Plugin {
       context.addChild(tableComponent);
     });
 
-    this.registerMarkdownCodeBlockProcessor("wb-se", (source, el, context) => {
-      const sovereignEntity = this.worldEngine.getEntity(context.sourcePath);
-      if (sovereignEntity === undefined) {
-        Logger.error(this, "Could not find sovereign entity for " + context.sourcePath);
+    this.registerMarkdownCodeBlockProcessor("wb-nation", async (source, el, context) => {
+      const note = await this.worldEngine.getWBNote(context.sourcePath);
+      if (note === undefined) {
+        Logger.error(this, "Could not find nation note for " + context.sourcePath);
         return;
       }
-      if (sovereignEntity instanceof SovereignEntity) {
-        generateSovereignEntityView(sovereignEntity, el);
+      if (note instanceof NationNote) {
+        generateNationView(note, el);
       }
     });
   }

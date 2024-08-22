@@ -1,6 +1,6 @@
 # Represents a settlement of people. A town, city, village, etc.
 name: Settlement Name
-wbEntityType: SettlementEntity
+wbNoteType: settlement
 
 demographics:
   # Should be a type defined in you settlement types dataset.
@@ -17,9 +17,9 @@ pointOfInterest:
   relY: 0
   icon: castle
 
-# How this entity connects with others.
+# How this note connects with others.
 relations:
-  # Should be a entity type supported by the world engine. Normally a settlement will be a child of a territory or a sovereign entity directly.
-  parentEntity: Sovereign Entity Name
+  # Should be a note type supported by the world engine. Normally a settlement will be a child of a territory or a nation directly.
+  parentNote: Note Name
   # Can be a person or organization.
   rulingParty: Mayor

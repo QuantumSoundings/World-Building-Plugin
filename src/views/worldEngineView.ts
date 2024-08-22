@@ -1,16 +1,16 @@
 import { HoverParent, HoverPopover, ItemView, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
-import { generateSovereignEntityView } from "./generators/sovereignEntityView";
-import { SettlementEntity } from "src/world/entities/settlementEntity";
-import { generateSettlementEntityView } from "./generators/settlementEntityView";
-import { WorldEngineEntity } from "src/world/entities/shared";
-import { SovereignEntity } from "src/world/entities/sovereignEntity";
+import { generateNationView } from "./generators/nationView";
+import { generateSettlementView } from "./generators/settlementView";
 import { WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "src/constants";
+import { WBNote } from "src/world/notes/wbNote";
+import { NationNote } from "src/world/notes/nationNote";
+import { SettlementNote } from "src/world/notes/settlementNote";
 
 const STATUS = "Status: ";
 const RUNNING = STATUS + "Running";
 const PAUSED = STATUS + "Paused";
-const NO_ENTITY = "No Entity Selected";
+const NO_WB_NOTE = "No WBNote Selected";
 
 export class WorldEngineView extends ItemView implements HoverParent {
   plugin: WorldBuildingPlugin;
@@ -21,15 +21,15 @@ export class WorldEngineView extends ItemView implements HoverParent {
   headerContainerEl: HTMLElement;
   titleEl: HTMLElement;
   statusEl: HTMLElement;
-  entityTitleEl: HTMLElement;
-  entityTitleLink: HTMLElement;
+  wbNoteTitleEl: HTMLElement;
+  wbNoteTitleLink: HTMLElement;
 
   contentContainerEl: HTMLElement;
 
   paused: boolean;
 
-  // Entity
-  currentEntity: WorldEngineEntity | undefined;
+  // Currently Displayed WBNote.
+  displayedWBNote: WBNote | undefined;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorldBuildingPlugin) {
     super(leaf);
@@ -46,24 +46,24 @@ export class WorldEngineView extends ItemView implements HoverParent {
     this.headerContainerEl = this.viewContainerElement.createEl("div");
     this.titleEl = this.headerContainerEl.createEl("h1", { text: "World Engine" });
     this.statusEl = this.headerContainerEl.createEl("h2", { text: RUNNING });
-    this.entityTitleEl = this.headerContainerEl.createEl("h2");
-    this.entityTitleLink = this.entityTitleEl.createEl("a", { text: NO_ENTITY });
-    this.entityTitleLink.addEventListener("mouseover", (event: MouseEvent) => {
-      if (this.currentEntity === undefined) return;
+    this.wbNoteTitleEl = this.headerContainerEl.createEl("h2");
+    this.wbNoteTitleLink = this.wbNoteTitleEl.createEl("a", { text: NO_WB_NOTE });
+    this.wbNoteTitleLink.addEventListener("mouseover", (event: MouseEvent) => {
+      if (this.displayedWBNote === undefined) return;
       this.plugin.app.workspace.trigger("hover-link", {
         event: event,
         source: WORLD_ENGINE_HOVER_SOURCE,
         hoverParent: this,
-        targetEl: this.entityTitleLink,
-        linktext: this.currentEntity.filePath,
+        targetEl: this.wbNoteTitleLink,
+        linktext: this.displayedWBNote.file.path,
       });
     });
-    this.entityTitleLink.addEventListener("click", async () => {
-      if (this.currentEntity === undefined) return;
-      await this.plugin.app.workspace.openLinkText(this.currentEntity.filePath, "", true);
+    this.wbNoteTitleLink.addEventListener("click", async () => {
+      if (this.displayedWBNote === undefined) return;
+      await this.plugin.app.workspace.openLinkText(this.displayedWBNote.file.path, "", true);
     });
 
-    this.hoverPopover = new HoverPopover(this, this.entityTitleLink);
+    this.hoverPopover = new HoverPopover(this, this.wbNoteTitleLink);
 
     // Content container.
     this.contentContainerEl = this.viewContainerElement.createEl("div");
@@ -84,35 +84,35 @@ export class WorldEngineView extends ItemView implements HoverParent {
     return "globe";
   }
 
-  public async displayEntity(entity: WorldEngineEntity) {
+  public async displayWBNote(note: WBNote) {
     if (this.paused) {
       // View is paused.
       return;
     }
     this.contentContainerEl.empty();
-    this.entityTitleLink.setText(entity.configuration.name);
+    this.wbNoteTitleLink.setText(note.name);
 
-    if (entity instanceof SovereignEntity) {
-      generateSovereignEntityView(entity, this.contentContainerEl);
-    } else if (entity instanceof SettlementEntity) {
-      generateSettlementEntityView(entity, this.contentContainerEl);
+    if (note instanceof NationNote) {
+      generateNationView(note, this.contentContainerEl);
+    } else if (note instanceof SettlementNote) {
+      generateSettlementView(note, this.contentContainerEl);
     }
 
-    this.currentEntity = entity;
+    this.displayedWBNote = note;
 
     // Add a spacer to the bottom of the view.
     const spacerEl = this.contentContainerEl.createEl("div");
     spacerEl.setCssStyles({ marginBottom: "25px" });
   }
 
-  public reloadEntity() {
-    if (this.currentEntity !== undefined) {
-      this.displayEntity(this.currentEntity);
+  public reloadWBNote() {
+    if (this.displayedWBNote !== undefined) {
+      this.displayWBNote(this.displayedWBNote);
     }
   }
 
-  public getCurrentEntity() {
-    return this.currentEntity;
+  public getCurrentWBNote() {
+    return this.displayedWBNote;
   }
 
   public setPaused() {
