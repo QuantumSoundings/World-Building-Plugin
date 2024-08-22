@@ -1,10 +1,10 @@
 import WorldBuildingPlugin from "src/main";
 import { WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
 import { TFile } from "obsidian";
-import { FMUtils } from "src/frontmatter/frontMatterUtils";
+import { FMUtils } from "src/util/frontMatterUtils";
 import { Logger } from "src/util/Logger";
-import { MapUtils } from "src/util/maps";
-import { Distribution } from "src/frontmatter/frontMatterTypes";
+import { MapUtils } from "src/util/mapUtils";
+import { Distribution } from "src/types/frontMatterTypes";
 
 export class NationNote extends WBNote {
   // Front Matter Configuration Values

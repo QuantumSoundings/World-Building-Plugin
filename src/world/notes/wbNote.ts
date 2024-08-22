@@ -1,5 +1,5 @@
 import { TFile } from "obsidian";
-import { PointOfInterest } from "src/data/dataTypes";
+import { PointOfInterest } from "src/types/dataTypes";
 import WorldBuildingPlugin from "src/main";
 
 export enum WBNoteTypeEnum {

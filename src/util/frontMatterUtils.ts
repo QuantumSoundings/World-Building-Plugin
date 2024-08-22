@@ -1,6 +1,6 @@
-import { TFile, parseYaml, stringifyYaml } from "obsidian";
-import WorldBuildingPlugin from "src/main";
-import { Logger } from "src/util/Logger";
+import { WB_NOTE_PROP_NAME } from "src/world/notes/wbNote";
+import { Logger } from "./Logger";
+import { stringifyYaml } from "obsidian";
 
 class FrontMatterParsedInfo {
   frontMatterFound: boolean;
@@ -9,21 +9,14 @@ class FrontMatterParsedInfo {
   frontMatter: string;
 }
 
-export class YAMLUtils {
-  static async validYaml(plugin: WorldBuildingPlugin, fullPath: string): Promise<boolean> {
-    try {
-      const file = plugin.app.vault.getAbstractFileByPath(fullPath);
-      const content = await plugin.app.vault.read(file as TFile);
-      const parsed = YAMLUtils.parseMarkdownFile(content);
-      if (parsed !== undefined) {
-        parseYaml(parsed.frontMatter);
-      }
-
-      return true;
-    } catch (e) {
-      return false;
-    }
+export class FMUtils {
+  static validateWBNoteType(fm: any): boolean {
+    if (fm === null) return false;
+    if (!fm.hasOwnProperty(WB_NOTE_PROP_NAME)) return false;
+    if (fm[WB_NOTE_PROP_NAME] === undefined) return false;
+    return true;
   }
+
   static parseMarkdownFile(content: string): FrontMatterParsedInfo | undefined {
     const parseResults = new FrontMatterParsedInfo();
     parseResults.frontMatterFound = false;

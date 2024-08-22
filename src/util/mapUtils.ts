@@ -1,4 +1,4 @@
-import { MapConfiguration } from "src/data/dataTypes";
+import { MapConfiguration } from "src/types/dataTypes";
 
 export class MapUtils {
   public static calculateArea(config: MapConfiguration, areaPercentage: number) {

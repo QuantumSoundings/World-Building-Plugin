@@ -1,7 +1,7 @@
 import Psd, { Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
 import { getIcon } from "obsidian";
-import { PointOfInterest } from "src/data/dataTypes";
+import { PointOfInterest } from "src/types/dataTypes";
 
 export class CompositeLayer {
   layer: Layer;

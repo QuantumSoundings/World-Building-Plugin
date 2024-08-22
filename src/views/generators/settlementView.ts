@@ -1,5 +1,5 @@
-import { Profession } from "src/data/dataTypes";
-import { FormatUtils } from "src/util/format";
+import { Profession } from "src/types/dataTypes";
+import { FormatUtils } from "src/util/formatUtils";
 import { SettlementNote } from "src/world/notes/settlementNote";
 
 export function generateSettlementView(note: SettlementNote, el: HTMLElement): void {

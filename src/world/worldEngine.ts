@@ -1,8 +1,8 @@
 import WorldBuildingPlugin from "src/main";
 import { TAbstractFile, TFile } from "obsidian";
 import { Logger } from "src/util/Logger";
-import { PointOfInterest } from "src/data/dataTypes";
-import { FMUtils } from "src/frontmatter/frontMatterUtils";
+import { PointOfInterest } from "src/types/dataTypes";
+import { FMUtils } from "src/util/frontMatterUtils";
 import { instanceOfMappableNote, WB_NOTE_PROP_NAME, WBNote, WBNoteTypeEnum } from "./notes/wbNote";
 import { NationNote } from "./notes/nationNote";
 import { SettlementNote } from "./notes/settlementNote";

@@ -7,7 +7,7 @@ import { HoverParent, HoverPopover, MarkdownRenderChild, Setting, TFile, ToggleC
 import { CSV_HOVER_SOURCE } from "src/constants";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
-import { FileUtils } from "src/util/file";
+import { FileUtils } from "src/util/fileUtils";
 
 class TableState {
   // Settings

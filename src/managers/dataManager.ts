@@ -7,7 +7,7 @@ import {
   TalentRank,
   TravelMethod,
   Unit,
-} from "src/data/dataTypes";
+} from "src/types/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import {
   FIRST_NAME_DATASET,
@@ -26,10 +26,10 @@ import {
   settlementTypeDataString,
   travelMethodDataString,
   talentDataString,
-} from "../../constants";
-import { CSVUtils } from "src/util/csv";
+} from "../constants";
+import { CSVUtils } from "src/util/csvUtils";
 import { parse } from "csv-parse/sync";
-import { DataUtils } from "../dataUtils";
+import { DataUtils } from "../util/dataUtils";
 
 interface DatasetInfo<T> {
   datasetName: string;

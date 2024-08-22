@@ -1,9 +1,6 @@
-import { BaseError } from "src/errors/baseError";
-import { Result } from "src/errors/result";
 import WorldBuildingPlugin from "src/main";
-import { SettlementType } from "./dataTypes";
+import { SettlementType } from "../types/dataTypes";
 import { Logger } from "src/util/Logger";
-import { FormatUtils } from "src/util/format";
 
 export class DataUtils {
   static plugin: WorldBuildingPlugin | null;
@@ -13,56 +10,53 @@ export class DataUtils {
 
   private static getPlugin(): WorldBuildingPlugin {
     if (DataUtils.plugin === null) {
-      throw new BaseError("Plugin not set in DataUtils");
+      throw new Error("Plugin not set in DataUtils");
     }
     return DataUtils.plugin;
   }
 
-  public static convertUnit(value: number, fromUnit: string, toUnit: string): Result<number> {
+  public static convertUnit(value: number, fromUnit: string, toUnit: string): number | undefined {
     const fromUnitData = DataUtils.getPlugin().dataManager.datasets.unit.live.find((unit) => unit.name === fromUnit);
     if (fromUnitData === undefined) {
-      return { success: false, error: new BaseError("Could not find unit data for unit: " + fromUnit) };
+      return undefined;
     }
     const conversionFactor = fromUnitData.conversionFactors.find((factor) => factor.toUnit === toUnit);
     if (conversionFactor === undefined) {
-      return {
-        success: false,
-        error: new BaseError("Could not find conversion factor from " + fromUnit + " to " + toUnit),
-      };
+      return undefined;
     }
-    return { success: true, result: value * conversionFactor.factor };
+    return value * conversionFactor.factor;
   }
 
-  public static getSymbolForUnit(unitName: string): Result<string> {
+  public static getSymbolForUnit(unitName: string): string | undefined {
     const unitData = DataUtils.getPlugin().dataManager.datasets.unit.live.find((unit) => unit.name === unitName);
     if (unitData === undefined) {
-      return { success: false, error: new BaseError("Could not find unit data for unit: " + unitName) };
+      return undefined;
     }
-    return { success: true, result: unitData.symbol };
+    return unitData.symbol;
   }
 
-  public static getDescriptorForPopulation(populationDensity: number, areaUnit: string): Result<string> {
+  public static getDescriptorForPopulation(populationDensity: number, areaUnit: string): string | undefined {
     for (const density of DataUtils.getPlugin().dataManager.datasets.populationDensity.live) {
       let min = density.minPopulation;
       let max = density.maxPopulation;
       if (density.areaUnit !== areaUnit) {
         const convertedMinResult = DataUtils.convertUnit(density.minPopulation, density.areaUnit, areaUnit);
         const convertedMaxResult = DataUtils.convertUnit(density.maxPopulation, density.areaUnit, areaUnit);
-        if (convertedMinResult.success === false) {
+        if (convertedMinResult === undefined) {
           continue;
-        } else if (convertedMaxResult.success === false) {
+        } else if (convertedMaxResult === undefined) {
           continue;
         } else {
-          min = convertedMinResult.result as number;
-          max = convertedMaxResult.result as number;
+          min = convertedMinResult;
+          max = convertedMaxResult;
         }
       }
 
       if (populationDensity >= min && populationDensity < max) {
-        return { success: true, result: density.descriptor };
+        return density.descriptor;
       }
     }
-    return { success: false, error: new BaseError("Could not find a descriptor for the given population density") };
+    return undefined;
   }
 
   public static findSettlementDataByType(type: string): SettlementType | undefined {

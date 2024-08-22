@@ -1,5 +1,5 @@
-import { DataUtils } from "src/data/dataUtils";
-import { FormatUtils } from "src/util/format";
+import { DataUtils } from "src/util/dataUtils";
+import { FormatUtils } from "src/util/formatUtils";
 import { Logger } from "src/util/Logger";
 import { NationNote } from "src/world/notes/nationNote";
 

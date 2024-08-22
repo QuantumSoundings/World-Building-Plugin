@@ -1,5 +1,5 @@
 import WorldBuildingPlugin from "src/main";
-import { MapConfiguration, NationData, PointOfInterest } from "../dataTypes";
+import { MapConfiguration, NationData, PointOfInterest } from "../types/dataTypes";
 import {
   MAP_CONFIG,
   NATIONS_CONFIG_GENERATED,
@@ -7,10 +7,10 @@ import {
   POI_CONFIG_GENERATED,
   mapConfigString,
   pointsOfInterestConfigString,
-} from "../../constants";
+} from "../constants";
 import { TAbstractFile, TFile } from "obsidian";
 import { parse } from "csv-parse/sync";
-import { CSVUtils } from "src/util/csv";
+import { CSVUtils } from "src/util/csvUtils";
 
 interface ConfigInfo<T> {
   configName: string;

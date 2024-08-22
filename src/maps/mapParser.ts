@@ -1,10 +1,10 @@
 import Psd from "@webtoon/psd";
 import { TAbstractFile, TFile } from "obsidian";
 import { NATIONS_CONFIG_GENERATED, POI_CONFIG_GENERATED } from "src/constants";
-import { NationData, PointOfInterest } from "src/data/dataTypes";
+import { NationData, PointOfInterest } from "src/types/dataTypes";
 import WorldBuildingPlugin from "src/main";
-import { CSVUtils } from "src/util/csv";
-import { PSDUtils } from "src/util/psd";
+import { CSVUtils } from "src/util/csvUtils";
+import { PSDUtils } from "src/util/psdUtils";
 
 export class MapParser {
   plugin: WorldBuildingPlugin;

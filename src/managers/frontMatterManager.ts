@@ -1,7 +1,7 @@
 import { TFile, TFolder, parseYaml, stringifyYaml } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
-import { YAMLUtils } from "src/util/frontMatter";
+import { FMUtils } from "src/util/frontMatterUtils";
 
 // This class will be responsible for managing the front matter of the markdown files
 // It will not maintain a cache. Everything will be done through the processFrontMatter method.
@@ -18,7 +18,7 @@ export class FrontMatterManager {
       return {};
     }
     const content = await this.plugin.app.vault.read(file as TFile);
-    const parsed = YAMLUtils.parseMarkdownFile(content);
+    const parsed = FMUtils.parseMarkdownFile(content);
     if (parsed !== undefined) {
       try {
         const frontMatter = parseYaml(parsed.frontMatter);
@@ -68,7 +68,7 @@ export class FrontMatterManager {
       return;
     }
     const fileContent = await this.plugin.app.vault.read(file as TFile);
-    const replacedContent = YAMLUtils.replaceFrontMatter(fileContent, template);
+    const replacedContent = FMUtils.replaceFrontMatter(fileContent, template);
     await this.plugin.app.vault.modify(file as TFile, replacedContent);
   }
 
@@ -87,7 +87,7 @@ export class FrontMatterManager {
       const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
       if (file !== null) {
         const currentFileContent = await this.plugin.app.vault.read(file as TFile);
-        const newFileContent = YAMLUtils.replaceFrontMatter(currentFileContent, content);
+        const newFileContent = FMUtils.replaceFrontMatter(currentFileContent, content);
         await this.plugin.app.vault.modify(file as TFile, newFileContent);
       } else {
         const newFileContent = "---\n" + stringifyYaml(content) + "\n---\n";
