@@ -1,5 +1,5 @@
 import WorldBuildingPlugin from "src/main";
-import { MappableNote, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
+import { type MappableNote, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
 import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { DataUtils } from "src/util/dataUtils";

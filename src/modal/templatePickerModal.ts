@@ -23,7 +23,7 @@ export class TemplatePickerModal extends FuzzySuggestModal<TemplateType> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onChooseItem(item: string, evt: MouseEvent | KeyboardEvent): void {
+  onChooseItem(item: string, _: MouseEvent | KeyboardEvent): void {
     new Notice(`Selected ${item}`);
     const templateString = getTemplateFromType(item as TemplateType);
     this.onChoose(templateString);

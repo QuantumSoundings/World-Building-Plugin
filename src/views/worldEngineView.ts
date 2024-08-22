@@ -1,4 +1,4 @@
-import { HoverParent, HoverPopover, ItemView, WorkspaceLeaf } from "obsidian";
+import { type HoverParent, HoverPopover, ItemView, WorkspaceLeaf } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { generateNationView } from "./generators/nationView";
 import { generateSettlementView } from "./generators/settlementView";

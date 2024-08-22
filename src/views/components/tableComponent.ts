@@ -3,7 +3,7 @@ import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
-import { HoverParent, HoverPopover, MarkdownRenderChild, Setting, TFile, ToggleComponent } from "obsidian";
+import { type HoverParent, HoverPopover, MarkdownRenderChild, Setting, TFile, ToggleComponent } from "obsidian";
 import { CSV_HOVER_SOURCE } from "src/constants";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";

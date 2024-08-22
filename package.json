@@ -14,18 +14,18 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@typescript-eslint/eslint-plugin": "7.6.0",
-    "@typescript-eslint/parser": "7.6.0",
-    "builtin-modules": "3.3.0",
-    "esbuild": "0.20.2",
+    "@typescript-eslint/eslint-plugin": "8.2.0",
+    "@typescript-eslint/parser": "8.2.0",
+    "builtin-modules": "4.0.0",
+    "esbuild": "0.23.1",
     "obsidian": "1.5.7-1",
-    "tslib": "2.6.2",
-    "typescript": "5.4.5"
+    "tslib": "2.6.3",
+    "typescript": "5.5.4"
   },
   "dependencies": {
     "@webtoon/psd": "^0.4.0",
-    "csv-parse": "^5.5.3",
-    "csv-stringify": "^6.4.5",
+    "csv-parse": "^5.5.6",
+    "csv-stringify": "^6.5.1",
     "handsontable": "^14.0.0",
     "hyperformula": "^2.6.1"
   }

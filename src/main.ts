@@ -301,7 +301,7 @@ export default class WorldBuildingPlugin extends Plugin {
       context.addChild(tableComponent);
     });
 
-    this.registerMarkdownCodeBlockProcessor("wb-nation", async (source, el, context) => {
+    this.registerMarkdownCodeBlockProcessor("wb-nation", async (_, el, context) => {
       const note = await this.worldEngine.getWBNote(context.sourcePath);
       if (note === undefined) {
         Logger.error(this, "Could not find nation note for " + context.sourcePath);

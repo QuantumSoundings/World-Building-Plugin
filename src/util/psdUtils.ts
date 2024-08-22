@@ -1,4 +1,4 @@
-import Psd, { Layer } from "@webtoon/psd";
+import Psd, { type Layer } from "@webtoon/psd";
 import { Logger } from "./Logger";
 import { getIcon } from "obsidian";
 import { PointOfInterest } from "src/types/dataTypes";

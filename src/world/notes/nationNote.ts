@@ -4,7 +4,7 @@ import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { Logger } from "src/util/Logger";
 import { MapUtils } from "src/util/mapUtils";
-import { Distribution } from "src/types/frontMatterTypes";
+import type { Distribution } from "src/types/frontMatterTypes";
 
 export class NationNote extends WBNote {
   // Front Matter Configuration Values
