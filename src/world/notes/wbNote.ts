@@ -1,11 +1,7 @@
 import { TFile } from "obsidian";
 import { PointOfInterest } from "src/types/dataTypes";
 import WorldBuildingPlugin from "src/main";
-
-export enum WBNoteTypeEnum {
-  NATION = "nation",
-  SETTLEMENT = "settlement",
-}
+import type { WBNoteTypeEnum } from "src/constants";
 
 export const WB_NOTE_PROP_NAME = "wbNoteType";
 
@@ -32,7 +28,7 @@ export class WBNote {
 
   public setFile(newFile: TFile) {
     this.file = newFile;
-    this.name = newFile.name;
+    this.name = newFile.name.replace(".md", "");
   }
 
   public async update() {}

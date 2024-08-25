@@ -52,10 +52,36 @@ export const nationTemplateString = atob(nationTemplateBase64);
 export const settlementTemplateString = atob(settlementTemplateBase64);
 export const worldConfigTemplateString = atob(worldConfigTemplateBase64);
 
+// Enums
 export enum TemplateType {
   NATION = "Nation Template",
   SETTLEMENT = "Settlement Template",
   WORLD_CONFIG = "World Template",
+}
+
+export enum WBNoteTypeEnum {
+  NATION = "nation",
+  SETTLEMENT = "settlement",
+  CHARACTER = "character",
+}
+
+export enum WBTalentEnum {
+  SSS = "SSS",
+  SSS_MINUS = "SSS-",
+  SS_PLUS = "SS+",
+  SS = "SS",
+  SS_MINUS = "SS-",
+  S_PLUS = "S+",
+  S = "S",
+  S_MINUS = "S-",
+  A_PLUS = "A+",
+  A = "A",
+  A_MINUS = "A-",
+  B_PLUS = "B+",
+  B = "B",
+  B_MINUS = "B-",
+  C = "C",
+  D = "D",
 }
 
 export const TEMPLATE_TYPE_LATEST_VERSION = {

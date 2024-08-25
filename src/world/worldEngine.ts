@@ -3,9 +3,11 @@ import { TAbstractFile, TFile } from "obsidian";
 import { Logger } from "src/util/Logger";
 import { PointOfInterest } from "src/types/dataTypes";
 import { FMUtils } from "src/util/frontMatterUtils";
-import { instanceOfMappableNote, WB_NOTE_PROP_NAME, WBNote, WBNoteTypeEnum } from "./notes/wbNote";
+import { instanceOfMappableNote, WB_NOTE_PROP_NAME, WBNote } from "./notes/wbNote";
+import { WBNoteTypeEnum } from "src/constants";
 import { NationNote } from "./notes/nationNote";
 import { SettlementNote } from "./notes/settlementNote";
+import { CharacterNote } from "./notes/characterNotes";
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
@@ -122,6 +124,9 @@ export class WorldEngine {
         break;
       case WBNoteTypeEnum.SETTLEMENT:
         note = new SettlementNote(this.plugin, file as TFile);
+        break;
+      case WBNoteTypeEnum.CHARACTER:
+        note = new CharacterNote(this.plugin, file as TFile);
         break;
       default:
         Logger.error(this, "Unknown note type: " + noteType);

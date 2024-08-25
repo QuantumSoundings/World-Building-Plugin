@@ -6,6 +6,8 @@ import { WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "src/constants";
 import { WBNote } from "src/world/notes/wbNote";
 import { NationNote } from "src/world/notes/nationNote";
 import { SettlementNote } from "src/world/notes/settlementNote";
+import { CharacterNote } from "src/world/notes/characterNotes";
+import { generateCharacterView } from "./generators/characterView";
 
 const STATUS = "Status: ";
 const RUNNING = STATUS + "Running";
@@ -96,6 +98,8 @@ export class WorldEngineView extends ItemView implements HoverParent {
       generateNationView(note, this.contentContainerEl);
     } else if (note instanceof SettlementNote) {
       generateSettlementView(note, this.contentContainerEl);
+    } else if (note instanceof CharacterNote) {
+      generateCharacterView(note, this.contentContainerEl);
     }
 
     this.displayedWBNote = note;

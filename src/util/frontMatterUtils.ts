@@ -1,4 +1,5 @@
 import { WB_NOTE_PROP_NAME } from "src/world/notes/wbNote";
+import { WBNoteTypeEnum } from "src/constants";
 import { Logger } from "./Logger";
 import { stringifyYaml } from "obsidian";
 
@@ -14,6 +15,8 @@ export class FMUtils {
     if (fm === null) return false;
     if (!fm.hasOwnProperty(WB_NOTE_PROP_NAME)) return false;
     if (fm[WB_NOTE_PROP_NAME] === undefined) return false;
+    const noteType = fm[WB_NOTE_PROP_NAME] as WBNoteTypeEnum;
+    if (!Object.values(WBNoteTypeEnum).includes(noteType)) return false;
     return true;
   }
 
