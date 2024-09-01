@@ -1,17 +1,8 @@
 import { TFile } from "obsidian";
-import { PointOfInterest } from "src/types/dataTypes";
 import WorldBuildingPlugin from "src/main";
 import type { WBNoteTypeEnum } from "src/constants";
 
 export const WB_NOTE_PROP_NAME = "wbNoteType";
-
-export interface MappableNote {
-  getPointOfInterest(): PointOfInterest;
-}
-
-export function instanceOfMappableNote(object: any): object is MappableNote {
-  return "getPointOfInterest" in object;
-}
 
 export class WBNote {
   plugin: WorldBuildingPlugin;

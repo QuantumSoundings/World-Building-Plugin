@@ -9,11 +9,9 @@ import { WorldBuildingPluginSettings, WorldBuildingSettingTab } from "./settings
 import { CSVUtils } from "./util/csvUtils";
 import { DataManager } from "./managers/dataManager";
 import { WorldEngineView } from "./views/worldEngineView";
-import { generateNationView } from "./views/generators/nationView";
 import { ConfigManager } from "./managers/configManager";
 import { CSV_HOVER_SOURCE, CSV_VIEW, WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "./constants";
 import { MapParser } from "./maps/mapParser";
-import { NationNote } from "./world/notes/nationNote";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -299,17 +297,6 @@ export default class WorldBuildingPlugin extends Plugin {
       const tableComponent = new TableComponent(el, this);
       tableComponent.setSourcePath(source);
       context.addChild(tableComponent);
-    });
-
-    this.registerMarkdownCodeBlockProcessor("wb-nation", async (_, el, context) => {
-      const note = await this.worldEngine.getWBNote(context.sourcePath);
-      if (note === undefined) {
-        Logger.error(this, "Could not find nation note for " + context.sourcePath);
-        return;
-      }
-      if (note instanceof NationNote) {
-        generateNationView(note, el);
-      }
     });
   }
 }

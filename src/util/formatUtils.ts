@@ -1,27 +1,22 @@
-export class FormatUtils {
-  static formatRow(values: any[]) {
-    let output = "|";
-    for (let value of values) {
-      if (typeof value === "number") {
-        value = this.formatNumber(value);
-      }
-      output += " " + value + " |";
-    }
-    return output + "\n";
-  }
+export class FormattedNumber {
+  value: number;
+  unit: string;
 
-  static formatNumber(value: number) {
+  constructor(value: number, unit: string) {
+    this.value = value;
+    this.unit = unit;
+  }
+}
+
+export function numberF(value: number | FormattedNumber): string {
+  if (typeof value === "number") {
     return value.toLocaleString("en-US");
   }
 
-  static formatNumberWithUnit(value: number, unit: string) {
-    return this.formatNumber(value) + unit;
-  }
+  return `${value.value.toLocaleString("en-US")}${value.unit ? ` ${value.unit}` : ""}`;
+}
 
-  static round(value: number) {
-    return Math.round(value);
-  }
-
+export class FormatUtils {
   static generateGaussianValue(min: number, max: number, skew: number) {
     let u = 0;
     let v = 0;
@@ -43,30 +38,5 @@ export class FormatUtils {
       num += min; // offset to min
     }
     return num;
-  }
-
-  static markdownTableToHtml(rootElement: HTMLElement, table: string) {
-    const rows = table.trim().split("\n");
-    const headerRow = rows.shift();
-    if (headerRow === undefined) {
-      return;
-    }
-    // Shift off the separator row.
-    rows.shift();
-
-    const tableElement = rootElement.createEl("table");
-    const headerElement = tableElement.createEl("thead");
-    const headerRowElement = headerElement.createEl("tr");
-    for (const headerCell of headerRow.trim().slice(1, -1).split("|")) {
-      headerRowElement.createEl("th", { text: headerCell.trim() });
-    }
-
-    const bodyElement = tableElement.createEl("tbody");
-    for (const row of rows) {
-      const rowElement = bodyElement.createEl("tr");
-      for (const cell of row.trim().slice(1, -1).split("|")) {
-        rowElement.createEl("td", { text: cell.trim() });
-      }
-    }
   }
 }

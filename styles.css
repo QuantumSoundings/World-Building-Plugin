@@ -64,3 +64,8 @@ If your plugin does not need CSS, delete this file.
 .world-engine-view > .entity-header {
   flex-direction: column;
 }
+
+.selectable-text {
+  -webkit-user-select: text;
+  user-select: text;
+}

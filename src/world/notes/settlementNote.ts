@@ -1,23 +1,15 @@
 import WorldBuildingPlugin from "src/main";
-import { type MappableNote, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
+import { WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
 import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { DataUtils } from "src/util/dataUtils";
 import { Logger } from "src/util/Logger";
-import { PointOfInterest } from "src/types/dataTypes";
 
-export class SettlementNote extends WBNote implements MappableNote {
+export class SettlementNote extends WBNote {
   // Front Matter Configuration Values
   demographics: {
     settlementType: string;
     populationScale: number;
-  };
-
-  pointOfInterest: {
-    mapName: string;
-    relX: number;
-    relY: number;
-    icon: string;
   };
 
   relations: {
@@ -42,14 +34,6 @@ export class SettlementNote extends WBNote implements MappableNote {
           populationScale: frontMatter.demographics.populationScale,
         };
       }
-      if (frontMatter.hasOwnProperty("pointOfInterest")) {
-        this.pointOfInterest = {
-          mapName: frontMatter.pointOfInterest.mapName,
-          relX: frontMatter.pointOfInterest.relX,
-          relY: frontMatter.pointOfInterest.relY,
-          icon: frontMatter.pointOfInterest.icon,
-        };
-      }
       if (frontMatter.hasOwnProperty("relations")) {
         this.relations = {
           parentNote: frontMatter.relations.parentNote,
@@ -67,16 +51,5 @@ export class SettlementNote extends WBNote implements MappableNote {
       }
       this.population = settlementPopulation;
     }
-  }
-
-  public getPointOfInterest(): PointOfInterest {
-    const poi = new PointOfInterest(null);
-    poi.label = this.name;
-    poi.link = `[[${this.name}]]`;
-    poi.mapIcon = "castle";
-    poi.mapName = this.pointOfInterest.mapName;
-    poi.relX = this.pointOfInterest.relX;
-    poi.relY = this.pointOfInterest.relY;
-    return poi;
   }
 }

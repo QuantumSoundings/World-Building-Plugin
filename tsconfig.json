@@ -6,6 +6,7 @@
     "inlineSources": true,
     "rootDir": "src",
     "outDir": "output",
+    "jsx": "react-jsx",
 
     // Feature Set
     "lib": ["DOM", "ESNext"],
@@ -29,5 +30,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "**/*.jsx", "**/*.tsx"]
 }

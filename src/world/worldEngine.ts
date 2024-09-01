@@ -1,9 +1,8 @@
 import WorldBuildingPlugin from "src/main";
 import { TAbstractFile, TFile } from "obsidian";
 import { Logger } from "src/util/Logger";
-import { PointOfInterest } from "src/types/dataTypes";
 import { FMUtils } from "src/util/frontMatterUtils";
-import { instanceOfMappableNote, WB_NOTE_PROP_NAME, WBNote } from "./notes/wbNote";
+import { WB_NOTE_PROP_NAME, WBNote } from "./notes/wbNote";
 import { WBNoteTypeEnum } from "src/constants";
 import { NationNote } from "./notes/nationNote";
 import { SettlementNote } from "./notes/settlementNote";
@@ -96,19 +95,6 @@ export class WorldEngine {
       return note;
     }
     return undefined;
-  }
-
-  public getPointsOfInterestByMap(mapName: string): PointOfInterest[] {
-    const output: PointOfInterest[] = [];
-    for (const [, note] of this.notes) {
-      if (instanceOfMappableNote(note)) {
-        const poi = note.getPointOfInterest();
-        if (poi.mapName === mapName) {
-          output.push(poi);
-        }
-      }
-    }
-    return output;
   }
 
   private async createWBNote(file: TAbstractFile) {
