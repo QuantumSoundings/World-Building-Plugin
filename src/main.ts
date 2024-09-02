@@ -12,6 +12,8 @@ import { WorldEngineView } from "./views/worldEngineView";
 import { ConfigManager } from "./managers/configManager";
 import { CSV_HOVER_SOURCE, CSV_VIEW, WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIEW } from "./constants";
 import { MapParser } from "./maps/mapParser";
+import { NameGenerator } from "./generator/nameGenerator";
+import { GenerateNamesModal } from "./modal/generateNamesModal";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -21,6 +23,7 @@ export default class WorldBuildingPlugin extends Plugin {
   dataManager: DataManager;
   frontMatterManager: FrontMatterManager;
   mapParser: MapParser;
+  nameGenerator: NameGenerator;
 
   worldEngine: WorldEngine;
 
@@ -45,6 +48,7 @@ export default class WorldBuildingPlugin extends Plugin {
 
     await this.configManager.reloadConfigs();
     await this.dataManager.reloadDatasets();
+    this.nameGenerator = new NameGenerator(this);
 
     // Load the world engine
     await this.worldEngine.initialize();
@@ -188,8 +192,8 @@ export default class WorldBuildingPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "wb-process-and-save-map-data",
-      name: "Process and Save Map Data to Markdown Files",
+      id: "wb-process-maps",
+      name: "Process Maps",
       checkCallback: (checking: boolean) => {
         if (!checking) {
           this.mapParser.parseAllMaps().then(() => {
@@ -201,8 +205,8 @@ export default class WorldBuildingPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "wb-replace-frontmatter-template",
-      name: "Set FrontMatter Template Picker",
+      id: "wb-open-template-picker",
+      name: "Open Template Picker",
       checkCallback: (checking: boolean) => {
         if (!checking) {
           const activeFile = this.app.workspace.getActiveFile();
@@ -213,6 +217,17 @@ export default class WorldBuildingPlugin extends Plugin {
             };
             new TemplatePickerModal(this.app, onChoose).open();
           }
+        }
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "wb-generate-names",
+      name: "Generate Names",
+      checkCallback: (checking: boolean) => {
+        if (!checking) {
+          new GenerateNamesModal(this).open();
         }
         return true;
       },

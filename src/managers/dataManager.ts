@@ -117,14 +117,14 @@ export class DataManager {
   }
 
   public async reloadDatasets() {
-    this.loadCSVDataset(this.datasets.firstName);
-    this.loadCSVDataset(this.datasets.lastName);
-    this.loadCSVDataset(this.datasets.populationDensity);
-    this.loadCSVDataset(this.datasets.profession);
-    this.loadCSVDataset(this.datasets.settlementType);
-    this.loadCSVDataset(this.datasets.travelMethod);
-    this.loadCSVDataset(this.datasets.talent);
-    this.loadFMDataset(this.datasets.unit);
+    await this.loadCSVDataset(this.datasets.firstName);
+    await this.loadCSVDataset(this.datasets.lastName);
+    await this.loadCSVDataset(this.datasets.populationDensity);
+    await this.loadCSVDataset(this.datasets.profession);
+    await this.loadCSVDataset(this.datasets.settlementType);
+    await this.loadCSVDataset(this.datasets.travelMethod);
+    await this.loadCSVDataset(this.datasets.talent);
+    await this.loadFMDataset(this.datasets.unit);
   }
 
   public exportDefaultData() {
