@@ -51,6 +51,13 @@ export class GenerateNamesModal extends Modal {
       this.numberToGenerate = parseInt(text.getValue());
     });
 
+    let outputTextArea;
+
+    new Setting(contentEl).setName("Generated Names").addTextArea((text) => {
+      text.setValue("");
+      outputTextArea = text;
+    });
+
     new Setting(contentEl).addButton((btn) =>
       btn
         .setButtonText("Generate")
@@ -72,9 +79,7 @@ export class GenerateNamesModal extends Modal {
             this.numberToGenerate
           );
 
-          navigator.clipboard.writeText(names.join("\n"));
-          new Notice("Names generated and copied to clipboard.");
-          this.close();
+          outputTextArea.setValue(names.join("\n"));
         })
     );
   }
