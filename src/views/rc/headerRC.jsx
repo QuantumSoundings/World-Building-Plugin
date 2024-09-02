@@ -1,14 +1,15 @@
-import { clickLinkHook, hoverPopoverHook } from "./util";
+import { clickLinkHook, hoverPopoverHook, useWorldEngineViewContext } from "./util";
 
 const NO_WB_NOTE = "No WBNote Selected";
 const STATUS = "Status: ";
 const RUNNING = STATUS + "Running";
 const PAUSED = STATUS + "Paused";
 
-export const HeaderRC = (props) => {
-  const note = props.note;
+export const HeaderRC = () => {
+  const worldEngineView = useWorldEngineViewContext();
+  const { note, paused, plugin } = worldEngineView;
   const name = note === undefined ? NO_WB_NOTE : note.name;
-  const paused = props.paused;
+
   let status;
   if (paused) {
     status = <h2>{PAUSED}</h2>;
@@ -17,11 +18,12 @@ export const HeaderRC = (props) => {
   }
 
   const onMouseOver = (e) => {
-    return hoverPopoverHook(e, props);
+    return hoverPopoverHook(e, worldEngineView);
   };
   const onClick = (e) => {
-    return clickLinkHook(e, props);
+    return clickLinkHook(note, plugin.app);
   };
+
   return (
     <div>
       <h1>World Engine</h1>

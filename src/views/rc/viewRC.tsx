@@ -5,24 +5,25 @@ import { NationNote } from "src/world/notes/nationNote";
 import { NationRC } from "./nationRC";
 import { SettlementNote } from "src/world/notes/settlementNote";
 import { SettlementRC } from "./settlementRC";
+import { useWorldEngineViewContext } from "./util";
 
-export const WorldEngineRC = (props) => {
-  const { note, app, hoverParent } = props;
+export const WorldEngineRC = () => {
+  const { note } = useWorldEngineViewContext();
 
   let content = null;
   if (note !== undefined) {
     if (note instanceof CharacterNote) {
-      content = <CharacterRC note={note} />;
+      content = <CharacterRC />;
     } else if (note instanceof NationNote) {
-      content = <NationRC note={note} />;
+      content = <NationRC />;
     } else if (note instanceof SettlementNote) {
-      content = <SettlementRC note={note} />;
+      content = <SettlementRC />;
     }
   }
 
   return (
     <div className="selectable-text">
-      <HeaderRC note={note} app={app} hoverParent={hoverParent} paused={props.paused} />
+      <HeaderRC />
       {content}
     </div>
   );

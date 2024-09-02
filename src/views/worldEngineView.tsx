@@ -7,6 +7,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { StrictMode } from "react";
 
 import { WorldEngineRC } from "./rc/viewRC";
+import { WorldEngineViewContext } from "./rc/util";
 
 export class WorldEngineView extends ItemView implements HoverParent {
   plugin: WorldBuildingPlugin;
@@ -16,7 +17,7 @@ export class WorldEngineView extends ItemView implements HoverParent {
   paused: boolean;
 
   // Currently Displayed WBNote.
-  displayedWBNote: WBNote | undefined;
+  note: WBNote | undefined;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorldBuildingPlugin) {
     super(leaf);
@@ -47,22 +48,21 @@ export class WorldEngineView extends ItemView implements HoverParent {
 
   public async displayWBNote(note: WBNote) {
     if (this.paused) {
-      // View is paused.
       return;
     }
 
-    this.displayedWBNote = note;
+    this.note = note;
     this.render();
   }
 
   public reloadWBNote() {
-    if (this.displayedWBNote !== undefined) {
-      this.displayWBNote(this.displayedWBNote);
+    if (this.note !== undefined) {
+      this.displayWBNote(this.note);
     }
   }
 
   public getCurrentWBNote() {
-    return this.displayedWBNote;
+    return this.note;
   }
 
   public setPaused() {
@@ -78,7 +78,9 @@ export class WorldEngineView extends ItemView implements HoverParent {
   private render() {
     this.root.render(
       <StrictMode>
-        <WorldEngineRC note={this.displayedWBNote} app={this.plugin.app} hoverParent={this} paused={this.paused} />
+        <WorldEngineViewContext.Provider value={this}>
+          <WorldEngineRC />
+        </WorldEngineViewContext.Provider>
       </StrictMode>
     );
   }

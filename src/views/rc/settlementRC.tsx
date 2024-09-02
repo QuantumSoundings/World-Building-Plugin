@@ -1,9 +1,9 @@
 import type { SettlementNote } from "src/world/notes/settlementNote";
-import { formatTable } from "./util";
+import { formatTable, useWorldEngineViewContext } from "./util";
 import type { Profession } from "src/types/dataTypes";
 
-export const SettlementRC = (props) => {
-  const note = props.note as SettlementNote;
+export const SettlementRC = () => {
+  const note = useWorldEngineViewContext().note as SettlementNote;
 
   return (
     <div>

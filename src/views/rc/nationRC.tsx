@@ -1,11 +1,11 @@
 import { FormattedNumber } from "src/util/formatUtils";
 import type { NationNote } from "src/world/notes/nationNote";
-import { formatTable } from "./util";
+import { formatTable, useWorldEngineViewContext } from "./util";
 import { Logger } from "src/util/Logger";
 import { DataUtils } from "src/util/dataUtils";
 
-export const NationRC = (props) => {
-  const note = props.note as NationNote;
+export const NationRC = () => {
+  const note = useWorldEngineViewContext().note as NationNote;
 
   return (
     <div>
