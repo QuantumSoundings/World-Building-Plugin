@@ -1,74 +1,45 @@
 import type WorldBuildingPlugin from "src/main";
+import type { Name } from "src/types/dataTypes";
 import { Logger } from "src/util/Logger";
+import { generateInt } from "src/util/mathUtils";
 
 export class NameGenerator {
   plugin: WorldBuildingPlugin;
 
   origins: Set<string> = new Set();
+  genders: Set<string> = new Set();
 
-  maleFirstNameMap: Map<string, string[]> = new Map();
-  neutralFirstNameMap: Map<string, string[]> = new Map();
-  femaleFirstNameMap: Map<string, string[]> = new Map();
-
-  maleLastNameMap: Map<string, string[]> = new Map();
-  neutralLastNameMap: Map<string, string[]> = new Map();
-  femaleLastNameMap: Map<string, string[]> = new Map();
+  // Gender -> Origin -> Names
+  firstNameMap: Map<string, Map<string, string[]>> = new Map();
+  lastNameMap: Map<string, Map<string, string[]>> = new Map();
 
   constructor(plugin: WorldBuildingPlugin) {
     this.plugin = plugin;
-    this.parseNameData();
+    this.parseData();
   }
 
-  private parseNameData() {
+  private parseData() {
     const firstNameData = this.plugin.dataManager.datasets.firstName.live;
     const lastNameData = this.plugin.dataManager.datasets.lastName.live;
-    for (const name of firstNameData) {
-      this.origins.add(name.origin);
-      let map = undefined;
-      switch (name.gender) {
-        case "Male":
-          map = this.maleFirstNameMap;
-          break;
-        case "Female":
-          map = this.femaleFirstNameMap;
-          break;
-        case "Neutral":
-          map = this.neutralFirstNameMap;
-          break;
-        default:
-          Logger.info(this, "Invalid gender: " + name.gender);
-      }
-      if (map !== undefined) {
-        if (map.has(name.origin)) {
-          map.get(name.origin)?.push(name.name);
-        } else {
-          map.set(name.origin, [name.name]);
-        }
-      }
-    }
+    this.parseNameData(this.firstNameMap, firstNameData);
+    this.parseNameData(this.lastNameMap, lastNameData);
+  }
 
-    for (const name of lastNameData) {
+  private parseNameData(genderMap: Map<string, Map<string, string[]>>, nameData: Name[]) {
+    for (const name of nameData) {
       this.origins.add(name.origin);
-      let map = undefined;
-      switch (name.gender) {
-        case "Male":
-          map = this.maleLastNameMap;
-          break;
-        case "Female":
-          map = this.femaleLastNameMap;
-          break;
-        case "Neutral":
-          map = this.neutralLastNameMap;
-          break;
-        default:
-          Logger.info(this, "Invalid gender: " + name.gender);
-      }
-      if (map !== undefined) {
-        if (map.has(name.origin)) {
-          map.get(name.origin)?.push(name.name);
+      this.genders.add(name.gender);
+      if (genderMap.has(name.gender)) {
+        const originMap = genderMap.get(name.gender)!;
+        if (originMap.has(name.origin)) {
+          originMap.get(name.origin)?.push(name.name);
         } else {
-          map.set(name.origin, [name.name]);
+          originMap.set(name.origin, [name.name]);
         }
+      } else {
+        const newGenderMap = new Map<string, string[]>();
+        newGenderMap.set(name.origin, [name.name]);
+        genderMap.set(name.gender, newGenderMap);
       }
     }
   }
@@ -84,40 +55,32 @@ export class NameGenerator {
 
   public getGenderRecords(): Record<string, string> {
     const result: Record<string, string> = {};
-    result["Male"] = "Male";
-    result["Neutral"] = "Neutral";
-    result["Female"] = "Female";
+    const sortedGenders = Array.from(this.genders).sort();
+    for (const gender of sortedGenders) {
+      result[gender] = gender;
+    }
     return result;
   }
 
   public generateNames(nameType: string, origin: string, gender: string, numberToGenerate: number): string[] {
     const result: string[] = [];
 
-    let map = undefined;
-    switch (gender) {
-      case "Male":
-        map = nameType === "First Name" ? this.maleFirstNameMap : this.maleLastNameMap;
-        break;
-      case "Female":
-        map = nameType === "First Name" ? this.femaleFirstNameMap : this.femaleLastNameMap;
-        break;
-      case "Neutral":
-        map = nameType === "First Name" ? this.neutralFirstNameMap : this.neutralLastNameMap;
-        break;
-      default:
-        Logger.info(this, "Invalid gender: " + gender);
-        return;
+    const genderMap = nameType === "First Name" ? this.firstNameMap : this.lastNameMap;
+    const originMap = genderMap.get(gender);
+    if (originMap === undefined) {
+      Logger.info(this, "Invalid gender: " + origin);
+      return [];
     }
-    let names = map.get(origin);
+    const names = originMap.get(origin);
+    if (names === undefined) {
+      Logger.info(this, "Invalid origin: " + origin);
+      return [];
+    }
 
     for (let i = 0; i < numberToGenerate; i++) {
-      const index = this.generateInt(0, names.length - 1);
+      const index = generateInt(0, names.length - 1);
       result.push(names[index]);
     }
     return result;
-  }
-
-  private generateInt(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
   }
 }

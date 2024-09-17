@@ -1,6 +1,7 @@
 import WorldBuildingPlugin from "src/main";
 import { SettlementType } from "../types/dataTypes";
 import { Logger } from "src/util/Logger";
+import { scaleRange } from "./mathUtils";
 
 export class DataUtils {
   static plugin: WorldBuildingPlugin | null;
@@ -75,20 +76,7 @@ export class DataUtils {
   }
 
   private static generatePopulation(settlementData: SettlementType, populationScale: number): number {
-    const population =
-      ((settlementData.maxPopulation - settlementData.minPopulation) * (populationScale - 0)) / (1 - 0) +
-      settlementData.minPopulation;
+    const population = scaleRange(populationScale, 0, 1, settlementData.minPopulation, settlementData.maxPopulation);
     return population;
-    /*switch (settlementData.distributionType) {
-      case "gaussian":
-        return FormatUtils.generateGaussianValue(
-          settlementData.minPopulation,
-          settlementData.maxPopulation,
-          populationScale
-        );
-      default:
-        return NaN;
-    }
-        */
   }
 }
