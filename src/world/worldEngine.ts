@@ -7,6 +7,7 @@ import { WBNoteTypeEnum } from "src/constants";
 import { NationNote } from "./notes/nationNote";
 import { SettlementNote } from "./notes/settlementNote";
 import { CharacterNote } from "./notes/characterNotes";
+import { ProseNote } from "./notes/proseNote";
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
@@ -88,11 +89,27 @@ export class WorldEngine {
     }
   }
 
-  public async getWBNote(fullPath: string): Promise<WBNote | undefined> {
+  /**
+   * Retrieves a WBNote by its full folder path and updates it if found.
+   *
+   * @param fullPath - The full folder path of the WBNote to retrieve.
+   * @returns A promise that resolves to the WBNote if found, otherwise undefined.
+   */
+  public async getWBNoteByFullPath(fullPath: string): Promise<WBNote | undefined> {
     const note = this.notes.get(fullPath);
     if (note !== undefined) {
       await note.update();
       return note;
+    }
+    return undefined;
+  }
+
+  public async getWBNoteByName(name: string): Promise<WBNote | undefined> {
+    for (const note of this.notes.values()) {
+      if (note.name === name) {
+        await note.update();
+        return note;
+      }
     }
     return undefined;
   }
@@ -113,6 +130,9 @@ export class WorldEngine {
         break;
       case WBNoteTypeEnum.CHARACTER:
         note = new CharacterNote(this.plugin, file as TFile);
+        break;
+      case WBNoteTypeEnum.PROSE:
+        note = new ProseNote(this.plugin, file as TFile);
         break;
       default:
         Logger.error(this, "Unknown note type: " + noteType);

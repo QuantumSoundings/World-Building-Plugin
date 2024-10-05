@@ -6,9 +6,17 @@ import { NationRC } from "./nationRC";
 import { SettlementNote } from "src/world/notes/settlementNote";
 import { SettlementRC } from "./settlementRC";
 import { useWorldEngineViewContext } from "./util";
+import { useState } from "react";
+import { ProseNote } from "src/world/notes/proseNote";
+import { ProseRC } from "./proseRC";
 
 export const WorldEngineRC = () => {
-  const { note } = useWorldEngineViewContext();
+  const view = useWorldEngineViewContext();
+  const note = view.note;
+
+  const [force, forceUpdate] = useState(0);
+  view.force = force;
+  view.forceUpdate = forceUpdate;
 
   let content = null;
   if (note !== undefined) {
@@ -18,6 +26,8 @@ export const WorldEngineRC = () => {
       content = <NationRC />;
     } else if (note instanceof SettlementNote) {
       content = <SettlementRC />;
+    } else if (note instanceof ProseNote) {
+      content = <ProseRC />;
     }
   }
 

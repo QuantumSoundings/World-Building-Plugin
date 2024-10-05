@@ -18,6 +18,8 @@ export class WorldEngineView extends ItemView implements HoverParent {
 
   // Currently Displayed WBNote.
   note: WBNote | undefined;
+  force: number;
+  forceUpdate: React.Dispatch<React.SetStateAction<number>> | undefined;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorldBuildingPlugin) {
     super(leaf);

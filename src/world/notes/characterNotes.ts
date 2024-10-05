@@ -6,7 +6,7 @@ import type { WBTalentEnum } from "src/constants";
 
 export class CharacterNote extends WBNote {
   // Front Matter Configuration Values
-  age: number;
+  birthDate: string;
   species: string;
   citizenship: string;
   mana: {
@@ -28,8 +28,8 @@ export class CharacterNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (frontMatter.hasOwnProperty("age")) {
-        this.age = frontMatter.age;
+      if (frontMatter.hasOwnProperty("birthDate")) {
+        this.birthDate = frontMatter.birthDate;
       }
       if (frontMatter.hasOwnProperty("species")) {
         this.species = frontMatter.species;

@@ -63,6 +63,7 @@ export enum WBNoteTypeEnum {
   NATION = "nation",
   SETTLEMENT = "settlement",
   CHARACTER = "character",
+  PROSE = "prose",
 }
 
 export enum WBTalentEnum {

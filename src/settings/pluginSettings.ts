@@ -12,6 +12,9 @@ export class WorldBuildingPluginSettings {
 
   // Map Settings
   processMapsOnLoad: boolean = false;
+
+  // Current Date
+  currentDate: string = "";
 }
 
 export class WorldBuildingSettingTab extends PluginSettingTab {
@@ -27,6 +30,9 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
 
   // Map Settings
   processMapsOnLoadSetting: Setting;
+
+  // Current Date
+  currentDate: string;
 
   constructor(app: App, plugin: WorldBuildingPlugin) {
     super(app, plugin);
@@ -110,6 +116,24 @@ export class WorldBuildingSettingTab extends PluginSettingTab {
             this.plugin.settings.processMapsOnLoad = value;
             await this.plugin.saveSettings();
           });
+        });
+    }
+
+    // Current Date Settings
+    {
+      this.csvHeadersPresentSetting = new Setting(containerEl)
+        .setName("Current Date for World")
+        .setDesc(
+          "All time calculations will be relative to this date if applicable. This is used for calculating ages, time differences, etc."
+        )
+        .addText((text) => {
+          text
+            .setPlaceholder("Enter the current date: YYYY-MM-DD")
+            .setValue(this.plugin.settings.currentDate)
+            .onChange(async (value) => {
+              this.plugin.settings.currentDate = value;
+              await this.plugin.saveSettings();
+            });
         });
     }
   }

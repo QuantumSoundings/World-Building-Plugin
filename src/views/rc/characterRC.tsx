@@ -1,23 +1,27 @@
 import type { CharacterNote } from "src/world/notes/characterNotes";
-import { formatTable, useWorldEngineViewContext } from "./util";
+import { attemptLink, formatTable, LinkElement, useWorldEngineViewContext } from "./util";
+import type WorldBuildingPlugin from "src/main";
+import { calculateTimeDifference } from "src/util/time";
 
 export const CharacterRC = () => {
   const note = useWorldEngineViewContext().note as CharacterNote;
+  const plugin = useWorldEngineViewContext().plugin;
 
   return (
     <div>
-      {overviewTable(note)}
+      {overviewTable(note, plugin)}
       {manaTable(note)}
       {talentTable(note)}
     </div>
   );
 };
 
-function overviewTable(note: CharacterNote) {
+function overviewTable(note: CharacterNote, plugin: WorldBuildingPlugin) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Name", note.name],
-    ["Age", note.age],
+    ["DoB", note.birthDate],
+    ["Age", calculateTimeDifference(note.birthDate, plugin.settings.currentDate)],
     ["Species", note.species],
     ["Citizenship", note.citizenship],
   ];
