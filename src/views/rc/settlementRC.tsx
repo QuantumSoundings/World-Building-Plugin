@@ -1,16 +1,10 @@
 import type { SettlementNote } from "src/world/notes/settlementNote";
-import { formatTable, useWorldEngineViewContext, type RCUtilContext } from "./util";
+import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import type { Profession } from "src/types/dataTypes";
 
 export const SettlementRC = () => {
-  const view = useWorldEngineViewContext();
-  const context: RCUtilContext = {
-    note: view.note,
-    file: view.note.file,
-    plugin: view.plugin,
-    popoverParent: view,
-  };
-  const note = useWorldEngineViewContext().note as SettlementNote;
+  const context = useWorldEngineViewContext();
+  const note = context.note as SettlementNote;
 
   return (
     <div>
@@ -20,7 +14,7 @@ export const SettlementRC = () => {
   );
 };
 
-function generateOverviewTable(note: SettlementNote, context: RCUtilContext) {
+function generateOverviewTable(note: SettlementNote, context: RContext) {
   const headers = ["Overview", "-"];
   const data: any[][] = [
     ["Settlement Name", note.name],
@@ -32,7 +26,7 @@ function generateOverviewTable(note: SettlementNote, context: RCUtilContext) {
   return formatTable(headers, data, context);
 }
 
-function generateProfessionTable(note: SettlementNote, context: RCUtilContext) {
+function generateProfessionTable(note: SettlementNote, context: RContext) {
   const headers = ["Profession", "# Of Practitioners"];
   const data: any[][] = [];
   note.plugin.dataManager.datasets.profession.live.forEach((profession: Profession) => {

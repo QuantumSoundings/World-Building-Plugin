@@ -1,17 +1,11 @@
 import type { ProseNote } from "src/world/notes/proseNote";
-import { formatTable, useWorldEngineViewContext, type RCUtilContext } from "./util";
+import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import { calculateTimeDifference } from "src/util/time";
 import type { CharacterNote } from "src/world/notes/characterNotes";
 
 export const ProseRC = () => {
-  const view = useWorldEngineViewContext();
-  const context: RCUtilContext = {
-    note: view.note,
-    file: view.note.file,
-    plugin: view.plugin,
-    popoverParent: view,
-  };
-  const note = useWorldEngineViewContext().note as ProseNote;
+  const context = useWorldEngineViewContext();
+  const note = context.note as ProseNote;
 
   return (
     <div>
@@ -21,21 +15,26 @@ export const ProseRC = () => {
   );
 };
 
-function generateOverviewTable(note: ProseNote, context: RCUtilContext) {
+function generateOverviewTable(note: ProseNote, context: RContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Story Date", note.storyDate],
     ["Scene Loc.", note.sceneLocations.join(", ")],
+    ["Relative Time", calculateTimeDifference(context.plugin.settings.currentDate, note.storyDate)],
   ];
 
   return formatTable(headers, data, context);
 }
 
-function generateCharactersTable(note: ProseNote, context: RCUtilContext) {
-  const headers = ["Characters", "Current Age"];
+function generateCharactersTable(note: ProseNote, context: RContext) {
+  const headers = ["Characters", "Story Age", "Current Age"];
   const data: any[][] = [];
   note.characters.forEach((character: CharacterNote) => {
-    data.push([character, calculateTimeDifference(character.birthDate, context.plugin.settings.currentDate)]);
+    data.push([
+      character,
+      calculateTimeDifference(character.birthDate, note.storyDate),
+      calculateTimeDifference(character.birthDate, context.plugin.settings.currentDate),
+    ]);
   });
 
   return formatTable(headers, data, context);

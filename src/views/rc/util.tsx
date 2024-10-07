@@ -2,7 +2,6 @@ import { TFile, type App } from "obsidian";
 import { createContext, useContext } from "react";
 import { WORLD_ENGINE_HOVER_SOURCE } from "src/constants";
 import { FormattedNumber, numberF } from "src/util/formatUtils";
-import type { WorldEngineView } from "../worldEngineView";
 import { WBNote } from "src/world/notes/wbNote";
 import { randomUUID } from "crypto";
 import type WorldBuildingPlugin from "src/main";
@@ -12,12 +11,12 @@ export const useAppContext = (): App | undefined => {
   return useContext(AppContext);
 };
 
-export const WorldEngineViewContext = createContext<WorldEngineView | undefined>(undefined);
-export const useWorldEngineViewContext = (): WorldEngineView | undefined => {
+export const WorldEngineViewContext = createContext<RContext | undefined>(undefined);
+export const useWorldEngineViewContext = (): RContext | undefined => {
   return useContext(WorldEngineViewContext);
 };
 
-export interface RCUtilContext {
+export interface RContext {
   note?: WBNote;
   file?: TFile;
   plugin: WorldBuildingPlugin;
@@ -54,20 +53,20 @@ const buildAnchorLink = (displayText: string, file: TFile, plugin: WorldBuilding
   );
 };
 
-export const buildNoteLink = (context: RCUtilContext, displayText?: string) => {
+export const buildNoteLink = (context: RContext, displayText?: string) => {
   if (context.note === undefined) return;
   const displayTextFinal = displayText === undefined ? context.note.name : displayText;
   context.file = context.note.file;
   return buildAnchorLink(displayTextFinal, context.file, context.plugin, context.popoverParent);
 };
 
-export const buildFileLink = (context: RCUtilContext, displayText?: string) => {
+export const buildFileLink = (context: RContext, displayText?: string) => {
   if (context.file === undefined) return;
   const displayTextFinal = displayText === undefined ? context.file.name : displayText;
   return buildAnchorLink(displayTextFinal, context.file, context.plugin, context.popoverParent);
 };
 
-export const formatTable = (headers: string[], rows: any[][], context: RCUtilContext) => {
+export const formatTable = (headers: string[], rows: any[][], context: RContext) => {
   return (
     <table>
       <thead>

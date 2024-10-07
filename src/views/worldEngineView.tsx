@@ -7,7 +7,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { StrictMode } from "react";
 
 import { WorldEngineRC } from "./rc/viewRC";
-import { WorldEngineViewContext } from "./rc/util";
+import { WorldEngineViewContext, type RContext } from "./rc/util";
 
 export class WorldEngineView extends ItemView implements HoverParent {
   plugin: WorldBuildingPlugin;
@@ -79,9 +79,15 @@ export class WorldEngineView extends ItemView implements HoverParent {
   }
 
   private render() {
+    const context: RContext = {
+      note: this.note,
+      file: this.note?.file,
+      plugin: this.plugin,
+      popoverParent: this,
+    };
     this.root.render(
       <StrictMode>
-        <WorldEngineViewContext.Provider value={this}>
+        <WorldEngineViewContext.Provider value={context}>
           <WorldEngineRC />
         </WorldEngineViewContext.Provider>
       </StrictMode>

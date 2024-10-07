@@ -1,34 +1,27 @@
-import { buildNoteLink, useWorldEngineViewContext, type RCUtilContext } from "./util";
+import { buildNoteLink, useWorldEngineViewContext } from "./util";
 import { useState } from "react";
 
-const NO_WB_NOTE = "No WBNote Selected";
+const NO_NOTE = "None Selected";
 const STATUS = "Status: ";
 const RUNNING_TEXT = STATUS + "Running";
 const PAUSED_TEXT = STATUS + "Paused";
 
 export const HeaderRC = () => {
-  const worldEngineView = useWorldEngineViewContext();
-  const { note, paused, plugin, force, forceUpdate } = worldEngineView;
-  const currentNote = note === undefined ? NO_WB_NOTE : note.name;
+  const context = useWorldEngineViewContext();
+  const { paused, force, forceUpdate } = context.popoverParent;
 
-  const [currentDate, setCurrentDate] = useState(plugin.settings.currentDate);
+  const selectedNoteText = context.note === undefined ? NO_NOTE : context.note.name;
+  const statusText = <h2>{paused ? PAUSED_TEXT : RUNNING_TEXT}</h2>;
 
-  const status = <h2>{paused ? PAUSED_TEXT : RUNNING_TEXT}</h2>;
+  const [currentDate, setCurrentDate] = useState(context.plugin.settings.currentDate);
 
   const handleDateChange = (e) => {
     const newDate = e.target.value;
     setCurrentDate(newDate);
-    plugin.settings.currentDate = newDate;
+    context.plugin.settings.currentDate = newDate;
     // Assuming plugin has a method to save settings
-    plugin.saveSettings();
+    context.plugin.saveSettings();
     forceUpdate(force + 1);
-  };
-
-  const context: RCUtilContext = {
-    plugin: plugin,
-    note: note,
-    file: note?.file,
-    popoverParent: worldEngineView,
   };
 
   return (
@@ -38,8 +31,8 @@ export const HeaderRC = () => {
         Current Date:
         <input type="text" value={currentDate} onChange={handleDateChange} />
       </h3>
-      {status}
-      <h2>{buildNoteLink(context, currentNote)}</h2>
+      {statusText}
+      <h3>Note: {buildNoteLink(context, selectedNoteText)}</h3>
     </div>
   );
 };

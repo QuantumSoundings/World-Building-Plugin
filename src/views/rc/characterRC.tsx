@@ -1,15 +1,9 @@
 import type { CharacterNote } from "src/world/notes/characterNotes";
-import { formatTable, useWorldEngineViewContext, type RCUtilContext } from "./util";
+import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import { calculateTimeDifference } from "src/util/time";
 
 export const CharacterRC = () => {
-  const view = useWorldEngineViewContext();
-  const context: RCUtilContext = {
-    note: view.note,
-    file: view.note.file,
-    plugin: view.plugin,
-    popoverParent: view,
-  };
+  const context = useWorldEngineViewContext();
   const note = context.note as CharacterNote;
 
   return (
@@ -21,7 +15,7 @@ export const CharacterRC = () => {
   );
 };
 
-function overviewTable(note: CharacterNote, context: RCUtilContext) {
+function overviewTable(note: CharacterNote, context: RContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Name", note.name],
@@ -34,7 +28,7 @@ function overviewTable(note: CharacterNote, context: RCUtilContext) {
   return formatTable(headers, data, context);
 }
 
-function manaTable(note: CharacterNote, context: RCUtilContext) {
+function manaTable(note: CharacterNote, context: RContext) {
   const headers = ["Mana", "---"];
   const data: any[][] = [
     ["Cultivation", note.mana.cultivation],
@@ -45,7 +39,7 @@ function manaTable(note: CharacterNote, context: RCUtilContext) {
   return formatTable(headers, data, context);
 }
 
-function talentTable(note: CharacterNote, context: RCUtilContext) {
+function talentTable(note: CharacterNote, context: RContext) {
   const headers = ["Talent", "---"];
   const data: any[][] = [
     ["Physical", note.talent.physical],
