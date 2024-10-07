@@ -43,7 +43,7 @@ const buildAnchorLink = (displayText: string, file: TFile, plugin: WorldBuilding
   const onMouseOver = (e) => {
     return hoverPopoverHook(e, file, plugin, popoverParent);
   };
-  const onClick = (e) => {
+  const onClick = (_e) => {
     return clickLinkHook(file, plugin);
   };
 

@@ -1,6 +1,6 @@
 import type WorldBuildingPlugin from "src/main";
 import { WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
-import { getLinkpath, parseLinktext, type TFile } from "obsidian";
+import { type TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { CharacterNote } from "./characterNotes";
 import { FileUtils } from "src/util/fileUtils";
