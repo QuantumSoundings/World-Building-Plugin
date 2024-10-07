@@ -100,4 +100,13 @@ export class FMUtils {
       return lines.join("\n");
     }
   }
+
+  public static checkForProperty(fm: any, property: string): boolean {
+    if (fm === null) return false;
+    if (!fm.hasOwnProperty(property)) {
+      Logger.error(this, "Front matter missing property: " + property);
+      return false;
+    }
+    return true;
+  }
 }

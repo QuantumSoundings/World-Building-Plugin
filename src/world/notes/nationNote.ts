@@ -32,7 +32,14 @@ export class NationNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (frontMatter.hasOwnProperty("geography")) {
+      if (
+        FMUtils.checkForProperty(frontMatter, "geography") &&
+        FMUtils.checkForProperty(frontMatter.geography, "size") &&
+        FMUtils.checkForProperty(frontMatter.geography, "landFertility") &&
+        FMUtils.checkForProperty(frontMatter.geography, "cultivatedLandPercentage") &&
+        FMUtils.checkForProperty(frontMatter.geography, "territories") &&
+        FMUtils.checkForProperty(frontMatter.geography, "settlements")
+      ) {
         if (typeof frontMatter.geography.size === "string") {
           if (frontMatter.geography.size.toLowerCase() === "map") {
             this.useMapSize = true;

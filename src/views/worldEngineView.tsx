@@ -54,6 +54,7 @@ export class WorldEngineView extends ItemView implements HoverParent {
     }
 
     this.note = note;
+    await this.note.update();
     this.render();
   }
 

@@ -24,6 +24,9 @@ export class WorldEngine {
     for (const file of files) {
       await this.createWBNote(file);
     }
+    for (const note of this.notes.values()) {
+      await note.update();
+    }
   }
 
   public registerEventCallbacks() {
@@ -89,25 +92,26 @@ export class WorldEngine {
     }
   }
 
-  /**
-   * Retrieves a WBNote by its full folder path and updates it if found.
-   *
-   * @param fullPath - The full folder path of the WBNote to retrieve.
-   * @returns A promise that resolves to the WBNote if found, otherwise undefined.
-   */
-  public async getWBNoteByFullPath(fullPath: string): Promise<WBNote | undefined> {
+  public getWBNoteByPath(fullPath: string): WBNote | undefined {
     const note = this.notes.get(fullPath);
     if (note !== undefined) {
-      await note.update();
       return note;
     }
     return undefined;
   }
 
-  public async getWBNoteByName(name: string): Promise<WBNote | undefined> {
+  public getWBNoteByName(name: string): WBNote | undefined {
     for (const note of this.notes.values()) {
       if (note.name === name) {
-        await note.update();
+        return note;
+      }
+    }
+    return undefined;
+  }
+
+  public getWBNoteByFile(file: TFile): WBNote | undefined {
+    for (const note of this.notes.values()) {
+      if (note.file === file) {
         return note;
       }
     }
@@ -139,7 +143,6 @@ export class WorldEngine {
         return;
     }
 
-    await note.update();
     this.notes.set(file.path, note);
   }
 }

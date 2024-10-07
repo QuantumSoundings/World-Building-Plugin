@@ -247,7 +247,7 @@ export default class WorldBuildingPlugin extends Plugin {
         const mdView = leaf.view as MarkdownView;
         const file = mdView.file;
         if (file !== null) {
-          const note = await this.worldEngine.getWBNoteByFullPath(file.path);
+          const note = this.worldEngine.getWBNoteByPath(file.path);
           if (note !== undefined) {
             const worldEngineView = this.getWorldEngineView();
             if (worldEngineView === undefined) {

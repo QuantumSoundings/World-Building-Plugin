@@ -1,5 +1,5 @@
-import { buildLink, LinkElement, useWorldEngineViewContext, type RCUtilContext } from "./util";
-import React, { useState, useContext } from "react";
+import { buildNoteLink, useWorldEngineViewContext, type RCUtilContext } from "./util";
+import { useState } from "react";
 
 const NO_WB_NOTE = "No WBNote Selected";
 const STATUS = "Status: ";
@@ -25,8 +25,9 @@ export const HeaderRC = () => {
   };
 
   const context: RCUtilContext = {
+    plugin: plugin,
     note: note,
-    app: plugin.app,
+    file: note?.file,
     popoverParent: worldEngineView,
   };
 
@@ -38,7 +39,7 @@ export const HeaderRC = () => {
         <input type="text" value={currentDate} onChange={handleDateChange} />
       </h3>
       {status}
-      {buildLink(LinkElement.H2, context, currentNote)}
+      <h2>{buildNoteLink(context, currentNote)}</h2>
     </div>
   );
 };

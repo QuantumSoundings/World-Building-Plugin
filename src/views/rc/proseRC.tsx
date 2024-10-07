@@ -1,43 +1,42 @@
 import type { ProseNote } from "src/world/notes/proseNote";
-import { buildLink, formatTable, LinkElement, useWorldEngineViewContext } from "./util";
+import { formatTable, useWorldEngineViewContext, type RCUtilContext } from "./util";
 import { calculateTimeDifference } from "src/util/time";
-import type WorldBuildingPlugin from "src/main";
+import type { CharacterNote } from "src/world/notes/characterNotes";
 
 export const ProseRC = () => {
+  const view = useWorldEngineViewContext();
+  const context: RCUtilContext = {
+    note: view.note,
+    file: view.note.file,
+    plugin: view.plugin,
+    popoverParent: view,
+  };
   const note = useWorldEngineViewContext().note as ProseNote;
-  const plugin = useWorldEngineViewContext().plugin;
 
   return (
     <div>
-      {generateOverviewTable(note)}
-      {generateCharactersTable(note, plugin)}
+      {generateOverviewTable(note, context)}
+      {generateCharactersTable(note, context)}
     </div>
   );
 };
 
-function generateOverviewTable(note: ProseNote) {
+function generateOverviewTable(note: ProseNote, context: RCUtilContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Story Date", note.storyDate],
     ["Scene Loc.", note.sceneLocations.join(", ")],
   ];
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }
 
-function generateCharactersTable(note: ProseNote, plugin: WorldBuildingPlugin) {
+function generateCharactersTable(note: ProseNote, context: RCUtilContext) {
   const headers = ["Characters", "Current Age"];
   const data: any[][] = [];
-  note.characters.forEach((character) => {
-    data.push([
-      buildLink(LinkElement.NONE, {
-        note: character,
-        app: plugin.app,
-        popoverParent: plugin.getWorldEngineView(),
-      }),
-      calculateTimeDifference(character.birthDate, plugin.settings.currentDate),
-    ]);
+  note.characters.forEach((character: CharacterNote) => {
+    data.push([character, calculateTimeDifference(character.birthDate, context.plugin.settings.currentDate)]);
   });
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }

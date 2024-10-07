@@ -1,35 +1,40 @@
 import type { CharacterNote } from "src/world/notes/characterNotes";
-import { attemptLink, formatTable, LinkElement, useWorldEngineViewContext } from "./util";
-import type WorldBuildingPlugin from "src/main";
+import { formatTable, useWorldEngineViewContext, type RCUtilContext } from "./util";
 import { calculateTimeDifference } from "src/util/time";
 
 export const CharacterRC = () => {
-  const note = useWorldEngineViewContext().note as CharacterNote;
-  const plugin = useWorldEngineViewContext().plugin;
+  const view = useWorldEngineViewContext();
+  const context: RCUtilContext = {
+    note: view.note,
+    file: view.note.file,
+    plugin: view.plugin,
+    popoverParent: view,
+  };
+  const note = context.note as CharacterNote;
 
   return (
     <div>
-      {overviewTable(note, plugin)}
-      {manaTable(note)}
-      {talentTable(note)}
+      {overviewTable(note, context)}
+      {manaTable(note, context)}
+      {talentTable(note, context)}
     </div>
   );
 };
 
-function overviewTable(note: CharacterNote, plugin: WorldBuildingPlugin) {
+function overviewTable(note: CharacterNote, context: RCUtilContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Name", note.name],
     ["DoB", note.birthDate],
-    ["Age", calculateTimeDifference(note.birthDate, plugin.settings.currentDate)],
+    ["Age", calculateTimeDifference(note.birthDate, context.plugin.settings.currentDate)],
     ["Species", note.species],
     ["Citizenship", note.citizenship],
   ];
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }
 
-function manaTable(note: CharacterNote) {
+function manaTable(note: CharacterNote, context: RCUtilContext) {
   const headers = ["Mana", "---"];
   const data: any[][] = [
     ["Cultivation", note.mana.cultivation],
@@ -37,10 +42,10 @@ function manaTable(note: CharacterNote) {
     ["Blessing", note.mana.blessing],
   ];
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }
 
-function talentTable(note: CharacterNote) {
+function talentTable(note: CharacterNote, context: RCUtilContext) {
   const headers = ["Talent", "---"];
   const data: any[][] = [
     ["Physical", note.talent.physical],
@@ -48,5 +53,5 @@ function talentTable(note: CharacterNote) {
     ["Blessing", note.talent.blessing],
   ];
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }

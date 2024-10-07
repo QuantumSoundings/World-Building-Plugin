@@ -1,23 +1,30 @@
 import { FormattedNumber } from "src/util/formatUtils";
 import type { NationNote } from "src/world/notes/nationNote";
-import { formatTable, useWorldEngineViewContext } from "./util";
+import { formatTable, useWorldEngineViewContext, type RCUtilContext } from "./util";
 import { Logger } from "src/util/Logger";
 import { DataUtils } from "src/util/dataUtils";
 
 export const NationRC = () => {
+  const view = useWorldEngineViewContext();
+  const context: RCUtilContext = {
+    note: view.note,
+    file: view.note.file,
+    plugin: view.plugin,
+    popoverParent: view,
+  };
   const note = useWorldEngineViewContext().note as NationNote;
 
   return (
     <div>
-      {generateOverviewTable(note)}
-      {generateTerritoryTable(note)}
-      {generateSettlementTable(note)}
-      {generateTalentRankTable(note)}
+      {generateOverviewTable(note, context)}
+      {generateTerritoryTable(note, context)}
+      {generateSettlementTable(note, context)}
+      {generateTalentRankTable(note, context)}
     </div>
   );
 };
 
-function generateOverviewTable(note: NationNote) {
+function generateOverviewTable(note: NationNote, context: RCUtilContext) {
   const headers = ["Overview", "-"];
   const data: any[][] = [
     ["Country Name", note.name],
@@ -25,10 +32,10 @@ function generateOverviewTable(note: NationNote) {
     ["Population", note.population],
   ];
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }
 
-function generateTerritoryTable(note: NationNote) {
+function generateTerritoryTable(note: NationNote, context: RCUtilContext) {
   if (note.geography.territories.length <= 1) {
     Logger.warn(note, "No territories defined.");
     return "";
@@ -46,10 +53,10 @@ function generateTerritoryTable(note: NationNote) {
       averagePopulation,
     ]);
   }
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }
 
-function generateSettlementTable(note: NationNote) {
+function generateSettlementTable(note: NationNote, context: RCUtilContext) {
   const headers = ["Settlement Type", "Count", "Total Population", "Average Population"];
   const data: any[][] = [];
 
@@ -87,14 +94,14 @@ function generateSettlementTable(note: NationNote) {
     Logger.warn(note, "Settlement distribution does not equal 100%. Total: " + warnBadDistribution);
   }
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }
 
 const EXTERNAL_MANA_TAlENT = 0.25;
 const INTERNAL_MANA_TAlENT = 0.75;
 const BLESSING = 0.2718;
 
-function generateTalentRankTable(note: NationNote) {
+function generateTalentRankTable(note: NationNote, context: RCUtilContext) {
   const headers = ["Rank", "External Mana (Magic)", "Internal Mana (Aura)", "Blessing (Divine)"];
   const data: any[][] = [];
   for (const talentRank of note.plugin.dataManager.datasets.talent.live) {
@@ -107,5 +114,5 @@ function generateTalentRankTable(note: NationNote) {
     data.push([talentRank.rank, externalManaUsers, internalManaUsers, blessingUsers]);
   }
 
-  return formatTable(headers, data);
+  return formatTable(headers, data, context);
 }
