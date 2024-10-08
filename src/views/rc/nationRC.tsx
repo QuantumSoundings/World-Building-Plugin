@@ -6,6 +6,7 @@ import { DataUtils } from "src/util/dataUtils";
 
 export const NationRC = () => {
   const context = useWorldEngineViewContext();
+  if (context === undefined) return <div>Context is undefined</div>;
   const note = context.note as NationNote;
 
   return (

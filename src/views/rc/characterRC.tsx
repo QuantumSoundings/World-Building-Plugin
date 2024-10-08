@@ -4,6 +4,7 @@ import { calculateTimeDifference } from "src/util/time";
 
 export const CharacterRC = () => {
   const context = useWorldEngineViewContext();
+  if (context === undefined) return <div>Context is undefined</div>;
   const note = context.note as CharacterNote;
 
   return (

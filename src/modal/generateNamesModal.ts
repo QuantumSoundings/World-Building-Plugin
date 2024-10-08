@@ -1,4 +1,4 @@
-import { Modal, Notice, Setting } from "obsidian";
+import { Modal, Notice, Setting, TextAreaComponent } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 
 export class GenerateNamesModal extends Modal {
@@ -51,7 +51,7 @@ export class GenerateNamesModal extends Modal {
       this.numberToGenerate = parseInt(text.getValue());
     });
 
-    let outputTextArea;
+    let outputTextArea: TextAreaComponent;
 
     new Setting(contentEl).setName("Generated Names").addTextArea((text) => {
       text.setValue("");

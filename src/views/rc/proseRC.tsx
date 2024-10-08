@@ -5,6 +5,7 @@ import type { CharacterNote } from "src/world/notes/characterNotes";
 
 export const ProseRC = () => {
   const context = useWorldEngineViewContext();
+  if (context === undefined) return <div>Context is undefined</div>;
   const note = context.note as ProseNote;
 
   return (

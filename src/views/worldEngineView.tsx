@@ -79,6 +79,7 @@ export class WorldEngineView extends ItemView implements HoverParent {
   }
 
   private render() {
+    if (this.root === null) return;
     const context: RContext = {
       note: this.note,
       file: this.note?.file,

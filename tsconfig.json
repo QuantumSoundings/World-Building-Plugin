@@ -23,6 +23,12 @@
 
     // Best Practices
     "strict": false,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
 

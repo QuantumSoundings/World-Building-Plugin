@@ -4,6 +4,7 @@ import type { Profession } from "src/types/dataTypes";
 
 export const SettlementRC = () => {
   const context = useWorldEngineViewContext();
+  if (context === undefined) return <div>Context is undefined</div>;
   const note = context.note as SettlementNote;
 
   return (

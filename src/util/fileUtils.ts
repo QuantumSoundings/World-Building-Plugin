@@ -19,6 +19,9 @@ export class FileUtils {
     const parsedLinkText = FileUtils.parseBracketLink(linkText);
     const { path } = parseLinktext(parsedLinkText);
     const file = plugin.app.metadataCache.getFirstLinkpathDest(path, "");
+    if (file === null) {
+      return linkText;
+    }
     const note = plugin.worldEngine.getWBNoteByFile(file);
     if (note === undefined) {
       return linkText;

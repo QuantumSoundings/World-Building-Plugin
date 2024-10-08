@@ -8,6 +8,7 @@ const PAUSED_TEXT = STATUS + "Paused";
 
 export const HeaderRC = () => {
   const context = useWorldEngineViewContext();
+  if (context === undefined) return <div>Context is undefined</div>;
   const { paused, force, forceUpdate } = context.popoverParent;
 
   const selectedNoteText = context.note === undefined ? NO_NOTE : context.note.name;
@@ -15,7 +16,7 @@ export const HeaderRC = () => {
 
   const [currentDate, setCurrentDate] = useState(context.plugin.settings.currentDate);
 
-  const handleDateChange = (e) => {
+  const handleDateChange = (e: any) => {
     const newDate = e.target.value;
     setCurrentDate(newDate);
     context.plugin.settings.currentDate = newDate;
