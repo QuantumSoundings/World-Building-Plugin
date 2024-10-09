@@ -1,25 +1,57 @@
-# Represents an independent political entity, a sovereign state, nation, group, etc.
-# They have a dependent population and territory.
-name: Nation Name
+---
 wbNoteType: nation
-
 geography:
-  size: 1.0
-  # Average land fertility. How many people can be supported per square unit of land.
-  # Affected by technology, climate, and other factors.
-  landFertility: 180.0
-  # How much of the controlled land is lived on.
-  cultivatedLandPercentage: 1.0
-
-  # How the types of territories are distributed and organized. Good to get a rough idea of scale.
+  size: MAP
+  landFertility: 200
+  cultivatedLandPercentage: 20
   territories:
-    - type: Province # User defined type.
-      value: 1.0
-      # None is special and means it is directly under the nation.
-      # Otherwise, it should be the type of the parent territory.
+    - type: Province
+      value: 13000
       parentTerritory: None
-
-  # How the settlements are distributed. List of settlement types and their portion of the population.
+    - type: County
+      value: 1500
+      parentTerritory: Province
+    - type: Locality
+      value: 90
+      parentTerritory: County
   settlements:
-    - name: Isolated # defined internally or overridden by settlement_types dataset setting.
-      value: 1.0
+    - name: Isolated
+      value: 0.01
+    - name: Village
+      value: 0.83
+    - name: Town
+      value: 0.105
+    - name: City
+      value: 0.03
+    - name: Big City
+      value: 0.02
+    - name: Metropolis
+      value: 0.005
+---
+
+---
+## History
+### General History
+### Political History
+### Military History
+
+## Government
+### Administration and Structure
+### Titles and Honors
+### Foreign Relations
+
+## Military
+### Structure
+
+## Economy
+### Agriculture
+### Trade
+### Specialty Products
+### Transportation
+### Labor
+### Technology
+### Manacraft
+
+## Society
+### Class / Caste
+### Rights and Responsibilities

@@ -72,6 +72,15 @@ export class FrontMatterManager {
     await this.plugin.app.vault.modify(file as TFile, replacedContent);
   }
 
+  public async writeNoteTemplate(fullPath: string, template: string) {
+    const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
+    if (file === null) {
+      Logger.error(this, `File not found: ${fullPath}`);
+      return;
+    }
+    await this.plugin.app.vault.modify(file as TFile, template);
+  }
+
   /**
    * Writes content to a file at the specified path.
    * If the file already exists, it replaces the front matter with the new content.

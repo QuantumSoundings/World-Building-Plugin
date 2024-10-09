@@ -11,6 +11,7 @@ export const ProseRC = () => {
   return (
     <div>
       {generateOverviewTable(note, context)}
+      {generateLocationsTable(note, context)}
       {generateCharactersTable(note, context)}
     </div>
   );
@@ -20,9 +21,18 @@ function generateOverviewTable(note: ProseNote, context: RContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Story Date", note.storyDate],
-    ["Scene Loc.", note.sceneLocations.join(", ")],
     ["Relative Time", calculateTimeDifference(context.plugin.settings.currentDate, note.storyDate)],
   ];
+
+  return formatTable(headers, data, context);
+}
+
+function generateLocationsTable(note: ProseNote, context: RContext) {
+  const headers = ["Locations"];
+  const data: any[][] = [];
+  note.sceneLocations.forEach((location) => {
+    data.push([location]);
+  });
 
   return formatTable(headers, data, context);
 }

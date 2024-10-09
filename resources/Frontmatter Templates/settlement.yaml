@@ -1,25 +1,29 @@
-# Represents a settlement of people. A town, city, village, etc.
-name: Settlement Name
+---
 wbNoteType: settlement
-
 demographics:
-  # Should be a type defined in you settlement types dataset.
-  settlementType: Town
-  # A number between 0 and 1 representing where the settlement falls in the distribution of the settlement type.
-  # 0.5 is the average size for that settlement type.
+  settlementType: City
   populationScale: 0.5
-
-pointOfInterest:
-  # Map name and extension. Should match the MapConfig name.
-  mapName: Map Name
-  # The relative position of the settlement on the map. Should be a number between 0 and 1.
-  relX: 0
-  relY: 0
-  icon: castle
-
-# How this note connects with others.
 relations:
-  # Should be a note type supported by the world engine. Normally a settlement will be a child of a territory or a nation directly.
-  parentNote: Note Name
-  # Can be a person or organization.
-  rulingParty: Mayor
+  parentNote:
+  rulingParty:
+location: [x, y]
+mapmarker: City
+tag: [settlement, worldname]
+---
+## History
+
+## Government
+### Structure
+### Military / Defenses
+
+## Economy
+### Industry & Trade
+
+## Points of Interest
+### Guilds and Factions
+### Locations
+
+## Local Feel
+### Crime Rates
+### Wealth Distribution
+### Sanitation

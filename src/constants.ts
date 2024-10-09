@@ -45,18 +45,21 @@ export const unitConversionDataString = atob(unitConversionDataBase64);
 // Template Base64 Includes
 import nationTemplateBase64 from "resources/Frontmatter Templates/nation.yaml";
 import settlementTemplateBase64 from "resources/Frontmatter Templates/settlement.yaml";
-import worldConfigTemplateBase64 from "resources/Frontmatter Templates/world.yaml";
+import characterTemplateBase64 from "resources/Frontmatter Templates/character.yaml";
+import proseTemplateBase64 from "resources/Frontmatter Templates/prose.yaml";
 
 // Template Strings Decoded
 export const nationTemplateString = atob(nationTemplateBase64);
 export const settlementTemplateString = atob(settlementTemplateBase64);
-export const worldConfigTemplateString = atob(worldConfigTemplateBase64);
+export const characterTemplateString = atob(characterTemplateBase64);
+export const proseTemplateString = atob(proseTemplateBase64);
 
 // Enums
 export enum TemplateType {
   NATION = "Nation Template",
   SETTLEMENT = "Settlement Template",
-  WORLD_CONFIG = "World Template",
+  CHARACTER = "Character Template",
+  PROSE = "Prose Template",
 }
 
 export enum WBNoteTypeEnum {
@@ -88,10 +91,11 @@ export enum WBTalentEnum {
 export const TEMPLATE_TYPE_LATEST_VERSION = {
   [TemplateType.NATION]: "0.0.1",
   [TemplateType.SETTLEMENT]: "0.0.1",
-  [TemplateType.WORLD_CONFIG]: "0.0.1",
+  [TemplateType.CHARACTER]: "0.0.1",
+  [TemplateType.PROSE]: "0.0.1",
 };
 
-export const TEMPLATES = [TemplateType.NATION, TemplateType.SETTLEMENT, TemplateType.WORLD_CONFIG];
+export const TEMPLATES = Object.values(TemplateType);
 
 export function getTemplateFromType(templateType: TemplateType): string {
   switch (templateType) {
@@ -99,8 +103,10 @@ export function getTemplateFromType(templateType: TemplateType): string {
       return nationTemplateString;
     case TemplateType.SETTLEMENT:
       return settlementTemplateString;
-    case TemplateType.WORLD_CONFIG:
-      return worldConfigTemplateString;
+    case TemplateType.CHARACTER:
+      return characterTemplateString;
+    case TemplateType.PROSE:
+      return proseTemplateString;
     default:
       return "";
   }
