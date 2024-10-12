@@ -9,7 +9,10 @@ const PAUSED_TEXT = STATUS + "Paused";
 export const HeaderRC = () => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
-  const { paused, force, forceUpdate } = context.popoverParent;
+  const view = context.plugin.getWorldEngineView();
+  if (view === undefined) return <div>View is undefined</div>;
+  const { paused, force, forceUpdate } = view;
+  if (forceUpdate === undefined) return <div>forceUpdate is undefined</div>;
 
   const selectedNoteText = context.note === undefined ? NO_NOTE : context.note.name;
   const statusText = <h2>{paused ? PAUSED_TEXT : RUNNING_TEXT}</h2>;

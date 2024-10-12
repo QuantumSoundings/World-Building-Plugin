@@ -11,10 +11,13 @@ import { ProseNote } from "src/world/notes/proseNote";
 import { ProseRC } from "./proseRC";
 
 export const WorldEngineRC = () => {
-  const view = useWorldEngineViewContext();
-  const note = view.note;
+  const context = useWorldEngineViewContext();
+  if (context === undefined) return <div>Context is undefined</div>;
+  const note = context.note;
 
   const [force, forceUpdate] = useState(0);
+  const view = context.plugin.getWorldEngineView();
+  if (view === undefined) return <div>View is undefined</div>;
   view.force = force;
   view.forceUpdate = forceUpdate;
 

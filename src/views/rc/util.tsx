@@ -1,15 +1,10 @@
-import { TFile, type App } from "obsidian";
+import { TFile, type App, type HoverParent } from "obsidian";
 import { createContext, useContext } from "react";
 import { WORLD_ENGINE_HOVER_SOURCE } from "src/constants";
 import { FormattedNumber, numberF } from "src/util/formatUtils";
 import { WBNote } from "src/world/notes/wbNote";
 import { randomUUID } from "crypto";
 import type WorldBuildingPlugin from "src/main";
-
-export const AppContext = createContext<App | undefined>(undefined);
-export const useAppContext = (): App | undefined => {
-  return useContext(AppContext);
-};
 
 export const WorldEngineViewContext = createContext<RContext | undefined>(undefined);
 export const useWorldEngineViewContext = (): RContext | undefined => {
@@ -20,8 +15,7 @@ export interface RContext {
   note?: WBNote;
   file?: TFile;
   plugin: WorldBuildingPlugin;
-  popoverParent: any;
-  eventContext?: any;
+  popoverParent: HoverParent;
 }
 
 const hoverPopoverHook = (e: any, file: TFile, plugin: WorldBuildingPlugin, popoverParent: any) => {
