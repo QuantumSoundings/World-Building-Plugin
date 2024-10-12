@@ -86,6 +86,8 @@ export enum WBTalentEnum {
   B_MINUS = "B-",
   C = "C",
   D = "D",
+  NONE = "NONE",
+  ERROR = "ERROR",
 }
 
 export const TEMPLATE_TYPE_LATEST_VERSION = {

@@ -1,8 +1,8 @@
-import type { TFile } from "obsidian";
+import { TFile } from "obsidian";
 import { WB_NOTE_PROP_NAME, WBNote, type NoteOrText } from "./wbNote";
 import type WorldBuildingPlugin from "src/main";
 import { FMUtils } from "src/util/frontMatterUtils";
-import type { WBTalentEnum } from "src/constants";
+import { WBTalentEnum } from "src/constants";
 import { FileUtils } from "src/util/fileUtils";
 
 export class CharacterNote extends WBNote {
@@ -10,6 +10,8 @@ export class CharacterNote extends WBNote {
   birthDate: string;
   species: NoteOrText;
   citizenship: NoteOrText;
+  portrait: TFile | undefined;
+  portraitUrl: string | undefined;
   mana: {
     cultivation: string;
     attributes: string[];
@@ -42,6 +44,17 @@ export class CharacterNote extends WBNote {
           this.citizenship = FileUtils.attemptParseLinkToNote(frontMatter.citizenship, this.plugin);
         }
       }
+      if (FMUtils.checkForProperty(frontMatter, "portrait")) {
+        if (typeof frontMatter.portrait === "string") {
+          const result = FileUtils.attemptParseLinkToFile(frontMatter.portrait, this.plugin);
+          if (result instanceof TFile) {
+            this.portrait = result;
+            const portraitBinary = await this.plugin.app.vault.readBinary(this.portrait);
+            const blob = new Blob([portraitBinary], { type: "image/png" });
+            this.portraitUrl = URL.createObjectURL(blob);
+          }
+        }
+      }
       if (FMUtils.checkForProperty(frontMatter, "mana")) {
         this.mana = {
           cultivation: frontMatter.mana.cultivation,
@@ -51,11 +64,40 @@ export class CharacterNote extends WBNote {
       }
       if (FMUtils.checkForProperty(frontMatter, "talent")) {
         this.talent = {
-          physical: frontMatter.talent.physical,
-          mana: frontMatter.talent.mana,
-          blessing: frontMatter.talent.blessing,
+          physical: WBTalentEnum.ERROR,
+          mana: WBTalentEnum.ERROR,
+          blessing: WBTalentEnum.ERROR,
         };
+
+        const isValueIn = isValueInStringEnum(WBTalentEnum);
+
+        if (
+          FMUtils.checkForProperty(frontMatter.talent, "physical") &&
+          isValueIn((frontMatter.talent.physical as string).toUpperCase())
+        ) {
+          this.talent.physical = frontMatter.talent.physical as WBTalentEnum;
+        }
+
+        if (
+          FMUtils.checkForProperty(frontMatter.talent, "mana") &&
+          isValueIn((frontMatter.talent.mana as string).toUpperCase())
+        ) {
+          this.talent.mana = frontMatter.talent.mana as WBTalentEnum;
+        }
+
+        if (
+          FMUtils.checkForProperty(frontMatter.talent, "blessing") &&
+          isValueIn((frontMatter.talent.blessing as string).toUpperCase())
+        ) {
+          this.talent.blessing = frontMatter.talent.blessing as WBTalentEnum;
+        }
       }
     }
   }
+}
+
+function isValueInStringEnum<E extends string>(strEnum: Record<string, E>) {
+  const enumValues = Object.values(strEnum) as string[];
+
+  return (value: string): value is E => enumValues.includes(value);
 }

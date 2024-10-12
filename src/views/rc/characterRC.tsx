@@ -9,6 +9,8 @@ export const CharacterRC = () => {
 
   return (
     <div>
+      <img src={note.portraitUrl} alt={`${note.name}'s image`} style={{ maxWidth: "100%", height: "auto" }} />
+
       {overviewTable(note, context)}
       {manaTable(note, context)}
       {talentTable(note, context)}

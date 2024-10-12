@@ -16,10 +16,8 @@ export class FileUtils {
   }
 
   public static attemptParseLinkToNote(linkText: string, plugin: WorldBuildingPlugin) {
-    const parsedLinkText = FileUtils.parseBracketLink(linkText);
-    const { path } = parseLinktext(parsedLinkText);
-    const file = plugin.app.metadataCache.getFirstLinkpathDest(path, "");
-    if (file === null) {
+    const file = this.attemptParseLinkToFile(linkText, plugin);
+    if (typeof file === "string") {
       return linkText;
     }
     const note = plugin.worldEngine.getWBNoteByFile(file);
@@ -28,5 +26,15 @@ export class FileUtils {
     } else {
       return note;
     }
+  }
+
+  public static attemptParseLinkToFile(linkText: string, plugin: WorldBuildingPlugin) {
+    const parsedLinkText = FileUtils.parseBracketLink(linkText);
+    const { path } = parseLinktext(parsedLinkText);
+    const file = plugin.app.metadataCache.getFirstLinkpathDest(path, "");
+    if (file === null) {
+      return linkText;
+    }
+    return file;
   }
 }
