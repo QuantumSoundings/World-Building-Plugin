@@ -6,11 +6,15 @@ export const CharacterRC = () => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
   const note = context.note as CharacterNote;
+  const portrait = note.portraitUrl ? (
+    <img src={note.portraitUrl} alt={`${note.name}'s image`} style={{ maxWidth: "100%", height: "auto" }} />
+  ) : (
+    <></>
+  );
 
   return (
     <div>
-      <img src={note.portraitUrl} alt={`${note.name}'s image`} style={{ maxWidth: "100%", height: "auto" }} />
-
+      {portrait}
       {overviewTable(note, context)}
       {manaTable(note, context)}
       {talentTable(note, context)}
