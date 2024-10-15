@@ -51,6 +51,9 @@ export class CharacterNote extends WBNote {
             this.portrait = result;
             const portraitBinary = await this.plugin.app.vault.readBinary(this.portrait);
             const blob = new Blob([portraitBinary], { type: "image/png" });
+            if (this.portraitUrl) {
+              URL.revokeObjectURL(this.portraitUrl);
+            }
             this.portraitUrl = URL.createObjectURL(blob);
           }
         }

@@ -1,6 +1,6 @@
 import type { ProseNote } from "src/world/notes/proseNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
-import { calculateTimeDifference } from "src/util/time";
+import { calculateTimeDifference, crt } from "src/util/time";
 import type { CharacterNote } from "src/world/notes/characterNotes";
 
 export const ProseRC = () => {
@@ -21,7 +21,11 @@ function generateOverviewTable(note: ProseNote, context: RContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Story Date", note.storyDate],
-    ["Relative Time", calculateTimeDifference(context.plugin.settings.currentDate, note.storyDate)],
+    [
+      "Relative Time",
+      crt(note.storyDate, context.plugin.settings.currentDate) +
+        calculateTimeDifference(context.plugin.settings.currentDate, note.storyDate),
+    ],
   ];
 
   return formatTable(headers, data, context);
@@ -43,8 +47,8 @@ function generateCharactersTable(note: ProseNote, context: RContext) {
   note.characters.forEach((character: CharacterNote) => {
     data.push([
       character,
-      calculateTimeDifference(character.birthDate, note.storyDate),
-      calculateTimeDifference(character.birthDate, context.plugin.settings.currentDate),
+      calculateTimeDifference(note.storyDate, character.birthDate),
+      calculateTimeDifference(context.plugin.settings.currentDate, character.birthDate),
     ]);
   });
 

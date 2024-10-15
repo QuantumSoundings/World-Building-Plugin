@@ -27,7 +27,7 @@ function overviewTable(note: CharacterNote, context: RContext) {
   const data: any[][] = [
     ["Name", note.name],
     ["DoB", note.birthDate],
-    ["Age", calculateTimeDifference(note.birthDate, context.plugin.settings.currentDate)],
+    ["Age", calculateTimeDifference(context.plugin.settings.currentDate, note.birthDate)],
     ["Species", note.species],
     ["Citizenship", note.citizenship],
   ];
