@@ -1,19 +1,18 @@
 import type WorldBuildingPlugin from "src/main";
-import { WB_NOTE_PROP_NAME, WBNote, type FileOrText, type NoteOrText } from "./wbNote";
+import { LinkText, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
 import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { CharacterNote } from "./characterNotes";
-import { FileUtils } from "src/util/fileUtils";
 
 export class ProseNote extends WBNote {
   storyDate: string;
-  sceneLocations: FileOrText[];
+  sceneLocations: LinkText[] = [];
 
-  characters: Set<CharacterNote>;
+  characters: Set<LinkText>;
 
   constructor(plugin: WorldBuildingPlugin, file: TFile) {
     super(plugin, file);
-    this.characters = new Set<CharacterNote>();
+    this.characters = new Set<LinkText>();
   }
 
   public override async update() {
@@ -26,18 +25,18 @@ export class ProseNote extends WBNote {
       if (FMUtils.checkForProperty(frontMatter, "sceneLocations")) {
         this.sceneLocations = [];
         for (let location of frontMatter.sceneLocations as string[]) {
-          const note = FileUtils.attemptParseLinkToFile(location, this.plugin);
-          if (note instanceof TFile) {
-            this.sceneLocations.push(note);
+          const locationLink = new LinkText(location, this.plugin);
+          if (locationLink.resolvedFile !== undefined) {
+            this.sceneLocations.push(locationLink);
           }
         }
       }
       if (FMUtils.checkForProperty(frontMatter, "characters")) {
         this.characters.clear();
         for (let character of frontMatter.characters as string[]) {
-          const note = FileUtils.attemptParseLinkToNote(character, this.plugin);
-          if (note instanceof CharacterNote) {
-            this.characters.add(note);
+          const characterLink = new LinkText(character, this.plugin);
+          if (characterLink.resolvedNote !== undefined && characterLink.resolvedNote instanceof CharacterNote) {
+            this.sceneLocations.push(characterLink);
           }
         }
       }

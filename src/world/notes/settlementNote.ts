@@ -1,10 +1,9 @@
 import WorldBuildingPlugin from "src/main";
-import { WB_NOTE_PROP_NAME, WBNote, type NoteOrText } from "./wbNote";
+import { LinkText, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
 import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { DataUtils } from "src/util/dataUtils";
 import { Logger } from "src/util/Logger";
-import { FileUtils } from "src/util/fileUtils";
 
 export class SettlementNote extends WBNote {
   // Front Matter Configuration Values
@@ -14,8 +13,8 @@ export class SettlementNote extends WBNote {
   };
 
   relations: {
-    parentNote: NoteOrText;
-    rulingParty: NoteOrText;
+    parentNote: LinkText;
+    rulingParty: LinkText;
   };
 
   // Other values
@@ -45,14 +44,14 @@ export class SettlementNote extends WBNote {
         FMUtils.checkForProperty(frontMatter.relations, "rulingParty")
       ) {
         this.relations = {
-          parentNote: "",
-          rulingParty: "",
+          parentNote: new LinkText("", this.plugin),
+          rulingParty: new LinkText("", this.plugin),
         };
         if (typeof frontMatter.relations.parentNote === "string") {
-          this.relations.parentNote = FileUtils.attemptParseLinkToNote(frontMatter.relations.parentNote, this.plugin);
+          this.relations.parentNote = new LinkText(frontMatter.relations.parentNote, this.plugin);
         }
         if (typeof frontMatter.relations.rulingParty === "string") {
-          this.relations.rulingParty = FileUtils.attemptParseLinkToNote(frontMatter.relations.rulingParty, this.plugin);
+          this.relations.rulingParty = new LinkText(frontMatter.relations.rulingParty, this.plugin);
         }
       }
 

@@ -2,6 +2,7 @@ import type { ProseNote } from "src/world/notes/proseNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import { calculateTimeDifference, crt } from "src/util/time";
 import type { CharacterNote } from "src/world/notes/characterNotes";
+import type { LinkText } from "src/world/notes/wbNote";
 
 export const ProseRC = () => {
   const context = useWorldEngineViewContext();
@@ -44,11 +45,12 @@ function generateLocationsTable(note: ProseNote, context: RContext) {
 function generateCharactersTable(note: ProseNote, context: RContext) {
   const headers = ["Characters", "Story Age", "Current Age"];
   const data: any[][] = [];
-  note.characters.forEach((character: CharacterNote) => {
+  note.characters.forEach((character: LinkText) => {
+    const characterNote = character.resolvedNote as CharacterNote;
     data.push([
       character,
-      calculateTimeDifference(note.storyDate, character.birthDate),
-      calculateTimeDifference(context.plugin.settings.currentDate, character.birthDate),
+      calculateTimeDifference(note.storyDate, characterNote.birthDate),
+      calculateTimeDifference(context.plugin.settings.currentDate, characterNote.birthDate),
     ]);
   });
 

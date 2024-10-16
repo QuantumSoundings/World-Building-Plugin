@@ -1,11 +1,9 @@
 import { TFile } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import type { WBNoteTypeEnum } from "src/constants";
+import { FileUtils } from "src/util/fileUtils";
 
 export const WB_NOTE_PROP_NAME = "wbNoteType";
-
-export type NoteOrText = string | WBNote;
-export type FileOrText = string | TFile;
 
 export class WBNote {
   plugin: WorldBuildingPlugin;
@@ -26,4 +24,18 @@ export class WBNote {
   }
 
   public async update() {}
+}
+
+export class LinkText {
+  linkText: string;
+  resolvedFile: TFile | undefined;
+  resolvedNote: WBNote | undefined;
+
+  constructor(linkText: string, plugin: WorldBuildingPlugin) {
+    this.linkText = linkText;
+    this.resolvedFile = FileUtils.attemptParseLinkToFile(linkText, plugin);
+    if (this.resolvedFile !== undefined) {
+      this.resolvedNote = plugin.worldEngine.getWBNoteByFile(this.resolvedFile);
+    }
+  }
 }

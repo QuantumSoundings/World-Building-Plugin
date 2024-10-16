@@ -1,8 +1,8 @@
-import { TFile, type App, type HoverParent } from "obsidian";
+import { TFile, type HoverParent } from "obsidian";
 import { createContext, useContext } from "react";
 import { WORLD_ENGINE_HOVER_SOURCE } from "src/constants";
 import { FormattedNumber, numberF } from "src/util/formatUtils";
-import { WBNote } from "src/world/notes/wbNote";
+import { LinkText, WBNote } from "src/world/notes/wbNote";
 import { randomUUID } from "crypto";
 import type WorldBuildingPlugin from "src/main";
 
@@ -78,10 +78,14 @@ export const formatTable = (headers: string[], rows: any[][], context: RContext)
               if (typeof cell === "number" || cell instanceof FormattedNumber) {
                 const formatted = numberF(cell);
                 return <td key={randomUUID()}>{formatted}</td>;
-              } else if (cell instanceof TFile) {
-                return <td key={randomUUID()}>{buildFileLink({ ...context, file: cell })}</td>;
-              } else if (cell instanceof WBNote) {
-                return <td key={randomUUID()}>{buildNoteLink({ ...context, note: cell })}</td>;
+              } else if (cell instanceof LinkText) {
+                if (cell.resolvedNote !== undefined) {
+                  return <td key={randomUUID()}>{buildNoteLink({ ...context, note: cell.resolvedNote })}</td>;
+                } else if (cell.resolvedFile !== undefined) {
+                  return <td key={randomUUID()}>{buildFileLink({ ...context, file: cell.resolvedFile })}</td>;
+                } else {
+                  return <td key={randomUUID()}>{cell.linkText}</td>;
+                }
               }
               return <td key={randomUUID()}>{cell}</td>;
             })}

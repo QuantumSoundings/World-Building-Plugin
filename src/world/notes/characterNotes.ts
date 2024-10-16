@@ -1,16 +1,15 @@
 import { TFile } from "obsidian";
-import { WB_NOTE_PROP_NAME, WBNote, type NoteOrText } from "./wbNote";
+import { LinkText, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
 import type WorldBuildingPlugin from "src/main";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { WBTalentEnum } from "src/constants";
-import { FileUtils } from "src/util/fileUtils";
 
 export class CharacterNote extends WBNote {
   // Front Matter Configuration Values
   birthDate: string;
-  species: NoteOrText;
-  citizenship: NoteOrText;
-  portrait: TFile | undefined;
+  species: LinkText;
+  citizenship: LinkText;
+  portrait: LinkText;
   portraitUrl: string | undefined;
   mana: {
     cultivation: string;
@@ -36,24 +35,28 @@ export class CharacterNote extends WBNote {
       }
       if (FMUtils.checkForProperty(frontMatter, "species")) {
         if (typeof frontMatter.species === "string") {
-          this.species = FileUtils.attemptParseLinkToNote(frontMatter.species, this.plugin);
+          this.species = new LinkText(frontMatter.species, this.plugin);
         }
       }
       if (FMUtils.checkForProperty(frontMatter, "citizenship")) {
         if (typeof frontMatter.citizenship === "string") {
-          this.citizenship = FileUtils.attemptParseLinkToNote(frontMatter.citizenship, this.plugin);
+          this.citizenship = new LinkText(frontMatter.citizenship, this.plugin);
         }
       }
       if (FMUtils.checkForProperty(frontMatter, "portrait")) {
         if (typeof frontMatter.portrait === "string") {
-          const result = FileUtils.attemptParseLinkToFile(frontMatter.portrait, this.plugin);
-          if (result instanceof TFile) {
-            this.portrait = result;
-            const portraitBinary = await this.plugin.app.vault.readBinary(this.portrait);
-            const blob = new Blob([portraitBinary], { type: "image/png" });
+          const newPortrait = new LinkText(frontMatter.portrait, this.plugin);
+          // New portrait do clean up
+          if (this.portrait !== undefined && newPortrait.linkText !== this.portrait.linkText) {
             if (this.portraitUrl) {
               URL.revokeObjectURL(this.portraitUrl);
+              this.portraitUrl = undefined;
             }
+          }
+          this.portrait = newPortrait;
+          if (this.portrait.resolvedFile instanceof TFile) {
+            const portraitBinary = await this.plugin.app.vault.readBinary(this.portrait.resolvedFile);
+            const blob = new Blob([portraitBinary], { type: "image/png" });
             this.portraitUrl = URL.createObjectURL(blob);
           }
         }
