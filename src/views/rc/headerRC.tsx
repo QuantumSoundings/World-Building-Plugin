@@ -33,7 +33,7 @@ export const HeaderRC = () => {
       <h1>World Engine</h1>
       <h3>
         Current Date:
-        <input type="text" value={currentDate} onChange={handleDateChange} />
+        <input type="text" style={{ width: "100px" }} value={currentDate} onChange={handleDateChange} />
       </h3>
       {statusText}
       <h3>Note: {buildNoteLink(context, selectedNoteText)}</h3>
