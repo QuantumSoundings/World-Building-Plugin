@@ -3,6 +3,7 @@ wbNoteType: character
 birthDate: year-month-day
 species: "Human"
 citizenship: "Kingdom"
+portrait: "[[character portrait.jpg]]"
 mana:
   cultivation: First Circle
   attributes: []

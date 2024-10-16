@@ -56,7 +56,8 @@ export const buildNoteLink = (context: RContext, displayText?: string) => {
 
 export const buildFileLink = (context: RContext, displayText?: string) => {
   if (context.file === undefined) return;
-  const displayTextFinal = displayText === undefined ? context.file.name : displayText;
+  const fileText = context.file.name.slice(0, context.file.name.indexOf(".")); // Remove the file extension
+  const displayTextFinal = displayText === undefined ? fileText : displayText;
   return buildAnchorLink(displayTextFinal, context.file, context.plugin, context.popoverParent);
 };
 

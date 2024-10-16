@@ -5,6 +5,7 @@ import type { WBNoteTypeEnum } from "src/constants";
 export const WB_NOTE_PROP_NAME = "wbNoteType";
 
 export type NoteOrText = string | WBNote;
+export type FileOrText = string | TFile;
 
 export class WBNote {
   plugin: WorldBuildingPlugin;
