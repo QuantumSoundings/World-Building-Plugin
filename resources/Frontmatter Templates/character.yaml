@@ -1,8 +1,8 @@
 ---
 wbNoteType: character
-birthDate: year-month-day
-species: "Human"
-citizenship: "Kingdom"
+birthDate: 0000-00-00 # yyyy-mm-dd
+species: "[[Human]]"
+citizenship: "[[Kingdom]]"
 portrait: "[[character portrait.jpg]]"
 mana:
   cultivation: First Circle
@@ -23,4 +23,8 @@ talent:
 ### Personal
 ### Organizations
 
-## Events
+## Profession(s)
+
+## Abilities
+
+## Events (Timeline of Changes)
