@@ -36,7 +36,7 @@ export class ProseNote extends WBNote {
         for (let character of frontMatter.characters as string[]) {
           const characterLink = new LinkText(character, this.plugin);
           if (characterLink.resolvedNote !== undefined && characterLink.resolvedNote instanceof CharacterNote) {
-            this.sceneLocations.push(characterLink);
+            this.characters.add(characterLink);
           }
         }
       }

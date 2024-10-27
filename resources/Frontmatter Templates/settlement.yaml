@@ -4,8 +4,8 @@ demographics:
   settlementType: City
   populationScale: 0.5
 relations:
-  parentNote:
-  rulingParty:
+  parentNote: "[[]]"
+  rulingParty: "[[]]"
 location: [x, y]
 mapmarker: City
 tag: [settlement, worldname]
@@ -27,3 +27,5 @@ tag: [settlement, worldname]
 ### Crime Rates
 ### Wealth Distribution
 ### Sanitation
+
+## Leading Figures / Notable People
