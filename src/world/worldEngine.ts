@@ -6,8 +6,9 @@ import { WB_NOTE_PROP_NAME, WBNote } from "./notes/wbNote";
 import { WBNoteTypeEnum } from "src/constants";
 import { NationNote } from "./notes/nationNote";
 import { SettlementNote } from "./notes/settlementNote";
-import { CharacterNote } from "./notes/characterNotes";
+import { CharacterNote } from "./notes/characterNote";
 import { ProseNote } from "./notes/proseNote";
+import { OrganizationNote } from "./notes/organizationNote";
 
 export class WorldEngine {
   plugin: WorldBuildingPlugin;
@@ -137,6 +138,9 @@ export class WorldEngine {
         break;
       case WBNoteTypeEnum.PROSE:
         note = new ProseNote(this.plugin, file as TFile);
+        break;
+      case WBNoteTypeEnum.ORGANIZATION:
+        note = new OrganizationNote(this.plugin, file as TFile);
         break;
       default:
         Logger.error(this, "Unknown note type: " + noteType);

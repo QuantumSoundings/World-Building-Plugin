@@ -1,4 +1,4 @@
-import type { CharacterNote } from "src/world/notes/characterNotes";
+import type { CharacterNote } from "src/world/notes/characterNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import { calculateTimeDifference } from "src/util/time";
 

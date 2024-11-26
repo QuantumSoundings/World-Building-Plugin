@@ -24,6 +24,8 @@ function generateOverviewTable(note: NationNote, context: RContext) {
   const data: any[][] = [
     ["Country Name", note.name],
     ["Country Size", new FormattedNumber(note.geography.size, note.plugin.configManager.geographyAreaUnit)],
+    ["Founding Date", note.foundingDate],
+    ["Current Age", note.age],
     ["Population", note.population],
   ];
 

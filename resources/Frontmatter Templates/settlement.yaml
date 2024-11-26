@@ -1,5 +1,6 @@
 ---
 wbNoteType: settlement
+foundingDate: 0000-00-00
 demographics:
   settlementType: City
   populationScale: 0.5

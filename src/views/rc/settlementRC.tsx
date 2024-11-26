@@ -20,6 +20,8 @@ function generateOverviewTable(note: SettlementNote, context: RContext) {
   const data: any[][] = [
     ["Settlement Name", note.name],
     ["Settlement Type", note.demographics.settlementType],
+    ["Founding Date", note.foundingDate],
+    ["Current Age", note.age],
     ["Population", note.population],
     ["Parent Note", note.relations.parentNote],
     ["Ruling Party", note.relations.rulingParty],

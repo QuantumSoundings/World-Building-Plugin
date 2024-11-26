@@ -47,12 +47,14 @@ import nationTemplateBase64 from "resources/Frontmatter Templates/nation.yaml";
 import settlementTemplateBase64 from "resources/Frontmatter Templates/settlement.yaml";
 import characterTemplateBase64 from "resources/Frontmatter Templates/character.yaml";
 import proseTemplateBase64 from "resources/Frontmatter Templates/prose.yaml";
+import organizationTemplateBase64 from "resources/Frontmatter Templates/organization.yaml";
 
 // Template Strings Decoded
 export const nationTemplateString = atob(nationTemplateBase64);
 export const settlementTemplateString = atob(settlementTemplateBase64);
 export const characterTemplateString = atob(characterTemplateBase64);
 export const proseTemplateString = atob(proseTemplateBase64);
+export const organizationTemplateString = atob(organizationTemplateBase64);
 
 // Enums
 export enum TemplateType {
@@ -60,6 +62,7 @@ export enum TemplateType {
   SETTLEMENT = "Settlement Template",
   CHARACTER = "Character Template",
   PROSE = "Prose Template",
+  ORGANIZATION = "Organization Template",
 }
 
 export enum WBNoteTypeEnum {
@@ -67,6 +70,7 @@ export enum WBNoteTypeEnum {
   SETTLEMENT = "settlement",
   CHARACTER = "character",
   PROSE = "prose",
+  ORGANIZATION = "organization",
 }
 
 export enum WBTalentEnum {
@@ -95,6 +99,7 @@ export const TEMPLATE_TYPE_LATEST_VERSION = {
   [TemplateType.SETTLEMENT]: "0.0.1",
   [TemplateType.CHARACTER]: "0.0.1",
   [TemplateType.PROSE]: "0.0.1",
+  [TemplateType.ORGANIZATION]: "0.0.1",
 };
 
 export const TEMPLATES = Object.values(TemplateType);
@@ -109,6 +114,8 @@ export function getTemplateFromType(templateType: TemplateType): string {
       return characterTemplateString;
     case TemplateType.PROSE:
       return proseTemplateString;
+    case TemplateType.ORGANIZATION:
+      return organizationTemplateString;
     default:
       return "";
   }

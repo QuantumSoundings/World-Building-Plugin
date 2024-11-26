@@ -1,7 +1,7 @@
 import type { ProseNote } from "src/world/notes/proseNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import { calculateTimeDifference, crt } from "src/util/time";
-import type { CharacterNote } from "src/world/notes/characterNotes";
+import type { CharacterNote } from "src/world/notes/characterNote";
 import type { LinkText } from "src/world/notes/wbNote";
 
 export const ProseRC = () => {

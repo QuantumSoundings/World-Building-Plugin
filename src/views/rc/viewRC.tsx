@@ -1,4 +1,4 @@
-import { CharacterNote } from "src/world/notes/characterNotes";
+import { CharacterNote } from "src/world/notes/characterNote";
 import { HeaderRC } from "./headerRC";
 import { CharacterRC } from "./characterRC";
 import { NationNote } from "src/world/notes/nationNote";
@@ -9,6 +9,8 @@ import { useWorldEngineViewContext } from "./util";
 import { useState } from "react";
 import { ProseNote } from "src/world/notes/proseNote";
 import { ProseRC } from "./proseRC";
+import { OrganizationNote } from "src/world/notes/organizationNote";
+import { OrganizationRC } from "./organizationRC";
 
 export const WorldEngineRC = () => {
   const context = useWorldEngineViewContext();
@@ -31,6 +33,8 @@ export const WorldEngineRC = () => {
       content = <SettlementRC />;
     } else if (note instanceof ProseNote) {
       content = <ProseRC />;
+    } else if (note instanceof OrganizationNote) {
+      content = <OrganizationRC />;
     }
   }
 

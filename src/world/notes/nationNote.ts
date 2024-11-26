@@ -5,9 +5,11 @@ import { FMUtils } from "src/util/frontMatterUtils";
 import { Logger } from "src/util/Logger";
 import { MapUtils } from "src/util/mapUtils";
 import type { Distribution } from "src/types/frontMatterTypes";
+import { calculateTimeDifference } from "src/util/time";
 
 export class NationNote extends WBNote {
   // Front Matter Configuration Values
+  foundingDate: string;
   geography: {
     size: number;
     landFertility: number;
@@ -23,6 +25,7 @@ export class NationNote extends WBNote {
   // Other values
   useMapSize: boolean;
   population: number;
+  age: string; // Age of the nation, current date - founded date
 
   constructor(plugin: WorldBuildingPlugin, file: TFile) {
     super(plugin, file);
@@ -32,13 +35,17 @@ export class NationNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
+      if (this.checkForProperty(frontMatter, "foundingDate")) {
+        this.foundingDate = frontMatter.foundingDate;
+        this.age = calculateTimeDifference(this.foundingDate, this.plugin.settings.currentDate);
+      }
       if (
-        FMUtils.checkForProperty(frontMatter, "geography") &&
-        FMUtils.checkForProperty(frontMatter.geography, "size") &&
-        FMUtils.checkForProperty(frontMatter.geography, "landFertility") &&
-        FMUtils.checkForProperty(frontMatter.geography, "cultivatedLandPercentage") &&
-        FMUtils.checkForProperty(frontMatter.geography, "territories") &&
-        FMUtils.checkForProperty(frontMatter.geography, "settlements")
+        this.checkForProperty(frontMatter, "geography") &&
+        this.checkForProperty(frontMatter.geography, "size") &&
+        this.checkForProperty(frontMatter.geography, "landFertility") &&
+        this.checkForProperty(frontMatter.geography, "cultivatedLandPercentage") &&
+        this.checkForProperty(frontMatter.geography, "territories") &&
+        this.checkForProperty(frontMatter.geography, "settlements")
       ) {
         if (typeof frontMatter.geography.size === "string") {
           if (frontMatter.geography.size.toLowerCase() === "map") {
@@ -65,14 +72,14 @@ export class NationNote extends WBNote {
         (predicate) => predicate.nationName === this.name
       );
       if (nationData === undefined) {
-        Logger.error(this, "Nation Data not found.");
+        Logger.error(this, `Nation data not found for ${this.name}.`);
         return;
       }
       const map = this.plugin.configManager.configs.mapConfigurations.values.find(
         (predicate) => predicate.mapName === nationData.mapName
       );
       if (map === undefined) {
-        Logger.error(this, "Map Configuration not found.");
+        Logger.error(this, `Map Configuration not found for ${nationData.mapName}.`);
         return;
       }
       this.geography.size = MapUtils.calculateArea(map, nationData.nationSizePercent);

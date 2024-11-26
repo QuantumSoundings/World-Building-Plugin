@@ -2,7 +2,7 @@ import type WorldBuildingPlugin from "src/main";
 import { LinkText, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
 import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
-import { CharacterNote } from "./characterNotes";
+import { CharacterNote } from "./characterNote";
 
 export class ProseNote extends WBNote {
   storyDate: string;
@@ -19,10 +19,10 @@ export class ProseNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (FMUtils.checkForProperty(frontMatter, "storyDate")) {
+      if (this.checkForProperty(frontMatter, "storyDate")) {
         this.storyDate = frontMatter.storyDate;
       }
-      if (FMUtils.checkForProperty(frontMatter, "sceneLocations")) {
+      if (this.checkForProperty(frontMatter, "sceneLocations")) {
         this.sceneLocations = [];
         for (let location of frontMatter.sceneLocations as string[]) {
           const locationLink = new LinkText(location, this.plugin);
@@ -31,7 +31,7 @@ export class ProseNote extends WBNote {
           }
         }
       }
-      if (FMUtils.checkForProperty(frontMatter, "characters")) {
+      if (this.checkForProperty(frontMatter, "characters")) {
         this.characters.clear();
         for (let character of frontMatter.characters as string[]) {
           const characterLink = new LinkText(character, this.plugin);

@@ -30,20 +30,20 @@ export class CharacterNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (FMUtils.checkForProperty(frontMatter, "birthDate")) {
+      if (this.checkForProperty(frontMatter, "birthDate")) {
         this.birthDate = frontMatter.birthDate;
       }
-      if (FMUtils.checkForProperty(frontMatter, "species")) {
+      if (this.checkForProperty(frontMatter, "species")) {
         if (typeof frontMatter.species === "string") {
           this.species = new LinkText(frontMatter.species, this.plugin);
         }
       }
-      if (FMUtils.checkForProperty(frontMatter, "citizenship")) {
+      if (this.checkForProperty(frontMatter, "citizenship")) {
         if (typeof frontMatter.citizenship === "string") {
           this.citizenship = new LinkText(frontMatter.citizenship, this.plugin);
         }
       }
-      if (FMUtils.checkForProperty(frontMatter, "portrait")) {
+      if (this.checkForProperty(frontMatter, "portrait")) {
         if (typeof frontMatter.portrait === "string") {
           const newPortrait = new LinkText(frontMatter.portrait, this.plugin);
           // New portrait do clean up
@@ -61,14 +61,14 @@ export class CharacterNote extends WBNote {
           }
         }
       }
-      if (FMUtils.checkForProperty(frontMatter, "mana")) {
+      if (this.checkForProperty(frontMatter, "mana")) {
         this.mana = {
           cultivation: frontMatter.mana.cultivation,
           attributes: frontMatter.mana.attributes,
           blessing: frontMatter.mana.blessing,
         };
       }
-      if (FMUtils.checkForProperty(frontMatter, "talent")) {
+      if (this.checkForProperty(frontMatter, "talent")) {
         this.talent = {
           physical: WBTalentEnum.ERROR,
           mana: WBTalentEnum.ERROR,
@@ -78,21 +78,21 @@ export class CharacterNote extends WBNote {
         const isValueIn = isValueInStringEnum(WBTalentEnum);
 
         if (
-          FMUtils.checkForProperty(frontMatter.talent, "physical") &&
+          this.checkForProperty(frontMatter.talent, "physical") &&
           isValueIn((frontMatter.talent.physical as string).toUpperCase())
         ) {
           this.talent.physical = frontMatter.talent.physical as WBTalentEnum;
         }
 
         if (
-          FMUtils.checkForProperty(frontMatter.talent, "mana") &&
+          this.checkForProperty(frontMatter.talent, "mana") &&
           isValueIn((frontMatter.talent.mana as string).toUpperCase())
         ) {
           this.talent.mana = frontMatter.talent.mana as WBTalentEnum;
         }
 
         if (
-          FMUtils.checkForProperty(frontMatter.talent, "blessing") &&
+          this.checkForProperty(frontMatter.talent, "blessing") &&
           isValueIn((frontMatter.talent.blessing as string).toUpperCase())
         ) {
           this.talent.blessing = frontMatter.talent.blessing as WBTalentEnum;
