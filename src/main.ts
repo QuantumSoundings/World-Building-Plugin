@@ -14,6 +14,7 @@ import { CSV_HOVER_SOURCE, CSV_VIEW, WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIE
 import { MapParser } from "./maps/mapParser";
 import { NameGenerator } from "./generator/nameGenerator";
 import { GenerateNamesModal } from "./modal/generateNamesModal";
+import { BLANK_DATE } from "./world/notes/wbNote";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -224,6 +225,41 @@ export default class WorldBuildingPlugin extends Plugin {
       checkCallback: (checking: boolean) => {
         if (!checking) {
           new GenerateNamesModal(this).open();
+        }
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "arbitrary-fm-modify",
+      name: "Arbitrary FrontMatter Modify - DEV ONLY",
+      checkCallback: (checking: boolean) => {
+        if (!checking) {
+          const modify = async () => {
+            const files = this.app.vault.getMarkdownFiles();
+            for (const file of files) {
+              const fm = await this.frontMatterManager.getFrontMatter(file.path);
+              // Has FrontMatter
+              if (fm !== null) {
+                // Its a note of the type I want
+                if (fm.hasOwnProperty("wbNoteType") && fm.wbNoteType === "organization") {
+                  if (fm.dates === undefined) {
+                    fm.dates = {};
+                  }
+                  if (fm.hasOwnProperty("foundingDate")) {
+                    fm.dates.founded = fm.foundingDate;
+                    fm.dates.dissolved = BLANK_DATE;
+                    fm.foundingDate = undefined;
+                  }
+                  Logger.info(this, `Modifying: ${file.path}`);
+                  await this.frontMatterManager.replaceFrontMatter(file.path, fm);
+                }
+              }
+            }
+          };
+          modify().then(() => {
+            new Notice("FrontMatter has been modified!", 2000);
+          });
         }
         return true;
       },

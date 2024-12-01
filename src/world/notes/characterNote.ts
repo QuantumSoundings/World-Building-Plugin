@@ -1,16 +1,16 @@
 import { TFile } from "obsidian";
-import { LinkText, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
+import { DateType, LinkText, WB_NOTE_PROP_NAME, WBNote, type Dates } from "./wbNote";
 import type WorldBuildingPlugin from "src/main";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { WBTalentEnum } from "src/constants";
 
 export class CharacterNote extends WBNote {
   // Front Matter Configuration Values
-  birthDate: string;
   species: LinkText;
   citizenship: LinkText;
   portrait: LinkText;
   portraitUrl: string | undefined;
+  dates: Dates;
   mana: {
     cultivation: string;
     attributes: string[];
@@ -30,9 +30,7 @@ export class CharacterNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (this.checkForProperty(frontMatter, "birthDate")) {
-        this.birthDate = frontMatter.birthDate;
-      }
+      this.dates = this.parseDates(frontMatter, DateType.living);
       if (this.checkForProperty(frontMatter, "species")) {
         if (typeof frontMatter.species === "string") {
           this.species = new LinkText(frontMatter.species, this.plugin);

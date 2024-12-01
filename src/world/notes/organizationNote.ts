@@ -1,18 +1,14 @@
 import type { TFile } from "obsidian";
 import type WorldBuildingPlugin from "src/main";
 import { FMUtils } from "src/util/frontMatterUtils";
-import { LinkText, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
-import { calculateTimeDifference } from "src/util/time";
+import { DateType, LinkText, WB_NOTE_PROP_NAME, WBNote, type Dates } from "./wbNote";
 
 export class OrganizationNote extends WBNote {
   // Front Matter Configuration Values
-  foundingDate: string;
+  dates: Dates;
   relations: {
     rulingParty: LinkText;
   };
-
-  // Other values
-  age: string; // Age of the organization, current date - founded date
 
   constructor(plugin: WorldBuildingPlugin, file: TFile) {
     super(plugin, file);
@@ -22,10 +18,7 @@ export class OrganizationNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (this.checkForProperty(frontMatter, "foundingDate")) {
-        this.foundingDate = frontMatter.foundingDate;
-        this.age = calculateTimeDifference(this.foundingDate, this.plugin.settings.currentDate);
-      }
+      this.dates = this.parseDates(frontMatter, DateType.nonLiving);
       if (
         this.checkForProperty(frontMatter, "relations") &&
         this.checkForProperty(frontMatter.relations, "rulingParty")

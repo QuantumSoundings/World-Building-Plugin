@@ -1,6 +1,7 @@
 ---
 wbNoteType: prose
-storyDate: yyyy-mm-dd
+dates:
+  story: yyyy-mm-dd
 sceneLocations:
   - "[[]]"
 characters:

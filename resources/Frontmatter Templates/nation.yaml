@@ -1,6 +1,8 @@
 ---
 wbNoteType: nation
-foundingDate: 0000-00-00
+dates:
+  founded: yyyy-mm-dd
+  dissolved: yyyy-mm-dd
 relations:
   rulingParty: "[[Leader]]"
   allies: []

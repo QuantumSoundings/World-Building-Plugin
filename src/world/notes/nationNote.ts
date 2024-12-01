@@ -1,15 +1,14 @@
 import WorldBuildingPlugin from "src/main";
-import { WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
+import { DateType, WB_NOTE_PROP_NAME, WBNote, type Dates } from "./wbNote";
 import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { Logger } from "src/util/Logger";
 import { MapUtils } from "src/util/mapUtils";
 import type { Distribution } from "src/types/frontMatterTypes";
-import { calculateTimeDifference } from "src/util/time";
 
 export class NationNote extends WBNote {
   // Front Matter Configuration Values
-  foundingDate: string;
+  dates: Dates;
   geography: {
     size: number;
     landFertility: number;
@@ -22,10 +21,9 @@ export class NationNote extends WBNote {
     settlements: Distribution[];
   };
 
-  // Other values
+  // Calculated Values
   useMapSize: boolean;
   population: number;
-  age: string; // Age of the nation, current date - founded date
 
   constructor(plugin: WorldBuildingPlugin, file: TFile) {
     super(plugin, file);
@@ -35,10 +33,7 @@ export class NationNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (this.checkForProperty(frontMatter, "foundingDate")) {
-        this.foundingDate = frontMatter.foundingDate;
-        this.age = calculateTimeDifference(this.foundingDate, this.plugin.settings.currentDate);
-      }
+      this.dates = this.parseDates(frontMatter, DateType.nonLiving);
       if (
         this.checkForProperty(frontMatter, "geography") &&
         this.checkForProperty(frontMatter.geography, "size") &&

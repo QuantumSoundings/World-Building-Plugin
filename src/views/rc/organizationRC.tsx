@@ -13,8 +13,10 @@ function generateOverviewTable(note: OrganizationNote, context: RContext) {
   const headers = ["Overview", "-"];
   const data: any[][] = [
     ["Org Name", note.name],
-    ["Founding Date", note.foundingDate],
-    ["Current Age", note.age],
+    ["Date of Founding", note.dates.founded],
+    ["Date of Dissolution", note.dates.dissolved],
+    ["Age", note.dates.nonLivingAge],
+    ["Ruling Party", note.relations.rulingParty],
   ];
 
   return formatTable(headers, data, context);

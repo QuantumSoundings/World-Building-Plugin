@@ -1,27 +1,24 @@
 import WorldBuildingPlugin from "src/main";
-import { LinkText, WB_NOTE_PROP_NAME, WBNote } from "./wbNote";
+import { DateType, LinkText, WB_NOTE_PROP_NAME, WBNote, type Dates } from "./wbNote";
 import { TFile } from "obsidian";
 import { FMUtils } from "src/util/frontMatterUtils";
 import { DataUtils } from "src/util/dataUtils";
 import { Logger } from "src/util/Logger";
-import { calculateTimeDifference } from "src/util/time";
 
 export class SettlementNote extends WBNote {
   // Front Matter Configuration Values
-  foundingDate: string;
+  dates: Dates;
   demographics: {
     settlementType: string;
     populationScale: number;
   };
-
   relations: {
     parentNote: LinkText;
     rulingParty: LinkText;
   };
 
-  // Other values
+  // Calculated values
   population: number;
-  age: string; // Age of the settlement, current date - founded date
 
   constructor(plugin: WorldBuildingPlugin, file: TFile) {
     super(plugin, file);
@@ -31,10 +28,7 @@ export class SettlementNote extends WBNote {
     const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
     if (FMUtils.validateWBNoteType(frontMatter)) {
       this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      if (this.checkForProperty(frontMatter, "foundingDate")) {
-        this.foundingDate = frontMatter.foundingDate;
-        this.age = calculateTimeDifference(this.foundingDate, this.plugin.settings.currentDate);
-      }
+      this.dates = this.parseDates(frontMatter, DateType.nonLiving);
       if (
         this.checkForProperty(frontMatter, "demographics") &&
         this.checkForProperty(frontMatter.demographics, "settlementType") &&

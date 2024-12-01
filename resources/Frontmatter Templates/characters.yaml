@@ -1,9 +1,11 @@
 ---
 wbNoteType: character
-birthDate: 0000-00-00 # yyyy-mm-dd
 species: "[[Human]]"
 citizenship: "[[Kingdom]]"
 portrait: "[[character portrait.jpg]]"
+dates:
+  birth: yyyy-mm-dd
+  death: yyyy-mm-dd
 mana:
   cultivation: First Circle
   attributes: []

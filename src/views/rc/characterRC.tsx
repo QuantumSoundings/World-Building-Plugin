@@ -1,6 +1,5 @@
 import type { CharacterNote } from "src/world/notes/characterNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
-import { calculateTimeDifference } from "src/util/time";
 
 export const CharacterRC = () => {
   const context = useWorldEngineViewContext();
@@ -26,8 +25,9 @@ function overviewTable(note: CharacterNote, context: RContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
     ["Name", note.name],
-    ["DoB", note.birthDate],
-    ["Age", calculateTimeDifference(context.plugin.settings.currentDate, note.birthDate)],
+    ["Date of Birth", note.dates.birth],
+    ["Date of Death", note.dates.death],
+    ["Age", note.dates.livingAge],
     ["Species", note.species],
     ["Citizenship", note.citizenship],
   ];
