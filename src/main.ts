@@ -211,11 +211,7 @@ export default class WorldBuildingPlugin extends Plugin {
         if (!checking) {
           const activeFile = this.app.workspace.getActiveFile();
           if (activeFile !== null) {
-            const onChoose = async (template: string) => {
-              await this.frontMatterManager.writeNoteTemplate(activeFile.path, template);
-              new Notice("FrontMatter template has been set!", 2000);
-            };
-            new TemplatePickerModal(this.app, onChoose).open();
+            new TemplatePickerModal(this, activeFile).open();
           }
         }
         return true;

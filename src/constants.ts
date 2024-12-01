@@ -45,7 +45,7 @@ export const unitConversionDataString = atob(unitConversionDataBase64);
 // Template Base64 Includes
 import nationTemplateBase64 from "resources/Frontmatter Templates/nation.yaml";
 import settlementTemplateBase64 from "resources/Frontmatter Templates/settlement.yaml";
-import characterTemplateBase64 from "resources/Frontmatter Templates/character.yaml";
+import characterTemplateBase64 from "resources/Frontmatter Templates/characters.yaml";
 import proseTemplateBase64 from "resources/Frontmatter Templates/prose.yaml";
 import organizationTemplateBase64 from "resources/Frontmatter Templates/organization.yaml";
 
