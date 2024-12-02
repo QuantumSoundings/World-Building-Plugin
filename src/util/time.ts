@@ -5,8 +5,13 @@ interface WBDate {
 }
 
 function parseDate(dateString: string): WBDate {
+  let sign = 1;
+  if (dateString.startsWith("-")) {
+    sign = -1;
+    dateString = dateString.substring(1);
+  }
   const [year, month, day] = dateString.split("-").map(Number);
-  const date: WBDate = { year, month, day };
+  const date: WBDate = { year: sign * year, month, day };
   return date;
 }
 
