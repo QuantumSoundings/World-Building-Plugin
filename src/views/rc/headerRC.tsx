@@ -1,7 +1,6 @@
 import { useWorldEngineViewContext } from "./util";
 import { useState } from "react";
 
-const NO_NOTE = "None Selected";
 const STATUS = "Status: ";
 const RUNNING_TEXT = STATUS + "Running";
 const PAUSED_TEXT = STATUS + "Paused";

@@ -26,7 +26,7 @@ export class FMUtils {
     parseResults.frontDelimiterIndex = 0;
     parseResults.endDelimiterIndex = 0;
 
-    const lines = content.split("\n");
+    const lines = content.split(/\r?\n/);
     // Set front delimiter index
     if (lines[0] === "---") {
       parseResults.frontDelimiterIndex = 0;
@@ -95,7 +95,7 @@ export class FMUtils {
     if (fmp.frontDelimiterIndex === 0 && fmp.endDelimiterIndex === 0) {
       return "---\n" + newFMString + "\n---\n" + currentFileContent;
     } else {
-      const lines = currentFileContent.split("\n");
+      const lines = currentFileContent.split(/\r?\n/);
       lines.splice(fmp.frontDelimiterIndex + 1, fmp.endDelimiterIndex - fmp.frontDelimiterIndex - 1, newFMString);
       return lines.join("\n");
     }
