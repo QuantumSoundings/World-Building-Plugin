@@ -21,6 +21,7 @@ export const ProseRC = () => {
 function generateOverviewTable(note: ProseNote, context: RContext) {
   const headers = ["Overview", "---"];
   const data: any[][] = [
+    ["Title", note.name],
     ["Story Date", note.dates.story],
     ["Time Since Story", note.dates.timeSinceStory],
   ];

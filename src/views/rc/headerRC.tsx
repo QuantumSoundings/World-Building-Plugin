@@ -1,4 +1,4 @@
-import { buildNoteLink, useWorldEngineViewContext } from "./util";
+import { useWorldEngineViewContext } from "./util";
 import { useState } from "react";
 
 const NO_NOTE = "None Selected";
@@ -14,7 +14,6 @@ export const HeaderRC = () => {
   const { paused, force, forceUpdate } = view;
   if (forceUpdate === undefined) return <div>forceUpdate is undefined</div>;
 
-  const selectedNoteText = context.note === undefined ? NO_NOTE : context.note.name;
   const statusText = <h2>{paused ? PAUSED_TEXT : RUNNING_TEXT}</h2>;
 
   const [currentDate, setCurrentDate] = useState(context.plugin.settings.currentDate);
@@ -36,7 +35,6 @@ export const HeaderRC = () => {
         <input type="text" style={{ width: "100px" }} value={currentDate} onChange={handleDateChange} />
       </h3>
       {statusText}
-      <h3>Note: {buildNoteLink(context, selectedNoteText)}</h3>
     </div>
   );
 };

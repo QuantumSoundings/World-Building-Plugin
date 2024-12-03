@@ -6,7 +6,7 @@ export const CharacterRC = () => {
   if (context === undefined) return <div>Context is undefined</div>;
   const note = context.note as CharacterNote;
   const portrait = note.portraitUrl ? (
-    <img src={note.portraitUrl} alt={`${note.name}'s image`} style={{ maxWidth: "100%", height: "auto" }} />
+    <img src={note.portraitUrl} alt={`${note.name}'s image`} style={{ width: "225px", height: "225px" }} />
   ) : (
     <></>
   );
