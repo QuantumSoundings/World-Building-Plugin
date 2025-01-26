@@ -25,7 +25,9 @@ export const WorldEngineRC = () => {
 
   let content = null;
   if (note !== undefined) {
-    if (note instanceof CharacterNote) {
+    if (note.error !== undefined) {
+      content = <h3>{note.error}</h3>;
+    } else if (note instanceof CharacterNote) {
       content = <CharacterRC />;
     } else if (note instanceof NationNote) {
       content = <NationRC />;

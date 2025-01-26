@@ -1,14 +1,14 @@
 import WorldBuildingPlugin from "src/main";
-import { DateType, WB_NOTE_PROP_NAME, WBNote, type Dates } from "./wbNote";
+import { WBNote } from "./wbNote";
 import { TFile } from "obsidian";
-import { FMUtils } from "src/util/frontMatterUtils";
 import { Logger } from "src/util/Logger";
 import { MapUtils } from "src/util/mapUtils";
-import type { Distribution } from "src/types/frontMatterTypes";
+import { NationSchema, type Distribution, type NationFM, type NonLivingDates } from "src/types/frontMatterTypes";
+import { fromError } from "zod-validation-error";
 
 export class NationNote extends WBNote {
   // Front Matter Configuration Values
-  dates: Dates;
+  dates: NonLivingDates;
   geography: {
     size: number;
     landFertility: number;
@@ -30,34 +30,26 @@ export class NationNote extends WBNote {
   }
 
   public override async update() {
-    const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
-    if (FMUtils.validateWBNoteType(frontMatter)) {
-      this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      this.dates = this.parseDates(frontMatter, DateType.nonLiving);
-      if (
-        this.checkForProperty(frontMatter, "geography") &&
-        this.checkForProperty(frontMatter.geography, "size") &&
-        this.checkForProperty(frontMatter.geography, "landFertility") &&
-        this.checkForProperty(frontMatter.geography, "cultivatedLandPercentage") &&
-        this.checkForProperty(frontMatter.geography, "territories") &&
-        this.checkForProperty(frontMatter.geography, "settlements")
-      ) {
-        if (typeof frontMatter.geography.size === "string") {
-          if (frontMatter.geography.size.toLowerCase() === "map") {
-            this.useMapSize = true;
-            frontMatter.geography.size = 0;
-          }
-        }
-        this.geography = {
-          size: frontMatter.geography.size,
-          landFertility: frontMatter.geography.landFertility,
-          cultivatedLandPercentage: frontMatter.geography.cultivatedLandPercentage,
-          territories: frontMatter.geography.territories,
-          settlements: frontMatter.geography.settlements,
-        };
-        this.calculateMapSize();
-        this.calculatePopulation();
+    const result = NationSchema.safeParse(await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path));
+    if (result.success) {
+      const fm: NationFM = result.data;
+      this.wbNoteType = fm.wbNoteType;
+      this.dates = this.parseDates(fm.dates);
+      if (typeof fm.geography.size === "string" && fm.geography.size.toLowerCase() === "map") {
+        this.useMapSize = true;
+        fm.geography.size = 0;
       }
+      this.geography = {
+        size: fm.geography.size as number,
+        landFertility: fm.geography.landFertility,
+        cultivatedLandPercentage: fm.geography.cultivatedLandPercentage,
+        territories: fm.geography.territories,
+        settlements: fm.geography.settlements,
+      };
+      this.calculateMapSize();
+      this.calculatePopulation();
+    } else {
+      this.error = fromError(result.error).toString();
     }
   }
 

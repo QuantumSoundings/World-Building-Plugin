@@ -2,7 +2,7 @@ import { TFile, type HoverParent } from "obsidian";
 import { createContext, useContext } from "react";
 import { WORLD_ENGINE_HOVER_SOURCE } from "src/constants";
 import { FormattedNumber, numberF } from "src/util/formatUtils";
-import { BLANK_DATE, LinkText, WBNote } from "src/world/notes/wbNote";
+import { LinkText, WBNote } from "src/world/notes/wbNote";
 import { randomUUID } from "crypto";
 import type WorldBuildingPlugin from "src/main";
 
@@ -85,10 +85,6 @@ export const formatTable = (headers: string[], rows: any[][], context: RContext)
                   return <td key={randomUUID()}>{buildFileLink({ ...context, file: cell.resolvedFile })}</td>;
                 } else {
                   return <td key={randomUUID()}>{cell.linkText}</td>;
-                }
-              } else if (typeof cell === "string") {
-                if (cell === BLANK_DATE) {
-                  return <td key={randomUUID()}></td>;
                 }
               }
               return <td key={randomUUID()}>{cell}</td>;

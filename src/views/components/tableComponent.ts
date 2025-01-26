@@ -3,11 +3,10 @@ import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
-import { type HoverParent, HoverPopover, MarkdownRenderChild, Setting, TFile, ToggleComponent } from "obsidian";
+import { type HoverParent, HoverPopover, MarkdownRenderChild, Notice, Setting, TFile, ToggleComponent } from "obsidian";
 import { CSV_HOVER_SOURCE } from "src/constants";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
-import { FileUtils } from "src/util/fileUtils";
 
 class TableState {
   // Settings
@@ -112,12 +111,13 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
         }
         // Check it here to prevent sending excess events
         if (cellData.startsWith("[[") && cellData.endsWith("]]")) {
+          const linktext = cellData.slice(2, -2);
           this.plugin.app.workspace.trigger("hover-link", {
             event: event,
             source: CSV_HOVER_SOURCE,
             hoverParent: this,
             targetEl: TD,
-            linktext: FileUtils.parseBracketLink(cellData),
+            linktext: linktext,
           });
         }
       }
@@ -176,9 +176,14 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
       this.fileNotFoundElement.show();
       return;
     }
-    this.plugin.app.vault.read(file as TFile).then((data) => {
-      this.setViewData(data);
-    });
+    this.plugin.app.vault.read(file as TFile).then(
+      (data) => {
+        this.setViewData(data);
+      },
+      () => {
+        new Notice("Failed to load file!", 2000);
+      }
+    );
   }
 
   // Call this when you are about to destroy the component.
@@ -191,9 +196,14 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
       .process(file as TFile, () => {
         return this.getViewData();
       })
-      .then(() => {
-        super.onunload();
-      });
+      .then(
+        () => {
+          super.onunload();
+        },
+        () => {
+          new Notice("Failed to save data!", 2000);
+        }
+      );
   }
 
   public getViewData(): string {

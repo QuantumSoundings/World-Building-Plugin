@@ -77,26 +77,22 @@ export class FMUtils {
     }
   }
 
-  static replaceFrontMatter(currentFileContent: string, newFrontMatter: unknown | string): string {
+  static replaceFrontMatter(currentFileContent: string, newFrontMatterStringified: string): string {
     const fmp = this.parseMarkdownFile(currentFileContent);
     if (fmp === undefined) {
       return currentFileContent;
     }
 
-    // Stringify the new front matter
-    let newFMString = "";
-    if (typeof newFrontMatter === "string") {
-      newFMString = newFrontMatter;
-    } else {
-      newFMString = stringifyYaml(newFrontMatter);
-    }
-
     // If we have no frontmatter add it easily
     if (fmp.frontDelimiterIndex === 0 && fmp.endDelimiterIndex === 0) {
-      return "---\n" + newFMString + "\n---\n" + currentFileContent;
+      return "---\n" + newFrontMatterStringified + "\n---\n" + currentFileContent;
     } else {
       const lines = currentFileContent.split(/\r?\n/);
-      lines.splice(fmp.frontDelimiterIndex + 1, fmp.endDelimiterIndex - fmp.frontDelimiterIndex - 1, newFMString);
+      lines.splice(
+        fmp.frontDelimiterIndex + 1,
+        fmp.endDelimiterIndex - fmp.frontDelimiterIndex - 1,
+        newFrontMatterStringified
+      );
       return lines.join("\n");
     }
   }

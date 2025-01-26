@@ -14,7 +14,6 @@ import { CSV_HOVER_SOURCE, CSV_VIEW, WORLD_ENGINE_HOVER_SOURCE, WORLD_ENGINE_VIE
 import { MapParser } from "./maps/mapParser";
 import { NameGenerator } from "./generator/nameGenerator";
 import { GenerateNamesModal } from "./modal/generateNamesModal";
-import { BLANK_DATE } from "./world/notes/wbNote";
 
 export default class WorldBuildingPlugin extends Plugin {
   settings: WorldBuildingPluginSettings;
@@ -248,7 +247,7 @@ export default class WorldBuildingPlugin extends Plugin {
                   }
                   if (fm.hasOwnProperty("foundingDate")) {
                     fm.dates.founded = fm.foundingDate;
-                    fm.dates.dissolved = BLANK_DATE;
+                    fm.dates.dissolved = null;
                     fm.foundingDate = undefined;
                   }
                   Logger.info(this, `Modifying: ${file.path}`);

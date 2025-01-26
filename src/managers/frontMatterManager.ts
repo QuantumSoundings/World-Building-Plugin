@@ -91,7 +91,7 @@ export class FrontMatterManager {
    * @param content - The content to write to the file.
    * @returns A Promise that resolves when the file has been written.
    */
-  public async writeFile(fullPath: string, content: unknown): Promise<void> {
+  /*public async writeFile(fullPath: string, content: unknown): Promise<void> {
     if (fullPath.endsWith(".md")) {
       const file = this.plugin.app.vault.getAbstractFileByPath(fullPath);
       if (file !== null) {
@@ -103,7 +103,7 @@ export class FrontMatterManager {
         await this.plugin.app.vault.create(fullPath, newFileContent);
       }
     }
-  }
+  }*/
 
   private pathToFile(filePath: string): TFile {
     return this.plugin.app.vault.getAbstractFileByPath(filePath) as TFile;

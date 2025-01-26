@@ -1,11 +1,12 @@
 import type { TFile } from "obsidian";
 import type WorldBuildingPlugin from "src/main";
-import { FMUtils } from "src/util/frontMatterUtils";
-import { DateType, LinkText, WB_NOTE_PROP_NAME, WBNote, type Dates } from "./wbNote";
+import { LinkText, WBNote } from "./wbNote";
+import { OrganizationSchema, type NonLivingDates } from "src/types/frontMatterTypes";
+import { fromError } from "zod-validation-error";
 
 export class OrganizationNote extends WBNote {
   // Front Matter Configuration Values
-  dates: Dates;
+  dates: NonLivingDates;
   relations: {
     rulingParty: LinkText;
   };
@@ -15,21 +16,18 @@ export class OrganizationNote extends WBNote {
   }
 
   public override async update() {
-    const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
-    if (FMUtils.validateWBNoteType(frontMatter)) {
-      this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      this.dates = this.parseDates(frontMatter, DateType.nonLiving);
-      if (
-        this.checkForProperty(frontMatter, "relations") &&
-        this.checkForProperty(frontMatter.relations, "rulingParty")
-      ) {
-        this.relations = {
-          rulingParty: new LinkText("", this.plugin),
-        };
-        if (typeof frontMatter.relations.rulingParty === "string") {
-          this.relations.rulingParty = new LinkText(frontMatter.relations.rulingParty, this.plugin);
-        }
-      }
+    const result = OrganizationSchema.safeParse(
+      await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path)
+    );
+    if (result.success) {
+      const fm = result.data;
+      this.wbNoteType = fm.wbNoteType;
+      this.dates = this.parseDates(fm.dates);
+      this.relations = {
+        rulingParty: new LinkText(fm.relations.rulingParty ?? "", this.plugin),
+      };
+    } else {
+      this.error = fromError(result.error).toString();
     }
   }
 }

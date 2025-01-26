@@ -1,12 +1,13 @@
 import type WorldBuildingPlugin from "src/main";
-import { DateType, LinkText, WB_NOTE_PROP_NAME, WBNote, type Dates } from "./wbNote";
+import { LinkText, WBNote } from "./wbNote";
 import { TFile } from "obsidian";
-import { FMUtils } from "src/util/frontMatterUtils";
 import { CharacterNote } from "./characterNote";
+import { ProseSchema, type StoryDates } from "src/types/frontMatterTypes";
+import { fromError } from "zod-validation-error";
 
 export class ProseNote extends WBNote {
   // Front Matter Configuration Values
-  dates: Dates;
+  dates: StoryDates;
   sceneLocations: LinkText[] = [];
   characters: Set<LinkText>;
 
@@ -16,28 +17,27 @@ export class ProseNote extends WBNote {
   }
 
   public override async update() {
-    const frontMatter = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
-    if (FMUtils.validateWBNoteType(frontMatter)) {
-      this.wbNoteType = frontMatter[WB_NOTE_PROP_NAME];
-      this.dates = this.parseDates(frontMatter, DateType.story);
-      if (this.checkForProperty(frontMatter, "sceneLocations")) {
-        this.sceneLocations = [];
-        for (let location of frontMatter.sceneLocations as string[]) {
-          const locationLink = new LinkText(location, this.plugin);
-          if (locationLink.resolvedFile !== undefined) {
-            this.sceneLocations.push(locationLink);
-          }
+    const result = ProseSchema.safeParse(await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path));
+    if (result.success) {
+      const fm = result.data;
+      this.wbNoteType = fm.wbNoteType;
+      this.dates = this.parseDates(fm.dates);
+      this.sceneLocations = [];
+      for (const location of fm.sceneLocations) {
+        const locationLink = new LinkText(location, this.plugin);
+        if (locationLink.resolvedFile !== undefined) {
+          this.sceneLocations.push(locationLink);
         }
       }
-      if (this.checkForProperty(frontMatter, "characters")) {
-        this.characters.clear();
-        for (let character of frontMatter.characters as string[]) {
-          const characterLink = new LinkText(character, this.plugin);
-          if (characterLink.resolvedNote !== undefined && characterLink.resolvedNote instanceof CharacterNote) {
-            this.characters.add(characterLink);
-          }
+      this.characters.clear();
+      for (const character of fm.characters) {
+        const characterLink = new LinkText(character, this.plugin);
+        if (characterLink.resolvedNote !== undefined && characterLink.resolvedNote instanceof CharacterNote) {
+          this.characters.add(characterLink);
         }
       }
+    } else {
+      this.error = fromError(result.error).toString();
     }
   }
 }
