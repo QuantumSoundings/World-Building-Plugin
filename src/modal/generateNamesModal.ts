@@ -62,7 +62,7 @@ export class GenerateNamesModal extends Modal {
       btn
         .setButtonText("Generate")
         .setCta()
-        .onClick(() => {
+        .onClick(async () => {
           if (!this.selectedOrigin) {
             new Notice("Please select an origin.");
             return;

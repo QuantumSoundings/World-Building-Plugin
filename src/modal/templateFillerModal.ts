@@ -9,7 +9,7 @@ export class TemplateFillerModal extends Modal {
   parseFailed: boolean = false;
 
   templateString: string;
-  parsedTemplate = {};
+  parsedTemplate: any;
   templateProperties: Map<string, string>;
 
   constructor(plugin: WorldBuildingPlugin, activeFile: TFile, template: string) {
@@ -20,7 +20,7 @@ export class TemplateFillerModal extends Modal {
     this.templateString = template;
     const parseResults = FMUtils.parseMarkdownFile(this.templateString);
     if (parseResults !== undefined && parseResults.frontMatter !== undefined) {
-      this.parsedTemplate = parseYaml(parseResults.frontMatter) as object;
+      this.parsedTemplate = parseYaml(parseResults.frontMatter);
     } else {
       this.parseFailed = true;
     }

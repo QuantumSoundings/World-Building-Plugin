@@ -44,15 +44,11 @@ function generateCharactersTable(note: ProseNote, context: RContext) {
   const data: any[][] = [];
   note.characters.forEach((character: LinkText) => {
     const characterNote = character.resolvedNote as CharacterNote;
-    if (note.dates.story !== null && characterNote.dates.birth !== null) {
-      data.push([
-        character,
-        calculateTimeDifference(note.dates.story, characterNote.dates.birth),
-        calculateTimeDifference(context.plugin.settings.currentDate, characterNote.dates.birth),
-      ]);
-    } else {
-      data.push([character, "N/A", "N/A"]);
-    }
+    data.push([
+      character,
+      calculateTimeDifference(note.dates.story, characterNote.dates.birth),
+      calculateTimeDifference(context.plugin.settings.currentDate, characterNote.dates.birth),
+    ]);
   });
 
   return formatTable(headers, data, context);

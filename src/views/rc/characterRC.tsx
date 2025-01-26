@@ -5,12 +5,11 @@ export const CharacterRC = () => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
   const note = context.note as CharacterNote;
-  const portrait =
-    note.portraitUrl !== undefined ? (
-      <img src={note.portraitUrl} alt={`${note.name}'s image`} style={{ width: "225px", height: "225px" }} />
-    ) : (
-      <></>
-    );
+  const portrait = note.portraitUrl ? (
+    <img src={note.portraitUrl} alt={`${note.name}'s image`} style={{ width: "225px", height: "225px" }} />
+  ) : (
+    <></>
+  );
 
   return (
     <div>

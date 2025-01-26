@@ -37,13 +37,11 @@ export class WorldEngineView extends ItemView implements HoverParent {
   }
 
   public override async onOpen() {
-    await super.onOpen();
     this.root = createRoot(this.containerEl.children[1]);
     this.render();
   }
   public override async onClose() {
     this.root?.unmount();
-    await super.onClose();
   }
 
   public override getIcon(): string {
@@ -60,9 +58,9 @@ export class WorldEngineView extends ItemView implements HoverParent {
     this.render();
   }
 
-  public async reloadWBNote() {
+  public reloadWBNote() {
     if (this.note !== undefined) {
-      await this.displayWBNote(this.note);
+      this.displayWBNote(this.note);
     }
   }
 

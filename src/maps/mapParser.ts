@@ -40,7 +40,7 @@ export class MapParser {
     for (const politicalLayer of groupedLayers.politicalLayers) {
       const nationData = new NationData(null);
       nationData.nationName = politicalLayer.layer.name;
-      const rawPixelCount = PSDUtils.findLayerIntersection(
+      const rawPixelCount = await PSDUtils.findLayerIntersection(
         groupedLayers.baseLayer,
         politicalLayer,
         psd.width,
@@ -53,14 +53,14 @@ export class MapParser {
   }
 
   private async saveProcessedMaps() {
-    await CSVUtils.writeCSVByPath(
+    CSVUtils.writeCSVByPath(
       `${this.plugin.settings.generatedFilesPath}/${NATIONS_CONFIG_GENERATED}`,
       this.parsedMaps,
       this.plugin.app.vault,
       { header: true }
     );
 
-    await CSVUtils.writeCSVByPath(
+    CSVUtils.writeCSVByPath(
       `${this.plugin.settings.generatedFilesPath}/${POI_CONFIG_GENERATED}`,
       this.parsedPointsOfInterest,
       this.plugin.app.vault,

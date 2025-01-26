@@ -30,17 +30,17 @@ export class ConfigManager {
     mapConfigurations: {
       configName: MAP_CONFIG,
       values: [],
-      converter: (data: string[] | MapConfiguration | null) => new MapConfiguration(data),
+      converter: (data: any) => new MapConfiguration(data),
     },
     pointsOfInterest: {
       configName: POINTS_OF_INTEREST_CONFIG,
       values: [],
-      converter: (data: string[] | PointOfInterest | null) => new PointOfInterest(data),
+      converter: (data: any) => new PointOfInterest(data),
     },
     nations: {
       configName: NATIONS_CONFIG_GENERATED,
       values: [],
-      converter: (data: string[] | NationData | null) => new NationData(data),
+      converter: (data: any) => new NationData(data),
     },
   };
 
@@ -63,12 +63,8 @@ export class ConfigManager {
 
   public exportBlankConfigs() {
     const path = this.plugin.settings.configsPath;
-    void CSVUtils.writeCSVByPath(
-      `${path}/${MAP_CONFIG}`,
-      CSVUtils.csvParse(mapConfigString, false),
-      this.plugin.app.vault
-    );
-    void CSVUtils.writeCSVByPath(
+    CSVUtils.writeCSVByPath(`${path}/${MAP_CONFIG}`, CSVUtils.csvParse(mapConfigString, false), this.plugin.app.vault);
+    CSVUtils.writeCSVByPath(
       `${path}/${POINTS_OF_INTEREST_CONFIG}`,
       CSVUtils.csvParse(pointsOfInterestConfigString, false),
       this.plugin.app.vault
@@ -85,7 +81,7 @@ export class ConfigManager {
         path.includes(this.configs.nations.configName);
       if (shouldReload) {
         await this.reloadConfigs();
-        await this.plugin.worldEngine.triggerUpdate();
+        this.plugin.worldEngine.triggerUpdate();
       }
     };
 
@@ -100,8 +96,8 @@ export class ConfigManager {
     const filePath = `${this.plugin.settings.configsPath}/${info.configName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (file !== null && file instanceof TFile) {
-      const content = await this.plugin.app.vault.read(file);
-      const parsed = parse(content) as unknown[][];
+      const content = await this.plugin.app.vault.read(file as TFile);
+      const parsed = parse(content);
       parsed.shift();
       const stringArray = CSVUtils.csvArrayToStringArray(parsed);
       info.values.push(...stringArray.map(info.converter));
@@ -116,8 +112,8 @@ export class ConfigManager {
     const filePath = `${this.plugin.settings.generatedFilesPath}/${fileName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (file !== null && file instanceof TFile) {
-      const content = await this.plugin.app.vault.read(file);
-      const parsed = parse(content) as unknown[][];
+      const content = await this.plugin.app.vault.read(file as TFile);
+      const parsed = parse(content);
       parsed.shift();
       const stringArray = CSVUtils.csvArrayToStringArray(parsed);
       info.values.push(...stringArray.map(info.converter));

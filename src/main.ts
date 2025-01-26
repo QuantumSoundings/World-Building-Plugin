@@ -27,7 +27,7 @@ export default class WorldBuildingPlugin extends Plugin {
 
   worldEngine: WorldEngine;
 
-  onload() {
+  async onload() {
     super.onload();
     // Wait for workspace to be ready before doing anything.
     this.app.workspace.onLayoutReady(async () => this.loadAfterWorkspaceReady());
@@ -61,7 +61,7 @@ export default class WorldBuildingPlugin extends Plugin {
       return new WorldEngineView(leaf, this);
     });
     this.addRibbonIcons();
-    await this.createWorldEngineLeaf();
+    this.createWorldEngineLeaf();
     this.registerExtensions(["csv"], CSV_VIEW);
     this.registerCommands();
     this.registerCodeBlockProcessors();
@@ -83,7 +83,7 @@ export default class WorldBuildingPlugin extends Plugin {
 
   async loadSettings() {
     const settings = new WorldBuildingPluginSettings();
-    this.settings = Object.assign({}, settings, (await this.loadData()) as WorldBuildingPluginSettings);
+    this.settings = Object.assign({}, settings, await this.loadData());
   }
 
   async saveSettings() {
@@ -196,14 +196,9 @@ export default class WorldBuildingPlugin extends Plugin {
       name: "Process Maps",
       checkCallback: (checking: boolean) => {
         if (!checking) {
-          this.mapParser.parseAllMaps().then(
-            () => {
-              new Notice("Maps have been processed and saved!", 2000);
-            },
-            () => {
-              new Notice("Something went wrong during map processing!", 2000);
-            }
-          );
+          this.mapParser.parseAllMaps().then(() => {
+            new Notice("Maps have been processed and saved!", 2000);
+          });
         }
         return true;
       },
@@ -242,22 +237,28 @@ export default class WorldBuildingPlugin extends Plugin {
           const modify = async () => {
             const files = this.app.vault.getMarkdownFiles();
             for (const file of files) {
-              const fm = (await this.frontMatterManager.getFrontMatter(file.path)) as unknown;
+              const fm = await this.frontMatterManager.getFrontMatter(file.path);
               // Has FrontMatter
-              if (fm !== null && typeof fm === "object") {
+              if (fm !== null) {
                 // Its a note of the type I want
-                // Here you can do any arbitrary front matter manip across all files in the vault.
+                if (fm.hasOwnProperty("wbNoteType") && fm.wbNoteType === "organization") {
+                  if (fm.dates === undefined) {
+                    fm.dates = {};
+                  }
+                  if (fm.hasOwnProperty("foundingDate")) {
+                    fm.dates.founded = fm.foundingDate;
+                    fm.dates.dissolved = null;
+                    fm.foundingDate = undefined;
+                  }
+                  Logger.info(this, `Modifying: ${file.path}`);
+                  await this.frontMatterManager.replaceFrontMatter(file.path, fm);
+                }
               }
             }
           };
-          modify().then(
-            () => {
-              new Notice("FrontMatter has been modified!", 2000);
-            },
-            () => {
-              new Notice("FrontMatter has failed to update!", 2000);
-            }
-          );
+          modify().then(() => {
+            new Notice("FrontMatter has been modified!", 2000);
+          });
         }
         return true;
       },
@@ -274,7 +275,7 @@ export default class WorldBuildingPlugin extends Plugin {
         return;
       }
       if (leaf.view instanceof MarkdownView) {
-        const mdView = leaf.view;
+        const mdView = leaf.view as MarkdownView;
         const file = mdView.file;
         if (file !== null) {
           const note = this.worldEngine.getWBNoteByPath(file.path);
@@ -328,7 +329,7 @@ export default class WorldBuildingPlugin extends Plugin {
             .setTitle("Copy Path")
             .setIcon("file-plus")
             .onClick(async () => {
-              await navigator.clipboard.writeText(file.path);
+              navigator.clipboard.writeText(file.path);
             });
         });
       })

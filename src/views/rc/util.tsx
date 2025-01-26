@@ -5,7 +5,6 @@ import { FormattedNumber, numberF } from "src/util/formatUtils";
 import { LinkText, WBNote } from "src/world/notes/wbNote";
 import { randomUUID } from "crypto";
 import type WorldBuildingPlugin from "src/main";
-import { Logger } from "src/util/Logger";
 
 export const WorldEngineViewContext = createContext<RContext | undefined>(undefined);
 export const useWorldEngineViewContext = (): RContext | undefined => {
@@ -19,12 +18,7 @@ export interface RContext {
   popoverParent: HoverParent;
 }
 
-const hoverPopoverHook = (
-  e: React.MouseEvent<HTMLAnchorElement>,
-  file: TFile,
-  plugin: WorldBuildingPlugin,
-  popoverParent: HoverParent
-) => {
+const hoverPopoverHook = (e: any, file: TFile, plugin: WorldBuildingPlugin, popoverParent: any) => {
   plugin.app.workspace.trigger("hover-link", {
     event: e,
     source: WORLD_ENGINE_HOVER_SOURCE,
@@ -38,20 +32,12 @@ const clickLinkHook = async (file: TFile, plugin: WorldBuildingPlugin) => {
   await plugin.app.workspace.openLinkText(file.path, "", true);
 };
 
-const buildAnchorLink = (displayText: string, file: TFile, plugin: WorldBuildingPlugin, popoverParent: HoverParent) => {
-  const onMouseOver = (e: React.MouseEvent<HTMLAnchorElement>) => {
+const buildAnchorLink = (displayText: string, file: TFile, plugin: WorldBuildingPlugin, popoverParent: any) => {
+  const onMouseOver = (e: any) => {
     return hoverPopoverHook(e, file, plugin, popoverParent);
   };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onClick = (_e: React.MouseEvent<HTMLAnchorElement>) => {
-    clickLinkHook(file, plugin).then(
-      () => {
-        return;
-      },
-      () => {
-        Logger.error(this, "Failed to click link! Unexpected error occurred.");
-      }
-    );
+  const onClick = (_e: any) => {
+    return clickLinkHook(file, plugin);
   };
 
   return (
