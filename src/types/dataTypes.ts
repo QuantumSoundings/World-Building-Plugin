@@ -145,11 +145,17 @@ export class ConversionFactor {
   toUnit: string;
   factor: number;
 
-  constructor(data: any | ConversionFactor | null) {
+  constructor(data: object | ConversionFactor | null) {
     if (data instanceof ConversionFactor) {
       this.toUnit = data.toUnit;
       this.factor = data.factor;
-    } else {
+    } else if (
+      data !== null &&
+      "toUnit" in data &&
+      typeof data.toUnit === "string" &&
+      "factor" in data &&
+      typeof data.factor === "number"
+    ) {
       this.toUnit = data.toUnit;
       this.factor = data.factor;
     }
@@ -161,12 +167,20 @@ export class Unit {
   symbol: string;
   conversionFactors: ConversionFactor[];
 
-  constructor(data: any | Unit | null) {
+  constructor(data: object | Unit | null) {
     if (data instanceof Unit) {
       this.name = data.name;
       this.symbol = data.symbol;
       this.conversionFactors = data.conversionFactors;
-    } else if (data instanceof Object) {
+    } else if (
+      data instanceof Object &&
+      "name" in data &&
+      typeof data.name === "string" &&
+      "symbol" in data &&
+      typeof data.symbol === "string" &&
+      "conversionFactors" in data &&
+      data.conversionFactors instanceof Array
+    ) {
       this.name = data.name;
       this.symbol = data.symbol;
       this.conversionFactors = data.conversionFactors.map((cf: any) => new ConversionFactor(cf));

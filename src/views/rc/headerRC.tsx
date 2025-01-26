@@ -17,12 +17,12 @@ export const HeaderRC = () => {
 
   const [currentDate, setCurrentDate] = useState(context.plugin.settings.currentDate);
 
-  const handleDateChange = (e: any) => {
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e === undefined) return;
     const newDate = e.target.value;
     setCurrentDate(newDate);
     context.plugin.settings.currentDate = newDate;
-    // Assuming plugin has a method to save settings
-    context.plugin.saveSettings();
+    void context.plugin.saveSettings();
     forceUpdate(force + 1);
   };
 

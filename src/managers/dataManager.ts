@@ -58,56 +58,56 @@ export class DataManager {
       data: firstNameDataString,
       default: [],
       live: [],
-      converter: (data: any) => new Name(data),
+      converter: (data: string[] | Name | null) => new Name(data),
     },
     lastName: {
       datasetName: LAST_NAME_DATASET,
       data: lastNameDataString,
       default: [],
       live: [],
-      converter: (data: any) => new Name(data),
+      converter: (data: string[] | Name | null) => new Name(data),
     },
     populationDensity: {
       datasetName: POPULATION_DENSITY_DATASET,
       data: populationDensityDataString,
       default: [],
       live: [],
-      converter: (data: any) => new PopulationDensity(data),
+      converter: (data: string[] | PopulationDensity | null) => new PopulationDensity(data),
     },
     profession: {
       datasetName: PROFESSION_DATASET,
       data: professionDataString,
       default: [],
       live: [],
-      converter: (data: any) => new Profession(data),
+      converter: (data: string[] | Profession | null) => new Profession(data),
     },
     settlementType: {
       datasetName: SETTLEMENT_TYPE_DATASET,
       data: settlementTypeDataString,
       default: [],
       live: [],
-      converter: (data: any) => new SettlementType(data),
+      converter: (data: string[] | SettlementType | null) => new SettlementType(data),
     },
     travelMethod: {
       datasetName: TRAVEL_METHOD_DATASET,
       data: travelMethodDataString,
       default: [],
       live: [],
-      converter: (data: any) => new TravelMethod(data),
+      converter: (data: string[] | TravelMethod | null) => new TravelMethod(data),
     },
     talent: {
       datasetName: TALENT_DATASET,
       data: talentDataString,
       default: [],
       live: [],
-      converter: (data: any) => new TalentRank(data),
+      converter: (data: string[] | TalentRank | null) => new TalentRank(data),
     },
     unit: {
       datasetName: UNIT_DATASET,
       data: unitConversionDataString,
       default: [],
       live: [],
-      converter: (data: any) => new Unit(data),
+      converter: (data: object | Unit | null) => new Unit(data),
     },
   };
 
@@ -152,8 +152,8 @@ export class DataManager {
         path.includes(this.datasets.talent.datasetName) ||
         path.includes(this.datasets.unit.datasetName);
       if (shouldReload) {
-        this.reloadDatasets();
-        this.plugin.worldEngine.triggerUpdate();
+        await this.reloadDatasets();
+        await this.plugin.worldEngine.triggerUpdate();
       }
     };
 
@@ -170,7 +170,7 @@ export class DataManager {
       info.live = info.default;
     } else {
       const content = await this.plugin.app.vault.read(file as TFile);
-      const parsed = parse(content);
+      const parsed = parse(content) as unknown[][];
       parsed.shift();
       const stringArray = CSVUtils.csvArrayToStringArray(parsed);
       info.live = stringArray.map(info.converter);
@@ -178,26 +178,28 @@ export class DataManager {
   }
 
   private async loadFMDataset<T>(info: DatasetInfo<T>) {
-    const parsedData = parseYaml(info.data).data as [];
-    info.default = parsedData.map(info.converter);
-
-    const fm = await this.plugin.frontMatterManager.getFrontMatter(
-      `${this.plugin.settings.datasetsPath}/${info.datasetName}`
-    );
-    if ("data" in fm) {
-      info.live = fm.data.map(info.converter);
+    const parsed = parseYaml(info.data) as object;
+    if ("data" in parsed) {
+      const parsedData = parsed.data as unknown[];
+      info.default = parsedData.map(info.converter);
+      const fm = await this.plugin.frontMatterManager.getFrontMatter(
+        `${this.plugin.settings.datasetsPath}/${info.datasetName}`
+      );
+      if ("data" in fm && fm.data instanceof Array) {
+        info.live = fm.data.map(info.converter);
+      }
+      info.live = info.default;
     }
-    info.live = info.default;
   }
 
   private writeCSVDataset<T>(info: DatasetInfo<T>) {
     const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (file === null) {
-      this.plugin.app.vault.create(filePath, info.data);
+      void this.plugin.app.vault.create(filePath, info.data);
       return;
     } else if (file instanceof TFile) {
-      this.plugin.app.vault.modify(file, info.data);
+      void this.plugin.app.vault.modify(file, info.data);
     }
   }
 
@@ -205,10 +207,10 @@ export class DataManager {
     const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (file === null) {
-      this.plugin.app.vault.create(filePath, `---\n${info.data}\n---`);
+      void this.plugin.app.vault.create(filePath, `---\n${info.data}\n---`);
       return;
     } else if (file instanceof TFile) {
-      this.plugin.app.vault.modify(file, `---\n${info.data}\n---`);
+      void this.plugin.app.vault.modify(file, `---\n${info.data}\n---`);
     }
   }
 }

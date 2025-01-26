@@ -207,8 +207,8 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
   }
 
   public getViewData(): string {
-    const dataCopy = JSON.parse(JSON.stringify(this.rowData));
-    if (this.tableState.headersActive) {
+    const dataCopy = JSON.parse(JSON.stringify(this.rowData)) as typeof this.rowData;
+    if (this.tableState.headersActive && this.headerData instanceof Array) {
       dataCopy.unshift(this.headerData);
     }
 

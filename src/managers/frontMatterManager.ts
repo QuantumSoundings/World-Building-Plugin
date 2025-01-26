@@ -1,4 +1,4 @@
-import { TFile, TFolder, parseYaml, stringifyYaml } from "obsidian";
+import { TFile, TFolder, parseYaml } from "obsidian";
 import WorldBuildingPlugin from "src/main";
 import { Logger } from "src/util/Logger";
 import { FMUtils } from "src/util/frontMatterUtils";
@@ -21,8 +21,9 @@ export class FrontMatterManager {
     const parsed = FMUtils.parseMarkdownFile(content);
     if (parsed !== undefined) {
       try {
-        const frontMatter = parseYaml(parsed.frontMatter);
+        const frontMatter = parseYaml(parsed.frontMatter) as object;
         return frontMatter;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         Logger.error(this, `Error parsing front matter: ${filePath}`);
         return undefined;
@@ -30,11 +31,11 @@ export class FrontMatterManager {
     }
   }
 
-  public async getFrontMatter(filePath: string): Promise<any> {
+  public async getFrontMatter(filePath: string): Promise<object> {
     const file = this.pathToFile(filePath);
-    let frontMatter;
+    let frontMatter = {};
     await this.plugin.app.fileManager.processFrontMatter(file, (data) => {
-      frontMatter = JSON.parse(JSON.stringify(data));
+      frontMatter = JSON.parse(JSON.stringify(data)) as object;
     });
     return frontMatter;
   }
@@ -49,7 +50,7 @@ export class FrontMatterManager {
 
   public async addUpdateFrontMatterProperty(filePath: string, key: string, value: any) {
     const file = this.pathToFile(filePath);
-    await this.plugin.app.fileManager.processFrontMatter(file, (data) => {
+    await this.plugin.app.fileManager.processFrontMatter(file, (data: object) => {
       data[key] = value;
     });
   }

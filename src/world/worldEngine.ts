@@ -89,7 +89,7 @@ export class WorldEngine {
     const note = worldEngineView.getCurrentWBNote();
     if (note !== undefined) {
       await note.update();
-      worldEngineView.reloadWBNote();
+      await worldEngineView.reloadWBNote();
     }
   }
 

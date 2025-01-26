@@ -9,8 +9,8 @@ import mapConfigBase64 from "resources/Configs/WB Config - Maps.csv";
 import pointsOfInterestConfigBase64 from "resources/Configs/WB Config - Points of Interest.csv";
 
 // Config Strings Decoded
-export const mapConfigString = atob(mapConfigBase64);
-export const pointsOfInterestConfigString = atob(pointsOfInterestConfigBase64);
+export const mapConfigString = atob(mapConfigBase64 as string);
+export const pointsOfInterestConfigString = atob(pointsOfInterestConfigBase64 as string);
 
 // Dataset Names
 export const FIRST_NAME_DATASET = "WB Data - First Names.csv";
@@ -33,14 +33,14 @@ import talentDataBase64 from "resources/Datasets/Talent Ranks.csv";
 import unitConversionDataBase64 from "resources/Datasets/Unit Conversions.yaml";
 
 // Dataset Strings Decoded
-export const firstNameDataString = atob(firstNameDataBase64);
-export const lastNameDataString = atob(lastNameDataBase64);
-export const populationDensityDataString = atob(populationDensityDataBase64);
-export const professionDataString = atob(professionDataBase64);
-export const settlementTypeDataString = atob(settlementTypeDataBase64);
-export const travelMethodDataString = atob(travelMethodDataBase64);
-export const talentDataString = atob(talentDataBase64);
-export const unitConversionDataString = atob(unitConversionDataBase64);
+export const firstNameDataString = atob(firstNameDataBase64 as string);
+export const lastNameDataString = atob(lastNameDataBase64 as string);
+export const populationDensityDataString = atob(populationDensityDataBase64 as string);
+export const professionDataString = atob(professionDataBase64 as string);
+export const settlementTypeDataString = atob(settlementTypeDataBase64 as string);
+export const travelMethodDataString = atob(travelMethodDataBase64 as string);
+export const talentDataString = atob(talentDataBase64 as string);
+export const unitConversionDataString = atob(unitConversionDataBase64 as string);
 
 // Template Base64 Includes
 import nationTemplateBase64 from "resources/Frontmatter Templates/nation.yaml";
@@ -50,11 +50,11 @@ import proseTemplateBase64 from "resources/Frontmatter Templates/prose.yaml";
 import organizationTemplateBase64 from "resources/Frontmatter Templates/organization.yaml";
 
 // Template Strings Decoded
-export const nationTemplateString = atob(nationTemplateBase64);
-export const settlementTemplateString = atob(settlementTemplateBase64);
-export const characterTemplateString = atob(characterTemplateBase64);
-export const proseTemplateString = atob(proseTemplateBase64);
-export const organizationTemplateString = atob(organizationTemplateBase64);
+export const nationTemplateString = atob(nationTemplateBase64 as string);
+export const settlementTemplateString = atob(settlementTemplateBase64 as string);
+export const characterTemplateString = atob(characterTemplateBase64 as string);
+export const proseTemplateString = atob(proseTemplateBase64 as string);
+export const organizationTemplateString = atob(organizationTemplateBase64 as string);
 
 // Enums
 export enum TemplateType {
