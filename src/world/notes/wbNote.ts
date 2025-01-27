@@ -10,15 +10,18 @@ export const WB_NOTE_PROP_NAME = "wbNoteType";
 export class WBNote {
   plugin: WorldBuildingPlugin;
   file: TFile;
+  fm: unknown;
 
   name: string;
   wbNoteType: WBNoteTypeEnum;
   error: string | undefined;
 
-  constructor(plugin: WorldBuildingPlugin, file: TFile) {
+  constructor(plugin: WorldBuildingPlugin, file: TFile, fm: unknown) {
     this.plugin = plugin;
     this.file = file;
     this.name = file.name.replace(".md", "");
+    this.fm = fm;
+    this.error = undefined;
   }
 
   public setFile(newFile: TFile) {
@@ -26,8 +29,11 @@ export class WBNote {
     this.name = newFile.name.replace(".md", "");
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async update() {
+  public async reloadFM() {
+    this.fm = await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path);
+  }
+
+  public update() {
     this.error = undefined;
   }
 

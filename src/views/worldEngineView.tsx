@@ -18,8 +18,6 @@ export class WorldEngineView extends ItemView implements HoverParent {
 
   // Currently Displayed WBNote.
   note: WBNote | undefined;
-  force: number;
-  forceUpdate: React.Dispatch<React.SetStateAction<number>> | undefined;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorldBuildingPlugin) {
     super(leaf);
@@ -36,10 +34,12 @@ export class WorldEngineView extends ItemView implements HoverParent {
     return "World Engine";
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public override async onOpen() {
     this.root = createRoot(this.containerEl.children[1]);
     this.render();
   }
+  // eslint-disable-next-line @typescript-eslint/require-await
   public override async onClose() {
     this.root?.unmount();
   }
@@ -48,13 +48,13 @@ export class WorldEngineView extends ItemView implements HoverParent {
     return "globe";
   }
 
-  public async displayWBNote(note: WBNote) {
+  public displayWBNote(note: WBNote) {
     if (this.paused) {
       return;
     }
 
     this.note = note;
-    await this.note.update();
+    this.note.update();
     this.render();
   }
 
@@ -89,7 +89,7 @@ export class WorldEngineView extends ItemView implements HoverParent {
     this.root.render(
       <StrictMode>
         <WorldEngineViewContext.Provider value={context}>
-          <WorldEngineRC />
+          <WorldEngineRC note={this.note} paused={this.paused} />
         </WorldEngineViewContext.Provider>
       </StrictMode>
     );

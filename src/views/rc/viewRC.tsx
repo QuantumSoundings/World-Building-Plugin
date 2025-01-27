@@ -11,38 +11,47 @@ import { ProseNote } from "src/world/notes/proseNote";
 import { ProseRC } from "./proseRC";
 import { OrganizationNote } from "src/world/notes/organizationNote";
 import { OrganizationRC } from "./organizationRC";
+import type { WBNote } from "src/world/notes/wbNote";
 
-export const WorldEngineRC = () => {
+interface WorldEngineRCProps {
+  note: WBNote | undefined;
+  paused: boolean;
+}
+
+export const WorldEngineRC = ({ note, paused }: WorldEngineRCProps) => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
-  const note = context.note;
 
-  const [force, forceUpdate] = useState(0);
-  const view = context.plugin.getWorldEngineView();
-  if (view === undefined) return <div>View is undefined</div>;
-  view.force = force;
-  view.forceUpdate = forceUpdate;
+  const [currentDate, setCurrentDate] = useState(context.plugin.settings.currentDate);
+
+  const dateHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    context.plugin.settings.currentDate = e.target.value;
+    setCurrentDate(e.target.value);
+    if (note !== undefined) {
+      note.update();
+    }
+  };
 
   let content = null;
   if (note !== undefined) {
     if (note.error !== undefined) {
       content = <h3>{note.error}</h3>;
     } else if (note instanceof CharacterNote) {
-      content = <CharacterRC />;
+      content = <CharacterRC note={note} />;
     } else if (note instanceof NationNote) {
-      content = <NationRC />;
+      content = <NationRC note={note} />;
     } else if (note instanceof SettlementNote) {
-      content = <SettlementRC />;
+      content = <SettlementRC note={note} />;
     } else if (note instanceof ProseNote) {
-      content = <ProseRC />;
+      content = <ProseRC note={note} />;
     } else if (note instanceof OrganizationNote) {
-      content = <OrganizationRC />;
+      content = <OrganizationRC note={note} />;
     }
   }
 
   return (
     <div className="selectable-text">
-      <HeaderRC />
+      <HeaderRC paused={paused} currentDate={currentDate} dateHandler={dateHandler} />
       {content}
     </div>
   );

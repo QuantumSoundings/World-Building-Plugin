@@ -7,7 +7,6 @@ import { NationSchema, type Distribution, type NationFM, type NonLivingDates } f
 import { fromError } from "zod-validation-error";
 
 export class NationNote extends WBNote {
-  // Front Matter Configuration Values
   dates: NonLivingDates;
   geography: {
     size: number;
@@ -25,12 +24,13 @@ export class NationNote extends WBNote {
   useMapSize: boolean;
   population: number;
 
-  constructor(plugin: WorldBuildingPlugin, file: TFile) {
-    super(plugin, file);
+  constructor(plugin: WorldBuildingPlugin, file: TFile, fm: unknown) {
+    super(plugin, file, fm);
   }
 
-  public override async update() {
-    const result = NationSchema.safeParse(await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path));
+  public override update() {
+    super.update();
+    const result = NationSchema.safeParse(this.fm);
     if (result.success) {
       const fm: NationFM = result.data;
       this.wbNoteType = fm.wbNoteType;

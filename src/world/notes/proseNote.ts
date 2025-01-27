@@ -6,18 +6,18 @@ import { ProseSchema, type StoryDates } from "src/types/frontMatterTypes";
 import { fromError } from "zod-validation-error";
 
 export class ProseNote extends WBNote {
-  // Front Matter Configuration Values
   dates: StoryDates;
   sceneLocations: LinkText[] = [];
   characters: Set<LinkText>;
 
-  constructor(plugin: WorldBuildingPlugin, file: TFile) {
-    super(plugin, file);
+  constructor(plugin: WorldBuildingPlugin, file: TFile, fm: unknown) {
+    super(plugin, file, fm);
     this.characters = new Set<LinkText>();
   }
 
-  public override async update() {
-    const result = ProseSchema.safeParse(await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path));
+  public override update() {
+    super.update();
+    const result = ProseSchema.safeParse(this.fm);
     if (result.success) {
       const fm = result.data;
       this.wbNoteType = fm.wbNoteType;

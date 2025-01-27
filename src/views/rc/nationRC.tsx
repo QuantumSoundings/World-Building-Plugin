@@ -1,13 +1,16 @@
 import { FormattedNumber } from "src/util/formatUtils";
-import type { NationNote } from "src/world/notes/nationNote";
+import { NationNote } from "src/world/notes/nationNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import { Logger } from "src/util/Logger";
 import { DataUtils } from "src/util/dataUtils";
 
-export const NationRC = () => {
+interface NationRCProps {
+  note: NationNote;
+}
+
+export const NationRC = ({ note }: NationRCProps) => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
-  const note = context.note as NationNote;
 
   return (
     <div>

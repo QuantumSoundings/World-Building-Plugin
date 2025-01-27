@@ -1,10 +1,13 @@
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
-import type { OrganizationNote } from "src/world/notes/organizationNote";
+import { OrganizationNote } from "src/world/notes/organizationNote";
 
-export const OrganizationRC = () => {
+interface OrganizationRCProps {
+  note: OrganizationNote;
+}
+
+export const OrganizationRC = ({ note }: OrganizationRCProps) => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
-  const note = context.note as OrganizationNote;
 
   return <div>{generateOverviewTable(note, context)}</div>;
 };

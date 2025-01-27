@@ -7,7 +7,6 @@ import { SettlementSchema, type NonLivingDates } from "src/types/frontMatterType
 import { fromError } from "zod-validation-error";
 
 export class SettlementNote extends WBNote {
-  // Front Matter Configuration Values
   dates: NonLivingDates;
   demographics: {
     settlementType: string;
@@ -21,14 +20,13 @@ export class SettlementNote extends WBNote {
   // Calculated values
   population: number;
 
-  constructor(plugin: WorldBuildingPlugin, file: TFile) {
-    super(plugin, file);
+  constructor(plugin: WorldBuildingPlugin, file: TFile, fm: unknown) {
+    super(plugin, file, fm);
   }
 
-  public override async update() {
-    const result = SettlementSchema.safeParse(
-      await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path)
-    );
+  public override update() {
+    super.update();
+    const result = SettlementSchema.safeParse(this.fm);
     if (result.success) {
       const fm = result.data;
       this.wbNoteType = fm.wbNoteType;

@@ -4,9 +4,9 @@ import type WorldBuildingPlugin from "src/main";
 import { WBTalentEnum } from "src/constants";
 import { CharacterSchema, type CharacterFM, type LivingDates } from "src/types/frontMatterTypes";
 import { fromError } from "zod-validation-error";
+import { Logger } from "src/util/Logger";
 
 export class CharacterNote extends WBNote {
-  // Front Matter Configuration Values
   species: LinkText;
   citizenship: LinkText;
   portrait: LinkText;
@@ -23,14 +23,13 @@ export class CharacterNote extends WBNote {
     blessing: WBTalentEnum;
   };
 
-  constructor(plugin: WorldBuildingPlugin, file: TFile) {
-    super(plugin, file);
+  constructor(plugin: WorldBuildingPlugin, file: TFile, fm: unknown) {
+    super(plugin, file, fm);
   }
 
-  public override async update() {
-    const result = CharacterSchema.safeParse(
-      await this.plugin.frontMatterManager.getFrontMatterReadOnly(this.file.path)
-    );
+  public override update() {
+    super.update();
+    const result = CharacterSchema.safeParse(this.fm);
     if (result.success) {
       const fm: CharacterFM = result.data;
       this.wbNoteType = fm.wbNoteType;
@@ -47,9 +46,15 @@ export class CharacterNote extends WBNote {
       }
       this.portrait = newPortrait;
       if (this.portrait.resolvedFile instanceof TFile) {
-        const portraitBinary = await this.plugin.app.vault.readBinary(this.portrait.resolvedFile);
-        const blob = new Blob([portraitBinary], { type: "image/png" });
-        this.portraitUrl = URL.createObjectURL(blob);
+        this.plugin.app.vault.readBinary(this.portrait.resolvedFile).then(
+          (portraitBinary) => {
+            const blob = new Blob([portraitBinary], { type: "image/png" });
+            this.portraitUrl = URL.createObjectURL(blob);
+          },
+          () => {
+            Logger.error(this, "Failed to load portrait binary!");
+          }
+        );
       }
       this.mana = {
         cultivation: fm.mana.cultivation ?? "",

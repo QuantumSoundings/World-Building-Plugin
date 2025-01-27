@@ -1,13 +1,16 @@
-import type { ProseNote } from "src/world/notes/proseNote";
+import { ProseNote } from "src/world/notes/proseNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import { calculateTimeDifference } from "src/util/time";
 import type { CharacterNote } from "src/world/notes/characterNote";
 import type { LinkText } from "src/world/notes/wbNote";
 
-export const ProseRC = () => {
+interface ProseRCProps {
+  note: ProseNote;
+}
+
+export const ProseRC = ({ note }: ProseRCProps) => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
-  const note = context.note as ProseNote;
 
   return (
     <div>

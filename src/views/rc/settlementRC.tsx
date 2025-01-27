@@ -1,11 +1,14 @@
-import type { SettlementNote } from "src/world/notes/settlementNote";
+import { SettlementNote } from "src/world/notes/settlementNote";
 import { formatTable, useWorldEngineViewContext, type RContext } from "./util";
 import type { Profession } from "src/types/dataTypes";
 
-export const SettlementRC = () => {
+interface SettlementRCProps {
+  note: SettlementNote;
+}
+
+export const SettlementRC = ({ note }: SettlementRCProps) => {
   const context = useWorldEngineViewContext();
   if (context === undefined) return <div>Context is undefined</div>;
-  const note = context.note as SettlementNote;
 
   return (
     <div>
