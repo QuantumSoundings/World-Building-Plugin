@@ -18,7 +18,12 @@ export interface RContext {
   popoverParent: HoverParent;
 }
 
-const hoverPopoverHook = (e: any, file: TFile, plugin: WorldBuildingPlugin, popoverParent: any) => {
+const hoverPopoverHook = (
+  e: React.MouseEvent<HTMLAnchorElement>,
+  file: TFile,
+  plugin: WorldBuildingPlugin,
+  popoverParent: HoverParent
+) => {
   plugin.app.workspace.trigger("hover-link", {
     event: e,
     source: WORLD_ENGINE_HOVER_SOURCE,
@@ -32,12 +37,12 @@ const clickLinkHook = async (file: TFile, plugin: WorldBuildingPlugin) => {
   await plugin.app.workspace.openLinkText(file.path, "", true);
 };
 
-const buildAnchorLink = (displayText: string, file: TFile, plugin: WorldBuildingPlugin, popoverParent: any) => {
-  const onMouseOver = (e: any) => {
+const buildAnchorLink = (displayText: string, file: TFile, plugin: WorldBuildingPlugin, popoverParent: HoverParent) => {
+  const onMouseOver = (e: React.MouseEvent<HTMLAnchorElement>) => {
     return hoverPopoverHook(e, file, plugin, popoverParent);
   };
-  const onClick = (_e: any) => {
-    return clickLinkHook(file, plugin);
+  const onClick = () => {
+    return void clickLinkHook(file, plugin);
   };
 
   return (
