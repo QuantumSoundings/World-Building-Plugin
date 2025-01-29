@@ -1,11 +1,9 @@
-/* eslint-disable no-debugger */
-import { parse } from "csv-parse/sync";
-import { stringify } from "csv-stringify/sync";
 import Handsontable from "handsontable";
 import { HyperFormula } from "hyperformula";
 import { type HoverParent, HoverPopover, MarkdownRenderChild, Notice, Setting, TFile, ToggleComponent } from "obsidian";
 import { CSV_HOVER_SOURCE } from "src/constants";
 import WorldBuildingPlugin from "src/main";
+import { CSVUtils } from "src/util/csvUtils";
 import { Logger } from "src/util/Logger";
 
 class TableState {
@@ -104,7 +102,7 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
     this.handsonTable.addHook(
       "afterOnCellMouseOver",
       (event: MouseEvent, coords: Handsontable.CellCoords, TD: HTMLTableCellElement) => {
-        const cellData = this.handsonTable.getSourceDataAtCell(coords.row, coords.col);
+        const cellData = this.handsonTable.getSourceDataAtCell(coords.row, coords.col) as unknown;
         // Bail early if the cell data isn't a string
         if (typeof cellData !== "string") {
           return;
@@ -207,17 +205,17 @@ export class TableComponent extends MarkdownRenderChild implements HoverParent {
   }
 
   public getViewData(): string {
-    const dataCopy = JSON.parse(JSON.stringify(this.rowData));
-    if (this.tableState.headersActive) {
+    const dataCopy = JSON.parse(JSON.stringify(this.rowData)) as unknown[][];
+    if (this.tableState.headersActive && this.headerData instanceof Array) {
       dataCopy.unshift(this.headerData);
     }
 
-    return stringify(dataCopy);
+    return CSVUtils.stringifyCSV(dataCopy);
   }
 
   public setViewData(data: string): void {
     this.loadingBarElement.show();
-    const fileData = parse(data);
+    const fileData = CSVUtils.parseCSV(data, false);
     if (this.headerToggle.getValue()) {
       const parsedHeader = fileData.shift();
       if (parsedHeader !== undefined) {

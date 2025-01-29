@@ -8,8 +8,7 @@ import {
   mapConfigString,
   pointsOfInterestConfigString,
 } from "../constants";
-import { TAbstractFile, TFile } from "obsidian";
-import { parse } from "csv-parse/sync";
+import { TAbstractFile } from "obsidian";
 import { CSVUtils } from "src/util/csvUtils";
 
 interface ConfigInfo<T> {
@@ -30,17 +29,17 @@ export class ConfigManager {
     mapConfigurations: {
       configName: MAP_CONFIG,
       values: [],
-      converter: (data: any) => new MapConfiguration(data),
+      converter: (data: string[] | MapConfiguration | null) => new MapConfiguration(data),
     },
     pointsOfInterest: {
       configName: POINTS_OF_INTEREST_CONFIG,
       values: [],
-      converter: (data: any) => new PointOfInterest(data),
+      converter: (data: string[] | PointOfInterest | null) => new PointOfInterest(data),
     },
     nations: {
       configName: NATIONS_CONFIG_GENERATED,
       values: [],
-      converter: (data: any) => new NationData(data),
+      converter: (data: string[] | NationData | null) => new NationData(data),
     },
   };
 
@@ -63,10 +62,14 @@ export class ConfigManager {
 
   public exportBlankConfigs() {
     const path = this.plugin.settings.configsPath;
-    CSVUtils.writeCSVByPath(`${path}/${MAP_CONFIG}`, CSVUtils.csvParse(mapConfigString, false), this.plugin.app.vault);
-    CSVUtils.writeCSVByPath(
+    void CSVUtils.stringifyAndWriteCSVByPath(
+      `${path}/${MAP_CONFIG}`,
+      CSVUtils.parseCSV(mapConfigString, false),
+      this.plugin.app.vault
+    );
+    void CSVUtils.stringifyAndWriteCSVByPath(
       `${path}/${POINTS_OF_INTEREST_CONFIG}`,
-      CSVUtils.csvParse(pointsOfInterestConfigString, false),
+      CSVUtils.parseCSV(pointsOfInterestConfigString, false),
       this.plugin.app.vault
     );
   }
@@ -81,7 +84,7 @@ export class ConfigManager {
         path.includes(this.configs.nations.configName);
       if (shouldReload) {
         await this.reloadConfigs();
-        this.plugin.worldEngine.triggerUpdate();
+        await this.plugin.worldEngine.triggerUpdate();
       }
     };
 
@@ -94,14 +97,8 @@ export class ConfigManager {
 
   private async loadCSVConfig<T>(info: ConfigInfo<T>) {
     const filePath = `${this.plugin.settings.configsPath}/${info.configName}`;
-    const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
-    if (file !== null && file instanceof TFile) {
-      const content = await this.plugin.app.vault.read(file as TFile);
-      const parsed = parse(content);
-      parsed.shift();
-      const stringArray = CSVUtils.csvArrayToStringArray(parsed);
-      info.values.push(...stringArray.map(info.converter));
-    }
+    const parsed = await CSVUtils.readAndParseCSVByPath(filePath, this.plugin.app.vault, true);
+    info.values.push(...parsed.map(info.converter));
   }
 
   private async loadGeneratedCSVConfig<T>(info: ConfigInfo<T>, overrideFileName?: string) {
@@ -110,13 +107,7 @@ export class ConfigManager {
       fileName = overrideFileName;
     }
     const filePath = `${this.plugin.settings.generatedFilesPath}/${fileName}`;
-    const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
-    if (file !== null && file instanceof TFile) {
-      const content = await this.plugin.app.vault.read(file as TFile);
-      const parsed = parse(content);
-      parsed.shift();
-      const stringArray = CSVUtils.csvArrayToStringArray(parsed);
-      info.values.push(...stringArray.map(info.converter));
-    }
+    const parsed = await CSVUtils.readAndParseCSVByPath(filePath, this.plugin.app.vault, true);
+    info.values.push(...parsed.map(info.converter));
   }
 }

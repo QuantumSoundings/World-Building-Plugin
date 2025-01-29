@@ -1,7 +1,4 @@
-import { WB_NOTE_PROP_NAME } from "src/world/notes/wbNote";
-import { WBNoteTypeEnum } from "src/constants";
 import { Logger } from "./Logger";
-import { stringifyYaml } from "obsidian";
 
 class FrontMatterParsedInfo {
   frontMatterFound: boolean;
@@ -11,15 +8,6 @@ class FrontMatterParsedInfo {
 }
 
 export class FMUtils {
-  static validateWBNoteType(fm: any): boolean {
-    if (fm === null) return false;
-    if (!fm.hasOwnProperty(WB_NOTE_PROP_NAME)) return false;
-    if (fm[WB_NOTE_PROP_NAME] === undefined) return false;
-    const noteType = fm[WB_NOTE_PROP_NAME] as WBNoteTypeEnum;
-    if (!Object.values(WBNoteTypeEnum).includes(noteType)) return false;
-    return true;
-  }
-
   static parseMarkdownFile(content: string): FrontMatterParsedInfo | undefined {
     const parseResults = new FrontMatterParsedInfo();
     parseResults.frontMatterFound = false;

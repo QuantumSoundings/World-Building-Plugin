@@ -50,12 +50,12 @@ export class PSDUtils {
   }
 
   // Not quite perfect. But good enough for now.
-  public static async findLayerIntersection(
+  public static findLayerIntersection(
     layer1: CompositeLayer,
     layer2: CompositeLayer,
     fileWidth: number,
     fileHeight: number
-  ): Promise<number> {
+  ): number {
     // Find the intersection of the two layers.
     // The intersection is the pixels that are not transparent in both layers.
     const layer1Pixels = layer1.composite;
