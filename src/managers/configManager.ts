@@ -61,7 +61,7 @@ export class ConfigManager {
   }
 
   public exportBlankConfigs() {
-    const path = this.plugin.settings.configsPath;
+    const path = this.plugin.settings.configFilesPath;
     void CSVUtils.stringifyAndWriteCSVByPath(
       `${path}/${MAP_CONFIG}`,
       CSVUtils.parseCSV(mapConfigString, false),
@@ -96,7 +96,7 @@ export class ConfigManager {
   }
 
   private async loadCSVConfig<T>(info: ConfigInfo<T>) {
-    const filePath = `${this.plugin.settings.configsPath}/${info.configName}`;
+    const filePath = `${this.plugin.settings.configFilesPath}/${info.configName}`;
     const parsed = await CSVUtils.readAndParseCSVByPath(filePath, this.plugin.app.vault, true);
     info.values.push(...parsed.map(info.converter));
   }

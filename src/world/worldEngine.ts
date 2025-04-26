@@ -22,7 +22,9 @@ export class WorldEngine {
   public async initialize() {
     const files = this.plugin.app.vault.getMarkdownFiles();
     for (const file of files) {
-      await this.createWBNote(file);
+      if (file.path.contains(this.plugin.settings.noteFilesPath)) {
+        await this.createWBNote(file);
+      }
     }
     for (const note of this.notes.values()) {
       note.update();
@@ -78,6 +80,8 @@ export class WorldEngine {
             }
           }
         }
+      } else if (file.path.contains(this.plugin.settings.noteFilesPath)) {
+        await this.createWBNote(file);
       }
     };
     this.plugin.registerEvent(this.plugin.app.vault.on("delete", onFileDeletion));

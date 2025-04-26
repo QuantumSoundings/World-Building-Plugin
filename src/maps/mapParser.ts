@@ -22,7 +22,7 @@ export class MapParser {
     this.parsedPointsOfInterest = [];
     const allFiles = this.plugin.app.vault.getAllLoadedFiles();
     for (const file of allFiles) {
-      if (file.name.endsWith(".psd")) {
+      if (file.path.contains(this.plugin.settings.mapFilesPath) && file.name.endsWith(".psd")) {
         await this.processPsd(file);
       }
     }
@@ -40,7 +40,7 @@ export class MapParser {
     for (const politicalLayer of groupedLayers.politicalLayers) {
       const nationData = new NationData(null);
       nationData.nationName = politicalLayer.layer.name;
-      const rawPixelCount = await PSDUtils.findLayerIntersection(
+      const rawPixelCount = PSDUtils.findLayerIntersection(
         groupedLayers.baseLayer,
         politicalLayer,
         psd.width,
@@ -53,14 +53,14 @@ export class MapParser {
   }
 
   private async saveProcessedMaps() {
-    CSVUtils.writeCSVByPath(
+    await CSVUtils.stringifyAndWriteCSVByPath(
       `${this.plugin.settings.generatedFilesPath}/${NATIONS_CONFIG_GENERATED}`,
       this.parsedMaps,
       this.plugin.app.vault,
       { header: true }
     );
 
-    CSVUtils.writeCSVByPath(
+    await CSVUtils.stringifyAndWriteCSVByPath(
       `${this.plugin.settings.generatedFilesPath}/${POI_CONFIG_GENERATED}`,
       this.parsedPointsOfInterest,
       this.plugin.app.vault,

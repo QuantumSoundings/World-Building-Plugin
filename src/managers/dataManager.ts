@@ -163,7 +163,7 @@ export class DataManager {
   private async loadCSVDataset<T>(info: DatasetInfo<T>) {
     info.default = CSVUtils.parseCSV(info.data, true).map(info.converter);
 
-    const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
+    const filePath = `${this.plugin.settings.datasetFilesPath}/${info.datasetName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (file === null || file instanceof TFolder) {
       // If the file is not found or is a folder, return the default data.
@@ -179,7 +179,7 @@ export class DataManager {
     info.default = parsedData.map(info.converter);
 
     const fm = await this.plugin.frontMatterManager.getFrontMatter(
-      `${this.plugin.settings.datasetsPath}/${info.datasetName}`
+      `${this.plugin.settings.datasetFilesPath}/${info.datasetName}`
     );
     if ("data" in fm) {
       info.live = fm.data.map(info.converter);
@@ -188,7 +188,7 @@ export class DataManager {
   }
 
   private writeCSVDataset<T>(info: DatasetInfo<T>) {
-    const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
+    const filePath = `${this.plugin.settings.datasetFilesPath}/${info.datasetName}`;
     CSVUtils.stringifyAndWriteCSVByPath(filePath, info.data, this.plugin.app.vault).then(
       () => {},
       () => {
@@ -198,7 +198,7 @@ export class DataManager {
   }
 
   private writeFMDataset<T>(info: DatasetInfo<T>) {
-    const filePath = `${this.plugin.settings.datasetsPath}/${info.datasetName}`;
+    const filePath = `${this.plugin.settings.datasetFilesPath}/${info.datasetName}`;
     const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (file === null) {
       this.plugin.app.vault.create(filePath, `---\n${info.data}\n---`);

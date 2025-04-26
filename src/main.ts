@@ -171,7 +171,7 @@ export default class WorldBuildingPlugin extends Plugin {
           new Notice("Configs have been exported!", 2000);
           return true;
         } else {
-          return this.settings.configsPath !== "";
+          return this.settings.configFilesPath !== "";
         }
       },
     });
@@ -186,7 +186,7 @@ export default class WorldBuildingPlugin extends Plugin {
           new Notice("Datasets have been exported!", 2000);
           return true;
         } else {
-          return this.settings.datasetsPath !== "";
+          return this.settings.datasetFilesPath !== "";
         }
       },
     });
