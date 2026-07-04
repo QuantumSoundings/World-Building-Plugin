@@ -180,6 +180,8 @@ export class MapConfiguration {
   unitWidth: number;
   unit: string;
   geometry: string;
+  pixelHeight: number;
+  pixelWidth: number;
 
   constructor(data: string[] | MapConfiguration | null) {
     if (data instanceof MapConfiguration) {
@@ -188,12 +190,16 @@ export class MapConfiguration {
       this.unitWidth = data.unitWidth;
       this.unit = data.unit;
       this.geometry = data.geometry;
+      this.pixelHeight = data.pixelHeight;
+      this.pixelWidth = data.pixelWidth;
     } else if (data instanceof Array) {
       this.mapName = data[0];
       this.unitHeight = parseFloat(data[1]);
       this.unitWidth = parseFloat(data[2]);
       this.unit = data[3];
       this.geometry = data[4];
+      this.pixelHeight = parseFloat(data[5]);
+      this.pixelWidth = parseFloat(data[6]);
     }
   }
 }
@@ -228,17 +234,26 @@ export class PointOfInterest {
 export class NationData {
   nationName: string;
   nationSizePercent: number;
+  nationSizePercentDisplay: string;
+  nationSize: number;
+  unit: string;
   mapName: string;
 
   constructor(data: string[] | NationData | null) {
     if (data instanceof NationData) {
       this.nationName = data.nationName;
       this.nationSizePercent = data.nationSizePercent;
+      this.nationSizePercentDisplay = data.nationSizePercentDisplay;
+      this.nationSize = data.nationSize;
+      this.unit = data.unit;
       this.mapName = data.mapName;
     } else if (data instanceof Array) {
       this.nationName = data[0];
       this.nationSizePercent = parseFloat(data[1]);
-      this.mapName = data[2];
+      this.nationSizePercentDisplay = data[2];
+      this.nationSize = parseFloat(data[3]);
+      this.unit = data[4];
+      this.mapName = data[5];
     }
   }
 }

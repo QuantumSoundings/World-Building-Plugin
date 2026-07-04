@@ -12,12 +12,14 @@ export class GroupedLayers {
   baseLayer: CompositeLayer;
   politicalLayers: CompositeLayer[] = [];
   pointsOfInterest: PointOfInterest[] = [];
+  geographyLayers: CompositeLayer[] = [];
 }
 
 const BASE_LAYER_NAME = "Base";
 const TOPOGRAPHY_GROUP_NAME = "Topography";
 const POLITICAL_GROUP_NAME = "Political";
 const POINTS_OF_INTEREST_GROUP_NAME = "Points of Interest";
+const GEOGRAPHY_GROUP_NAME = "Geography";
 
 export class PSDUtils {
   public static async layerToCompositeLayer(layer: Layer): Promise<CompositeLayer> {
@@ -44,9 +46,28 @@ export class PSDUtils {
         poi.relY = (layer.top + layer.height / 2) / psd.height;
         poi.mapIcon = "x";
         groupedLayers.pointsOfInterest.push(poi);
+      } else if (layer.parent.name === GEOGRAPHY_GROUP_NAME) {
+        const compositeLayer = await this.layerToCompositeLayer(layer);
+        groupedLayers.geographyLayers.push(compositeLayer);
       }
     }
     return groupedLayers;
+  }
+
+  public static countPixelsForLayer(layer: CompositeLayer): number {
+    let pixelCount = 0;
+    const layerPixels = layer.composite;
+    for (let index = 0; index < layerPixels.length; index += 4) {
+      if (
+        layerPixels[index] !== 0 ||
+        layerPixels[index + 1] !== 0 ||
+        layerPixels[index + 2] !== 0 ||
+        layerPixels[index + 3] !== 0
+      ) {
+        pixelCount++;
+      }
+    }
+    return pixelCount;
   }
 
   // Not quite perfect. But good enough for now.
@@ -54,7 +75,7 @@ export class PSDUtils {
     layer1: CompositeLayer,
     layer2: CompositeLayer,
     fileWidth: number,
-    fileHeight: number
+    fileHeight: number,
   ): number {
     // Find the intersection of the two layers.
     // The intersection is the pixels that are not transparent in both layers.

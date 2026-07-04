@@ -196,7 +196,7 @@ export default class WorldBuildingPlugin extends Plugin {
       name: "Process Maps",
       checkCallback: (checking: boolean) => {
         if (!checking) {
-          this.mapParser.parseAllMaps().then(() => {
+          this.mapParser.parseAllMaps(this.configManager.getMapConfiguration()).then(() => {
             new Notice("Maps have been processed and saved!", 2000);
           });
         }
@@ -319,7 +319,7 @@ export default class WorldBuildingPlugin extends Plugin {
               });
           });
         }
-      })
+      }),
     );
 
     this.registerEvent(
@@ -332,7 +332,7 @@ export default class WorldBuildingPlugin extends Plugin {
               navigator.clipboard.writeText(file.path);
             });
         });
-      })
+      }),
     );
   }
 

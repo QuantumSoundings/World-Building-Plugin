@@ -1,2 +1,2 @@
-robocopy "G:\World Building\World-Building-Plugin\output" "G:\World Building\World Building Vault\.obsidian\plugins\world-building-plugin" main.js
-robocopy "G:\World Building\World-Building-Plugin" "G:\World Building\World Building Vault\.obsidian\plugins\world-building-plugin" manifest.json ".hotreload" styles.css
+robocopy "D:\World Building\World-Building-Plugin\output" "D:\World Building\World Building Vault\World Building\.obsidian\plugins\world-building-plugin" main.js
+robocopy "D:\World Building\World-Building-Plugin" "D:\World Building\World Building Vault\World Building\.obsidian\plugins\world-building-plugin" manifest.json ".hotreload" styles.css

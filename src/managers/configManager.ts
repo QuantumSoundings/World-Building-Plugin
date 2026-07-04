@@ -65,12 +65,12 @@ export class ConfigManager {
     void CSVUtils.stringifyAndWriteCSVByPath(
       `${path}/${MAP_CONFIG}`,
       CSVUtils.parseCSV(mapConfigString, false),
-      this.plugin.app.vault
+      this.plugin.app.vault,
     );
     void CSVUtils.stringifyAndWriteCSVByPath(
       `${path}/${POINTS_OF_INTEREST_CONFIG}`,
       CSVUtils.parseCSV(pointsOfInterestConfigString, false),
-      this.plugin.app.vault
+      this.plugin.app.vault,
     );
   }
 
@@ -93,6 +93,10 @@ export class ConfigManager {
 
   public getPointsOfInterestByMap(mapName: string): PointOfInterest[] {
     return this.configs.pointsOfInterest.values.filter((poi) => poi.mapName === mapName);
+  }
+
+  public getMapConfiguration(): MapConfiguration[] {
+    return this.configs.mapConfigurations.values;
   }
 
   private async loadCSVConfig<T>(info: ConfigInfo<T>) {
